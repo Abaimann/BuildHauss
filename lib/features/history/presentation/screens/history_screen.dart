@@ -33,104 +33,99 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> with SingleTicker
   Widget build(BuildContext context) {
     final activeMotor = ref.watch(activeMotorcycleProvider);
 
+    // Handle null activeMotor - show empty state if no motorcycle selected
+    if (activeMotor == null) {
+      return Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.two_wheeler, size: 64, color: context.muted),
+              const SizedBox(height: 16),
+              Text(
+                'Pilih motor untuk melihat riwayat',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Pilih motor di halaman Beranda untuk melihat riwayat servis, odometer, dan pengingat.',
+                style: TextStyle(color: context.muted),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => context.go('/'),
+                child: const Text('Ke Beranda'),
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: null,
+      );
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          SliverAppBar(
-            expandedHeight: 90,
-            floating: true,
-            pinned: true,
-            backgroundColor: context.bg,
-            surfaceTintColor: Colors.transparent,
-            actions: activeMotor != null
-                ? [
-                    IconButton(
-                      icon: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: context.ink,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(Icons.add, color: context.bg, size: 20),
-                      ),
-                      onPressed: () => context.push('/history/add'),
-                    ),
-                    const SizedBox(width: 8),
-                  ]
-                : null,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [context.surface, context.bg],
-                  ),
-                ),
-                padding: const EdgeInsets.fromLTRB(16, 56, 16, 0),
-                child: Row(
-                  children: [
-                    const BuildHausLogoCompact(size: 36),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text('Riwayat Servis', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: context.ink)),
-                    ),
-                    if (activeMotor != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(color: context.soft, borderRadius: BorderRadius.circular(99)),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(activeMotor.emoji, style: const TextStyle(fontSize: 16)),
-                            const SizedBox(width: 4),
-                            Text(activeMotor.nickname.split(' ').first, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: context.ink)),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
+      body: Column(
+        children: [
+          // AppBar dengan tab bar di dalam
+          SizedBox(
+            height: kToolbarHeight + 60,
+            child: AppBar(
+              surfaceTintColor: Colors.transparent,
+              scrolledUnderElevation: 0,
+              backgroundColor: context.bg,
+              foregroundColor: context.ink,
+              title: const Text('Riwayat Servis'),
+              bottom: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                indicatorColor: context.ink,
+                labelColor: context.ink,
+                unselectedLabelColor: context.muted,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                unselectedLabelStyle: const TextStyle(fontSize: 13),
+                tabs: const [
+                  Tab(text: 'Servis'),
+                  Tab(text: 'Odometer'),
+                  Tab(text: 'Pengingat'),
+                ],
               ),
+              actions: [
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: context.ink,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.add, color: context.bg, size: 20),
+                  ),
+                  onPressed: () => context.push('/history/add'),
+                ),
+                const SizedBox(width: 8),
+              ],
             ),
-            bottom: TabBar(
+          ),
+          // TabBarView di bawah AppBar
+          Expanded(
+            child: TabBarView(
               controller: _tabController,
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              indicatorColor: context.ink,
-              labelColor: context.ink,
-              unselectedLabelColor: context.muted,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-              unselectedLabelStyle: const TextStyle(fontSize: 13),
-              tabs: const [
-                Tab(text: 'Servis'),
-                Tab(text: 'Odometer'),
-                Tab(text: 'Pengingat'),
+              children: [
+                _ServiceHistoryTab(motorcycle: activeMotor),
+                _OdometerHistoryTab(motorcycle: activeMotor),
+                _RemindersTab(motorcycle: activeMotor),
               ],
             ),
           ),
         ],
-        body: activeMotor == null
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.two_wheeler, size: 48, color: context.muted),
-                    const SizedBox(height: 12),
-                    Text('Pilih motor untuk melihat riwayat', style: TextStyle(color: context.muted)),
-                    const SizedBox(height: 16),
-                    ElevatedButton(onPressed: () => context.go('/'), child: const Text('Ke Beranda')),
-                  ],
-                ),
-              )
-            : TabBarView(
-                controller: _tabController,
-                children: [
-                  _ServiceHistoryTab(motorcycle: activeMotor),
-                  _OdometerHistoryTab(motorcycle: activeMotor),
-                  _RemindersTab(motorcycle: activeMotor),
-                ],
-              ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/history/add'),
+        backgroundColor: context.ink,
+        foregroundColor: context.bg,
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -176,7 +171,9 @@ class _ServiceRecordTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalCost = record.totalCost;
-    final costText = totalCost > 0 ? 'Rp ${totalCost.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}' : 'Gratis';
+    final costText = totalCost > 0
+        ? 'Rp ${totalCost.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}'
+        : 'Gratis';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -340,7 +337,6 @@ class _RemindersTab extends ConsumerWidget {
           itemCount: reminders.length,
           itemBuilder: (context, i) {
             final r = reminders[i];
-            final dueDate = r.dueDate;
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Container(
@@ -374,7 +370,7 @@ class _RemindersTab extends ConsumerWidget {
                             r.reminderType,
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: context.ink),
                           ),
-                          if (dueDate != null) Text(_formatDate(dueDate), style: TextStyle(fontSize: 11, color: context.muted)),
+                          if (r.dueDate != null) Text(_formatDate(r.dueDate ?? DateTime.now()), style: TextStyle(fontSize: 11, color: context.muted)),
                           if (r.dueOdometerKm != null) Text('Pada ${r.dueOdometerKm!.toStringAsFixed(0)} km', style: TextStyle(fontSize: 11, color: context.muted)),
                         ],
                       ),
