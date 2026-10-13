@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+  
+  <!-- Garage/House shape -->
+  <path
+    android:fillColor="#1b1b1b"
+    android:pathData="M22,55 L54,25 L86,55 L86,82 L22,82 Z"/>
+  
+  <!-- Roof accent -->
+  <path
+    android:strokeColor="#ffffff"
+    android:strokeWidth="3"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:fillColor="#00000000"
+    android:pathData="M18,55 L54,22 L90,55"/>
+  
+  <!-- House body -->
+  <path
+    android:strokeColor="#ffffff"
+    android:strokeWidth="3"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:fillColor="#00000000"
+    android:pathData="M24,55 L24,82 L84,82 L84,55"/>
+  
+  <!-- Garage door opening -->
+  <path
+    android:strokeColor="#ffffff"
+    android:strokeWidth="2.5"
+    android:strokeLineCap="round"
+    android:fillColor="#00000000"
+    android:pathData="M40,82 L40,64 L68,64 L68,82"/>
+  
+  <!-- Motorcycle wheel 1 (front) - using path for circle -->
+  <path
+    android:fillColor="#3da96e"
+    android:pathData="M38,77 a5,5 0 1,0 0.001,0"/>
+  
+  <!-- Motorcycle wheel 2 (rear) - using path for circle -->
+  <path
+    android:fillColor="#3da96e"
+    android:pathData="M58,77 a5,5 0 1,0 0.001,0"/>
+  
+  <!-- Motorcycle frame hint -->
+  <path
+    android:strokeColor="#3da96e"
+    android:strokeWidth="2"
+    android:strokeLineCap="round"
+    android:fillColor="#00000000"
+    android:pathData="M36,68 Q48,62 60,68"/>
+  
+  <!-- Wrench tool -->
+  <path
+    android:strokeColor="#c9913a"
+    android:strokeWidth="2"
+    android:strokeLineCap="round"
+    android:fillColor="#00000000"
+    android:pathData="M65,58 L72,65 M70,61 L76,67"/>
+  
+  <!-- Check badge circle - using path -->
+  <path
+    android:fillColor="#3da96e"
+    android:pathData="M80,48 a10,10 0 1,0 0.001,0"/>
+  
+  <!-- Checkmark in badge -->
+  <path
+    android:strokeColor="#ffffff"
+    android:strokeWidth="2"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:fillColor="#00000000"
+    android:pathData="M76,38 L79,41 L85,35"/>
+</vector>

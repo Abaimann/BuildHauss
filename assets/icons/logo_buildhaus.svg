@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Background circle -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a2a2a"/>
+      <stop offset="100%" stop-color="#101010"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#c8c8c8"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer ring -->
+  <circle cx="64" cy="64" r="60" fill="url(#bg)" stroke="#333" stroke-width="2"/>
+  
+  <!-- House roof -->
+  <path d="M20 68 L64 28 L108 68" fill="none" stroke="url(#accent)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- House body / garage -->
+  <path d="M28 68 L28 95 L100 95 L100 68" fill="none" stroke="url(#accent)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Door -->
+  <path d="M52 95 L52 76 L76 76 L76 95" fill="none" stroke="url(#accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Wrench tool on door (motorcycle service) -->
+  <path d="M58 82 L62 78 L66 82 L62 86 Z" fill="#ffffff" opacity="0.9"/>
+  
+  <!-- Motorcycle wheel hints inside house -->
+  <circle cx="44" cy="82" r="6" fill="none" stroke="#666" stroke-width="2.5"/>
+  <circle cx="84" cy="82" r="6" fill="none" stroke="#666" stroke-width="2.5"/>
+  
+  <!-- Speed lines / motion -->
+  <path d="M12 55 L18 55" stroke="#3da96e" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M10 64 L20 64" stroke="#3da96e" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M12 73 L18 73" stroke="#3da96e" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Checkmark badge -->
+  <circle cx="100" cy="36" r="14" fill="#3da96e"/>
+  <path d="M94 36 L98 40 L106 32" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
