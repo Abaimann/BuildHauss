@@ -72,6 +72,7 @@ final appRouter = GoRouter(
     GoRoute(path: '/licenses', builder: (_, __) => const BudgetScreen()),
     GoRoute(path: '/complaints', builder: (_, __) => const ComplaintsScreen()),
     GoRoute(path: '/complaints/new', builder: (_, __) => const NewComplaintScreen()),
+    GoRoute(path: '/history/add', builder: (_, __) => const AddServiceScreen()),
     GoRoute(path: '/complaints/:id', builder: (_, state) => ComplaintDetailScreen(complaintId: int.parse(state.pathParameters['id']!))),
     GoRoute(path: '/ai-chat', builder: (_, __) => const AiAssistantScreen()),
     GoRoute(path: '/ai-model', builder: (_, __) => const AiModelManagerScreen()),

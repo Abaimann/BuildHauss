@@ -263,23 +263,27 @@ class _PartCard extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: context.soft, borderRadius: BorderRadius.circular(4)),
-                    child: Text(part.category, style: TextStyle(fontSize: 9, color: context.muted, fontWeight: FontWeight.w600)),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(part.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.ink), maxLines: 2, overflow: TextOverflow.ellipsis),
-                  if (part.brand != null && part.brand!.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(part.brand!, style: TextStyle(fontSize: 10, color: context.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
+              child: SizedBox(
+                height: 88,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(color: context.soft, borderRadius: BorderRadius.circular(4)),
+                      child: Text(part.category, style: TextStyle(fontSize: 9, color: context.muted, fontWeight: FontWeight.w600)),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(part.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.ink), maxLines: 2, overflow: TextOverflow.ellipsis),
+                    if (part.brand != null && part.brand!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(part.brand!, style: TextStyle(fontSize: 10, color: context.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ],
+                    const Spacer(),
+                    Text(priceText, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: BuildHausTheme.warn)),
                   ],
-                  const Spacer(),
-                  Text(priceText, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: BuildHausTheme.warn)),
-                ],
+                ),
               ),
             ),
           ],

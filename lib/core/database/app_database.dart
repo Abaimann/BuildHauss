@@ -32,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   static QueryExecutor _openConnection() {
     return driftDatabase(name: 'buildhaus_db');
@@ -45,9 +45,13 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
         await _seedComponentTypes();
         await _seedDefaultSettings();
+        await _seedSpareparts();
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        // Future migrations here
+        // Seed spareparts on first upgrade to schema v2+
+        if (from < 2) {
+          await _seedSpareparts();
+        }
       },
     );
   }
@@ -82,6 +86,99 @@ class AppDatabase extends _$AppDatabase {
 
     for (final c in components) {
       await into(componentTypes).insert(c, mode: InsertMode.insertOrIgnore);
+    }
+  }
+
+  Future<void> _seedSpareparts() async {
+    final items = [
+      // Oli Mesin
+      SparepartsCompanion.insert(name: 'Pertamina Enduro 4T Max 10W-40', category: 'oli', referencePrice: const Value(42000), brand: const Value('Pertamina'), partNumber: const Value('SC-SAE10W40')),
+      SparepartsCompanion.insert(name: 'Castrol Activ 4T 10W-40', category: 'oli', referencePrice: const Value(55000), brand: const Value('Castrol'), partNumber: const Value('CA-4T10W40')),
+      SparepartsCompanion.insert(name: 'Shell Advance AX7 10W-40', category: 'oli', referencePrice: const Value(58000), brand: const Value('Shell'), partNumber: const Value('SH-AX7')),
+      SparepartsCompanion.insert(name: 'Federal Super 4T 10W-40', category: 'oli', referencePrice: const Value(38000), brand: const Value('Federal'), partNumber: const Value('FD-4T40')),
+      SparepartsCompanion.insert(name: 'Yamaha Yamalube 4T 10W-40', category: 'oli', referencePrice: const Value(65000), brand: const Value('Yamaha'), partNumber: const Value('YM-4T40')),
+      SparepartsCompanion.insert(name: 'Honda Aoil 4T 10W-30', category: 'oli', referencePrice: const Value(48000), brand: const Value('Honda'), partNumber: const Value('HN-AOIL')),
+      SparepartsCompanion.insert(name: 'Motul 3100 4T 10W-40', category: 'oli', referencePrice: const Value(95000), brand: const Value('Motul'), partNumber: const Value('MT-3100')),
+      SparepartsCompanion.insert(name: 'Repsol Moto 4T 10W-40', category: 'oli', referencePrice: const Value(72000), brand: const Value('Repsol'), partNumber: const Value('RP-MOTO')),
+
+      // Kampas Rem
+      SparepartsCompanion.insert(name: 'Kampas Rem Depan Honda Beat', category: 'rem', referencePrice: const Value(35000), brand: const Value('astra'), partNumber: const Value('AS-BTFR')),
+      SparepartsCompanion.insert(name: 'Kampas Rem Belakang Honda Beat', category: 'rem', referencePrice: const Value(28000), brand: const Value('astra'), partNumber: const Value('AS-BTBR')),
+      SparepartsCompanion.insert(name: 'Kampas Rem Depan Yamaha NMAX', category: 'rem', referencePrice: const Value(55000), brand: const Value('Nissin'), partNumber: const Value('NS-NMAXFR')),
+      SparepartsCompanion.insert(name: 'Kampas Rem Belakang Yamaha NMAX', category: 'rem', referencePrice: const Value(42000), brand: const Value('Nissin'), partNumber: const Value('NS-NMAXBR')),
+      SparepartsCompanion.insert(name: 'Kampas Rem Depan Honda Vario', category: 'rem', referencePrice: const Value(48000), brand: const Value('akebono'), partNumber: const Value('AK-VarioFR')),
+      SparepartsCompanion.insert(name: 'Kampas Rem Universal Motor', category: 'rem', referencePrice: const Value(22000), brand: const Value('generic'), partNumber: const Value('GEN-REM')),
+
+      // Busi
+      SparepartsCompanion.insert(name: 'NGK CPR8EA-9 Busi Iridium', category: 'busi', referencePrice: const Value(55000), brand: const Value('NGK'), partNumber: const Value('NGK-CPR8EA9')),
+      SparepartsCompanion.insert(name: 'NGK CR7HSA Busi Standard', category: 'busi', referencePrice: const Value(25000), brand: const Value('NGK'), partNumber: const Value('NGK-CR7HSA')),
+      SparepartsCompanion.insert(name: 'Denso U22FER9 Busi Iridium', category: 'busi', referencePrice: const Value(48000), brand: const Value('Denso'), partNumber: const Value('DN-U22FER9')),
+      SparepartsCompanion.insert(name: 'Denso W24ESR Busi Standard', category: 'busi', referencePrice: const Value(28000), brand: const Value('Denso'), partNumber: const Value('DN-W24ESR')),
+      SparepartsCompanion.insert(name: 'Bosch Iridium Busi Iridium', category: 'busi', referencePrice: const Value(62000), brand: const Value('Bosch'), partNumber: const Value('BS-IRI')),
+      SparepartsCompanion.insert(name: 'Honda Genuine Busi', category: 'busi', referencePrice: const Value(35000), brand: const Value('Honda'), partNumber: const Value('HN-BUSI')),
+
+      // Filter Udara
+      SparepartsCompanion.insert(name: 'Filter Udara Honda Beat', category: 'filter', referencePrice: const Value(28000), brand: const Value('Honda'), partNumber: const Value('HN-BEATFL')),
+      SparepartsCompanion.insert(name: 'Filter Udara Yamaha NMAX', category: 'filter', referencePrice: const Value(45000), brand: const Value('Yamaha'), partNumber: const Value('YM-NMAXFL')),
+      SparepartsCompanion.insert(name: 'Filter Udara Honda Vario 125/150', category: 'filter', referencePrice: const Value(32000), brand: const Value('Honda'), partNumber: const Value('HN-VARFL')),
+      SparepartsCompanion.insert(name: 'Filter Udara Yamaha Aerox', category: 'filter', referencePrice: const Value(38000), brand: const Value('Yamaha'), partNumber: const Value('YM-AEROFL')),
+      SparepartsCompanion.insert(name: 'Filter Udara Universal', category: 'filter', referencePrice: const Value(18000), brand: const Value('generic'), partNumber: const Value('GEN-URFL')),
+      SparepartsCompanion.insert(name: 'Filter Udara Honda Scoopy', category: 'filter', referencePrice: const Value(25000), brand: const Value('Honda'), partNumber: const Value('HN-SCPFL')),
+
+      // Ban
+      SparepartsCompanion.insert(name: 'IRC Tire SS-590 Depan 70/90-17', category: 'ban', referencePrice: const Value(195000), brand: const Value('IRC'), partNumber: const Value('IRC-SS590F')),
+      SparepartsCompanion.insert(name: 'IRC Tire NH-210 Belakang 80/90-17', category: 'ban', referencePrice: const Value(220000), brand: const Value('IRC'), partNumber: const Value('IRC-NH210B')),
+      SparepartsCompanion.insert(name: 'Michelin City Pro Depan 70/90-17', category: 'ban', referencePrice: const Value(280000), brand: const Value('Michelin'), partNumber: const Value('MC-CITYF')),
+      SparepartsCompanion.insert(name: 'Michelin City Pro Belakang 80/90-17', category: 'ban', referencePrice: const Value(320000), brand: const Value('Michelin'), partNumber: const Value('MC-CITYB')),
+      SparepartsCompanion.insert(name: 'Pirelli Diablo Scooter Depan', category: 'ban', referencePrice: const Value(350000), brand: const Value('Pirelli'), partNumber: const Value('PR-SCOOTF')),
+      SparepartsCompanion.insert(name: 'Pirelli Diablo Scooter Belakang', category: 'ban', referencePrice: const Value(380000), brand: const Value('Pirelli'), partNumber: const Value('PR-SCOOTB')),
+      SparepartsCompanion.insert(name: 'Bridgestone B-Series Depan', category: 'ban', referencePrice: const Value(250000), brand: const Value('Bridgestone'), partNumber: const Value('BT-BSF')),
+      SparepartsCompanion.insert(name: 'Bridgestone B-Series Belakang', category: 'ban', referencePrice: const Value(290000), brand: const Value('Bridgestone'), partNumber: const Value('BT-BSB')),
+
+      // Aki
+      SparepartsCompanion.insert(name: 'Yuasa YTZ10S Aki MF', category: 'aki', referencePrice: const Value(480000), brand: const Value('Yuasa'), partNumber: const Value('YU-TZ10S')),
+      SparepartsCompanion.insert(name: 'GS Astra MF Battery 5Ah', category: 'aki', referencePrice: const Value(380000), brand: const Value('GS Astra'), partNumber: const Value('GS-MF5Ah')),
+      SparepartsCompanion.insert(name: 'Honda Aki MF 5Ah', category: 'aki', referencePrice: const Value(420000), brand: const Value('Honda'), partNumber: const Value('HN-AKIMF5')),
+      SparepartsCompanion.insert(name: 'Yuasa YB16AL-A2 Aki Konvensional', category: 'aki', referencePrice: const Value(280000), brand: const Value('Yuasa'), partNumber: const Value('YU-YB16AL')),
+      SparepartsCompanion.insert(name: 'Incoe MF Battery 5Ah', category: 'aki', referencePrice: const Value(320000), brand: const Value('Incoe'), partNumber: const Value('IC-MF5Ah')),
+
+      // Rantai Kit
+      SparepartsCompanion.insert(name: 'TK Chain 428H-110 Rantai Kit', category: 'rantai', referencePrice: const Value(95000), brand: const Value('TK Chain'), partNumber: const Value('TK-428H110')),
+      SparepartsCompanion.insert(name: 'RK 428GF-110 Rantai Kit', category: 'rantai', referencePrice: const Value(120000), brand: const Value('RK Chain'), partNumber: const Value('RK-428GF')),
+      SparepartsCompanion.insert(name: 'DID 428VX-110 Rantai Kit', category: 'rantai', referencePrice: const Value(180000), brand: const Value('DID'), partNumber: const Value('DD-428VX')),
+      SparepartsCompanion.insert(name: 'Tahan Lama 415-108 Rantai Kit', category: 'rantai', referencePrice: const Value(75000), brand: const Value('Tahan Lama'), partNumber: const Value('TL-415108')),
+      SparepartsCompanion.insert(name: 'Gear Depan 15 Gigi', category: 'rantai', referencePrice: const Value(35000), brand: const Value('generic'), partNumber: const Value('GEN-GF15')),
+      SparepartsCompanion.insert(name: 'Gear Belakang 38 Gigi', category: 'rantai', referencePrice: const Value(55000), brand: const Value('generic'), partNumber: const Value('GEN-GB38')),
+
+      // V-Belt / CVT
+      SparepartsCompanion.insert(name: 'V-Belt Honda Beat Original', category: 'cvt', referencePrice: const Value(85000), brand: const Value('Honda'), partNumber: const Value('HN-BEATVB')),
+      SparepartsCompanion.insert(name: 'V-Belt Yamaha NMAX Original', category: 'cvt', referencePrice: const Value(120000), brand: const Value('Yamaha'), partNumber: const Value('YM-NMAXVB')),
+      SparepartsCompanion.insert(name: 'Dayco V-Belt Hyperflex', category: 'cvt', referencePrice: const Value(95000), brand: const Value('Dayco'), partNumber: const Value('DC-HYPER')),
+      SparepartsCompanion.insert(name: 'Mitsubishi V-Belt', category: 'cvt', referencePrice: const Value(72000), brand: const Value('Mitsubishi'), partNumber: const Value('MC-VBELT')),
+      SparepartsCompanion.insert(name: 'Arai V-Belt CVT Premium', category: 'cvt', referencePrice: const Value(110000), brand: const Value('Arai'), partNumber: const Value('AR-CVTPREM')),
+
+      // Shock Absorber
+      SparepartsCompanion.insert(name: 'Showa Shock Depan Honda Beat', category: 'shock', referencePrice: const Value(380000), brand: const Value('Showa'), partNumber: const Value('SH-BEATSF')),
+      SparepartsCompanion.insert(name: 'Kayaba Shock Depan Yamaha NMAX', category: 'shock', referencePrice: const Value(520000), brand: const Value('Kayaba'), partNumber: const Value('KY-NMAXSF')),
+      SparepartsCompanion.insert(name: 'S1 Shock Belakang Universal', category: 'shock', referencePrice: const Value(280000), brand: const Value('S1'), partNumber: const Value('S1-UNISB')),
+      SparepartsCompanion.insert(name: 'Toni Shock Belakang Motor Bebek', category: 'shock', referencePrice: const Value(180000), brand: const Value('Toni'), partNumber: const Value('TN-BEKB')),
+      SparepartsCompanion.insert(name: 'Showalter Rear Shock Honda Vario', category: 'shock', referencePrice: const Value(450000), brand: const Value('Showalter'), partNumber: const Value('SW-VARSB')),
+
+      // Kopling
+      SparepartsCompanion.insert(name: 'Kampas Kopling Honda Supra', category: 'kopling', referencePrice: const Value(42000), brand: const Value('Honda'), partNumber: const Value('HN-SUPRAKL')),
+      SparepartsCompanion.insert(name: 'Plat Kopling Yamaha Mio', category: 'kopling', referencePrice: const Value(55000), brand: const Value('Yamaha'), partNumber: const Value('YM-MIOKL')),
+      SparepartsCompanion.insert(name: 'Kampas Kopling Universal Motor', category: 'kopling', referencePrice: const Value(28000), brand: const Value('generic'), partNumber: const Value('GEN-KL')),
+      SparepartsCompanion.insert(name: 'Pulley Kit Honda Beat', category: 'kopling', referencePrice: const Value(220000), brand: const Value('Honda'), partNumber: const Value('HN-BEATPK')),
+
+      // Kelistrikan
+      SparepartsCompanion.insert(name: 'Koil Pengapian Honda Beat', category: 'kelistrikan', referencePrice: const Value(85000), brand: const Value('Honda'), partNumber: const Value('HN-BEATCL')),
+      SparepartsCompanion.insert(name: 'Starter Motor Honda Beat', category: 'kelistrikan', referencePrice: const Value(380000), brand: const Value('Honda'), partNumber: const Value('HN-BEATSM')),
+      SparepartsCompanion.insert(name: 'Regulator Rectifier Universal', category: 'kelistrikan', referencePrice: const Value(95000), brand: const Value('generic'), partNumber: const Value('GEN-REG')),
+      SparepartsCompanion.insert(name: 'Relay Starter Motor', category: 'kelistrikan', referencePrice: const Value(45000), brand: const Value('generic'), partNumber: const Value('GEN-RELAY')),
+    ];
+
+    for (final s in items) {
+      await into(spareparts).insert(s, mode: InsertMode.insertOrIgnore);
     }
   }
 

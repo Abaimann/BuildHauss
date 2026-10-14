@@ -232,6 +232,7 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
       final db = ref.read(databaseProvider);
       await db.deleteMotorcycle(widget.id);
       ref.invalidate(motorcyclesProvider);
+      ref.invalidate(activeMotorcycleProvider);
       await ref.read(activeMotorcycleProvider.notifier).refresh();
       if (mounted) {
         context.go('/home');

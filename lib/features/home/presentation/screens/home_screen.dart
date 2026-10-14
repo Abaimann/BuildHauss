@@ -280,32 +280,36 @@ class _MotorSelector extends ConsumerWidget {
                   ? [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 4))]
                   : null,
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(m.emoji, style: const TextStyle(fontSize: 24)),
-                  const SizedBox(height: 4),
-                  Text(
-                    m.nickname.split(' ').first,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: isActive ? context.bg : context.ink,
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(m.emoji, style: const TextStyle(fontSize: 24)),
+                    const SizedBox(height: 2),
+                    Text(
+                      m.nickname.split(' ').first,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: isActive ? context.bg : context.ink,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    m.manufactureYear.toString(),
-                    style: TextStyle(
-                      fontSize: 8,
-                      color: isActive ? context.bg.withValues(alpha: 0.6) : context.muted,
+                    Text(
+                      m.manufactureYear.toString(),
+                      style: TextStyle(
+                        fontSize: 8,
+                        color: isActive ? context.bg.withValues(alpha: 0.6) : context.muted,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
@@ -376,13 +380,17 @@ class _BikeCard extends ConsumerWidget {
                       ),
                     ),
                     const Spacer(),
-                    Text(motorcycle.emoji, style: const TextStyle(fontSize: 36)),
+                    Flexible(
+                      child: Text(motorcycle.emoji, style: const TextStyle(fontSize: 32)),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Text(
                   motorcycle.nickname,
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 if (motorcycle.plateNumber != null)
                   Text(
@@ -393,18 +401,22 @@ class _BikeCard extends ConsumerWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Odometer', style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.5))),
-                        const SizedBox(height: 2),
-                        Text(
-                          odoText,
-                          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5),
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Odometer', style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.5))),
+                          const SizedBox(height: 2),
+                          Text(
+                            odoText,
+                            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     TextButton.icon(
                       onPressed: () => context.push('/motor/${motorcycle.id}/odometer'),
                       icon: const Icon(Icons.edit_outlined, size: 16),
@@ -461,6 +473,7 @@ class _QuickActionCard extends StatelessWidget {
             const SizedBox(width: 14),
             Expanded(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: context.ink)),
@@ -477,25 +490,26 @@ class _QuickActionCard extends StatelessWidget {
     return _CardWrapper(
       onTap: onTap,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: color, size: 14),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 3),
           Text(
             label,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.ink),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: context.ink),
             textAlign: TextAlign.center,
           ),
           Text(
             subtitle,
-            style: TextStyle(fontSize: 10, color: context.muted),
+            style: TextStyle(fontSize: 9, color: context.muted),
             textAlign: TextAlign.center,
           ),
         ],

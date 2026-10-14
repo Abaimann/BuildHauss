@@ -358,6 +358,7 @@ class _MotorListTile extends ConsumerWidget {
               final db = ref.read(databaseProvider);
               await db.deleteMotorcycle(motorcycle.id);
               ref.invalidate(motorcyclesProvider);
+              ref.invalidate(activeMotorcycleProvider);
             },
             style: ElevatedButton.styleFrom(backgroundColor: BuildHausTheme.danger, minimumSize: const Size(0, 44)),
             child: const Text('Hapus'),

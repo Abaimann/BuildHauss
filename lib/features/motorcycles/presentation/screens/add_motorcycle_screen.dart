@@ -240,6 +240,7 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
 
       // Refresh providers
       ref.invalidate(motorcyclesProvider);
+      ref.invalidate(activeMotorcycleProvider);
       final newMotor = await db.getMotorcycle(motorId);
       if (newMotor != null) {
         await ref.read(activeMotorcycleProvider.notifier).setActiveMotorcycle(newMotor);

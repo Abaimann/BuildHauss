@@ -35,7 +35,7 @@ class HealthScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () => context.go('/'),
+                  onPressed: () => context.go('/home'),
                   child: const Text('Ke Beranda'),
                 ),
               ],
