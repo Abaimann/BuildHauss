@@ -21,9 +21,7 @@ void main() {
     });
 
     test('selects items within budget', () {
-      final healthResults = [
-        _createHealthResult('oli', 'replace', 40, false),
-      ];
+      final healthResults = [_createHealthResult('oli', 'replace', 40, false)];
 
       final engine = BudgetEngine(
         componentHealths: healthResults,
@@ -83,9 +81,7 @@ void main() {
     });
 
     test('provides consequence if delayed', () {
-      final healthResults = [
-        _createHealthResult('oli', 'replace', 40, false),
-      ];
+      final healthResults = [_createHealthResult('oli', 'replace', 40, false)];
 
       final engine = BudgetEngine(
         componentHealths: healthResults,
@@ -114,15 +110,15 @@ void main() {
       expect(recommendations, isNotEmpty);
 
       // Safety items come first
-      final safetyIdx = recommendations.indexWhere((r) => r.priority == 'safety');
+      final safetyIdx = recommendations.indexWhere(
+        (r) => r.priority == 'safety',
+      );
       expect(safetyIdx, greaterThanOrEqualTo(0));
       expect(safetyIdx, lessThanOrEqualTo(0));
     });
 
     test('returns non-empty list for replace components', () {
-      final healthResults = [
-        _createHealthResult('ban', 'replace', 40, false),
-      ];
+      final healthResults = [_createHealthResult('ban', 'replace', 40, false)];
 
       final engine = BudgetEngine(
         componentHealths: healthResults,
@@ -136,7 +132,12 @@ void main() {
   });
 }
 
-ComponentHealthResult _createHealthResult(String name, String status, int score, bool safetyCritical) {
+ComponentHealthResult _createHealthResult(
+  String name,
+  String status,
+  int score,
+  bool safetyCritical,
+) {
   String explanation = '';
   if (safetyCritical && status == 'replace') {
     explanation = '⚠️ KESELAMATAN: Komponen perlu diganti.';

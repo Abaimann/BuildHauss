@@ -32,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 4;
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
@@ -49,22 +49,33 @@ class AppDatabase extends _$AppDatabase {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
-        await _seedComponentTypes();
-        await _seedDefaultSettings();
-        await _seedMotorcycleModels();
-        await _seedMaintenanceRules();
-        await _seedSpareparts();
+        await _seedReferenceData();
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        // Schema v2: seed motorcycle models and maintenance rules
-        if (from < 2) {
-          await _seedMotorcycleModels();
-          await _seedMaintenanceRules();
-          await _seedSpareparts();
+        // v3: backfill missing master records.
+        if (from < 3) await _seedReferenceData();
+        // v4: drop the invalid UNIQUE(motorcycle_id, recorded_at) constraint.
+        // Drift rebuilds the table and copies existing odometer readings.
+        if (from < 4) {
+          await m.alterTable(TableMigration(odometerLogs));
         }
+      },
+      beforeOpen: (details) async {
+        await customStatement('PRAGMA foreign_keys = ON');
       },
     );
   }
+
+  Future<void> _seedReferenceData() async {
+    await _seedComponentTypes();
+    await _seedDefaultSettings();
+    await _seedMotorcycleModels();
+    await _seedMaintenanceRules();
+    await _seedSpareparts();
+  }
+
+  /// Safe to repeat on an existing database; never overwrites user records.
+  Future<void> ensureReferenceData() => transaction(_seedReferenceData);
 
   Future<void> _seedComponentTypes() async {
     final components = [
@@ -187,8 +198,15 @@ class AppDatabase extends _$AppDatabase {
       SparepartsCompanion.insert(name: 'Relay Starter Motor', category: 'kelistrikan', referencePrice: const Value(45000), brand: const Value('generic'), partNumber: const Value('GEN-RELAY')),
     ];
 
-    for (final s in items) {
-      await into(spareparts).insert(s, mode: InsertMode.insertOrIgnore);
+    for (final item in items) {
+      final code = item.partNumber.value;
+      final existing = code != null
+          ? await (select(spareparts)..where((t) => t.partNumber.equals(code))).get()
+          : await (select(spareparts)..where((t) => t.name.equals(item.name.value))).get();
+      if (existing.isNotEmpty) continue;
+      // These entries are local examples, not official manufacturer catalog data.
+      // Keep isVerified=false and do not claim that prices or fitments are current.
+      await into(spareparts).insert(item);
     }
   }
 
@@ -213,7 +231,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Seed motorcycle_models table from JSON catalog.
-  /// Idempotent: uses insertOrIgnore so re-runs are safe.
+  /// Idempotent: checks natural keys before inserting; preserves existing IDs.
   Future<void> _seedMotorcycleModels() async {
     // Honda models
     final hondaModels = [
@@ -226,6 +244,11 @@ class AppDatabase extends _$AppDatabase {
       ('ADV 160', 'CBS-ISS', '2022-sekarang', 2022),
     ];
     for (final (model, variant, gen, year) in hondaModels) {
+      final rows = await (select(motorcycleModels)
+        ..where((t) => t.brand.equals('Honda') & t.model.equals(model) &
+            t.variant.equals(variant) & t.yearStart.equals(year)))
+          .get();
+      if (rows.isNotEmpty) continue;
       await into(motorcycleModels).insert(
         MotorcycleModelsCompanion.insert(
           brand: 'Honda',
@@ -235,12 +258,11 @@ class AppDatabase extends _$AppDatabase {
           yearStart: year,
           yearEnd: const Value(null),
           sourceUrl: const Value('https://www.astra-honda.com'),
-          verifiedAt: Value(DateTime.now()),
+          verifiedAt: const Value(null),
         ),
         mode: InsertMode.insertOrIgnore,
       );
     }
-
     // Yamaha models
     final yamahaModels = [
       ('NMAX', 'Connected', '2020-sekarang', 2020),
@@ -250,6 +272,11 @@ class AppDatabase extends _$AppDatabase {
       ('X-Ride', '125', '2023-sekarang', 2023),
     ];
     for (final (model, variant, gen, year) in yamahaModels) {
+      final rows = await (select(motorcycleModels)
+        ..where((t) => t.brand.equals('Yamaha') & t.model.equals(model) &
+            t.variant.equals(variant) & t.yearStart.equals(year)))
+          .get();
+      if (rows.isNotEmpty) continue;
       await into(motorcycleModels).insert(
         MotorcycleModelsCompanion.insert(
           brand: 'Yamaha',
@@ -259,12 +286,11 @@ class AppDatabase extends _$AppDatabase {
           yearStart: year,
           yearEnd: const Value(null),
           sourceUrl: const Value('https://www.yamaha-motor.co.id'),
-          verifiedAt: Value(DateTime.now()),
+          verifiedAt: const Value(null),
         ),
         mode: InsertMode.insertOrIgnore,
       );
     }
-
     // Suzuki models
     final suzukiModels = [
       ('Address 110', 'FI', '2021-sekarang', 2021),
@@ -272,6 +298,11 @@ class AppDatabase extends _$AppDatabase {
       ('Smash FI', 'R', '2020-sekarang', 2020),
     ];
     for (final (model, variant, gen, year) in suzukiModels) {
+      final rows = await (select(motorcycleModels)
+        ..where((t) => t.brand.equals('Suzuki') & t.model.equals(model) &
+            t.variant.equals(variant) & t.yearStart.equals(year)))
+          .get();
+      if (rows.isNotEmpty) continue;
       await into(motorcycleModels).insert(
         MotorcycleModelsCompanion.insert(
           brand: 'Suzuki',
@@ -281,12 +312,11 @@ class AppDatabase extends _$AppDatabase {
           yearStart: year,
           yearEnd: const Value(null),
           sourceUrl: const Value('https://www.suzuki.co.id'),
-          verifiedAt: Value(DateTime.now()),
+          verifiedAt: const Value(null),
         ),
         mode: InsertMode.insertOrIgnore,
       );
     }
-
     // Kawasaki models
     final kawasakiModels = [
       ('Ninja 250SL', 'ABS', '2020-sekarang', 2020),
@@ -294,6 +324,11 @@ class AppDatabase extends _$AppDatabase {
       ('Z125', 'Pro', '2020-sekarang', 2020),
     ];
     for (final (model, variant, gen, year) in kawasakiModels) {
+      final rows = await (select(motorcycleModels)
+        ..where((t) => t.brand.equals('Kawasaki') & t.model.equals(model) &
+            t.variant.equals(variant) & t.yearStart.equals(year)))
+          .get();
+      if (rows.isNotEmpty) continue;
       await into(motorcycleModels).insert(
         MotorcycleModelsCompanion.insert(
           brand: 'Kawasaki',
@@ -303,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
           yearStart: year,
           yearEnd: const Value(null),
           sourceUrl: const Value('https://www.kawasaki-motor.co.id'),
-          verifiedAt: Value(DateTime.now()),
+          verifiedAt: const Value(null),
         ),
         mode: InsertMode.insertOrIgnore,
       );
@@ -318,8 +353,8 @@ class AppDatabase extends _$AppDatabase {
     final components = await select(componentTypes).get();
     final compByName = {for (var c in components) c.name: c};
     final modelByBrandModel = <String, int>{};
-    for (var m in models) {
-      modelByBrandModel['${m.brand}|${m.model}'] = m.id;
+    for (final m in models) {
+      modelByBrandModel.putIfAbsent('${m.brand}|${m.model}', () => m.id);
     }
 
     // Generic rules (modelId = null)
@@ -335,6 +370,10 @@ class AppDatabase extends _$AppDatabase {
     for (final (name, km, days, severeKm) in genericRules) {
       final ct = compByName[name];
       if (ct == null) continue;
+      final existing = await (select(maintenanceRules)
+        ..where((t) => t.modelId.isNull() & t.componentTypeId.equals(ct.id) &
+            t.ruleVersion.equals('v1'))).get();
+      if (existing.isNotEmpty) continue;
       await into(maintenanceRules).insert(
         MaintenanceRulesCompanion.insert(
           modelId: const Value(null),
@@ -346,7 +385,7 @@ class AppDatabase extends _$AppDatabase {
               : const Value(null),
           sourceUrl: const Value('Panduan umum perawatan motor'),
           ruleVersion: const Value('v1'),
-          verifiedAt: Value(DateTime.now()),
+          verifiedAt: const Value(null),
         ),
         mode: InsertMode.insertOrIgnore,
       );
@@ -355,7 +394,8 @@ class AppDatabase extends _$AppDatabase {
     // Model-specific rules for Honda Vario 160
     final vario160Id = modelByBrandModel['Honda|Vario 160'];
     final oliCt = compByName['Oli mesin'];
-    if (vario160Id != null && oliCt != null) {
+    if (vario160Id != null && oliCt != null &&
+        !(await _hasMaintenanceRule(vario160Id, oliCt.id))) {
       await into(maintenanceRules).insert(
         MaintenanceRulesCompanion.insert(
           modelId: Value(vario160Id),
@@ -365,7 +405,7 @@ class AppDatabase extends _$AppDatabase {
           severeUseRule: const Value('Pemakaian berat: ganti tiap 2000 km'),
           sourceUrl: const Value('Buku manual Honda Vario 160 CBS-ISS SP'),
           ruleVersion: const Value('v1'),
-          verifiedAt: Value(DateTime.now()),
+          verifiedAt: const Value(null),
         ),
         mode: InsertMode.insertOrIgnore,
       );
@@ -373,7 +413,8 @@ class AppDatabase extends _$AppDatabase {
 
     // CVT rule for Vario 160
     final cvtCt = compByName['CVT'];
-    if (vario160Id != null && cvtCt != null) {
+    if (vario160Id != null && cvtCt != null &&
+        !(await _hasMaintenanceRule(vario160Id, cvtCt.id))) {
       await into(maintenanceRules).insert(
         MaintenanceRulesCompanion.insert(
           modelId: Value(vario160Id),
@@ -382,7 +423,7 @@ class AppDatabase extends _$AppDatabase {
           intervalDays: const Value(365),
           sourceUrl: const Value('Buku manual Honda Vario 160 CBS-ISS SP'),
           ruleVersion: const Value('v1'),
-          verifiedAt: Value(DateTime.now()),
+          verifiedAt: const Value(null),
         ),
         mode: InsertMode.insertOrIgnore,
       );
@@ -390,7 +431,8 @@ class AppDatabase extends _$AppDatabase {
 
     // Model-specific rules for Yamaha NMAX
     final nmaxId = modelByBrandModel['Yamaha|NMAX'];
-    if (nmaxId != null && oliCt != null) {
+    if (nmaxId != null && oliCt != null &&
+        !(await _hasMaintenanceRule(nmaxId, oliCt.id))) {
       await into(maintenanceRules).insert(
         MaintenanceRulesCompanion.insert(
           modelId: Value(nmaxId),
@@ -400,14 +442,15 @@ class AppDatabase extends _$AppDatabase {
           severeUseRule: const Value('Pemakaian berat: ganti tiap 2000 km'),
           sourceUrl: const Value('Buku manual Yamaha NMAX'),
           ruleVersion: const Value('v1'),
-          verifiedAt: Value(DateTime.now()),
+          verifiedAt: const Value(null),
         ),
         mode: InsertMode.insertOrIgnore,
       );
     }
 
     // CVT rule for NMAX
-    if (nmaxId != null && cvtCt != null) {
+    if (nmaxId != null && cvtCt != null &&
+        !(await _hasMaintenanceRule(nmaxId, cvtCt.id))) {
       await into(maintenanceRules).insert(
         MaintenanceRulesCompanion.insert(
           modelId: Value(nmaxId),
@@ -416,11 +459,18 @@ class AppDatabase extends _$AppDatabase {
           intervalDays: const Value(365),
           sourceUrl: const Value('Buku manual Yamaha NMAX'),
           ruleVersion: const Value('v1'),
-          verifiedAt: Value(DateTime.now()),
+          verifiedAt: const Value(null),
         ),
         mode: InsertMode.insertOrIgnore,
       );
     }
+  }
+
+  Future<bool> _hasMaintenanceRule(int modelId, int componentId) async {
+    return (await (select(maintenanceRules)
+      ..where((t) => t.modelId.equals(modelId) &
+          t.componentTypeId.equals(componentId) & t.ruleVersion.equals('v1')))
+      .get()).isNotEmpty;
   }
 
   // ============================================================
@@ -442,23 +492,131 @@ class AppDatabase extends _$AppDatabase {
   Future<bool> updateMotorcycle(MotorcyclesCompanion m, int id) =>
       (update(motorcycles)..where((t) => t.id.equals(id))).write(m).then((r) => r > 0);
 
-  Future<int> deleteMotorcycle(int id) async {
+  /// Insert a motorcycle and its initial reading as one atomic operation.
+  Future<int> createMotorcycle({
+    required MotorcyclesCompanion motorcycle,
+    double? initialOdometerKm,
+  }) => transaction(() async {
+    if (!motorcycle.modelId.present || motorcycle.modelId.value == null) {
+      throw ArgumentError('Pilih model motor yang terdaftar.');
+    }
+    final model = await getMotorcycleModelById(motorcycle.modelId.value!);
+    if (model == null) throw ArgumentError('Model motor tidak ditemukan.');
+    if (motorcycle.manufactureYear.present &&
+        (motorcycle.manufactureYear.value < model.yearStart ||
+         (model.yearEnd != null && motorcycle.manufactureYear.value > model.yearEnd!))) {
+      throw ArgumentError('Tahun motor tidak sesuai model yang dipilih.');
+    }
+    if (initialOdometerKm != null &&
+        (!initialOdometerKm.isFinite || initialOdometerKm < 0)) {
+      throw ArgumentError('Odometer awal tidak valid.');
+    }
+    final existing = await getAllMotorcycles();
+    final id = await into(motorcycles).insert(motorcycle.copyWith(
+      isPrimary: Value(existing.isEmpty),
+    ));
+    if (initialOdometerKm != null) {
+      await into(odometerLogs).insert(OdometerLogsCompanion.insert(
+        motorcycleId: id,
+        odometerKm: initialOdometerKm,
+        recordedAt: DateTime.now(),
+        source: const Value('manual'),
+      ));
+    }
+    return id;
+  });
+
+  /// Update profile and optional reading atomically.
+  Future<void> updateMotorcycleWithOdometer({
+    required int motorcycleId,
+    required MotorcyclesCompanion changes,
+    double? odometerKm,
+  }) => transaction(() async {
+    final motor = await getMotorcycle(motorcycleId);
+    if (motor == null) throw ArgumentError('Motor tidak ditemukan.');
+    final newModelId = changes.modelId.present ? changes.modelId.value : motor.modelId;
+    if (newModelId == null) throw ArgumentError('Pilih model motor yang valid.');
+    final model = await getMotorcycleModelById(newModelId);
+    if (model == null) throw ArgumentError('Model motor tidak ditemukan.');
+    final year = changes.manufactureYear.present ? changes.manufactureYear.value : motor.manufactureYear;
+    if (year < model.yearStart || (model.yearEnd != null && year > model.yearEnd!)) {
+      throw ArgumentError('Tahun tidak sesuai dengan model motor.');
+    }
+    if (odometerKm != null && (!odometerKm.isFinite || odometerKm < 0)) {
+      throw ArgumentError('Odometer tidak valid.');
+    }
+    if (odometerKm != null) {
+      final latest = await getLatestOdometer(motorcycleId);
+      if (latest != null && odometerKm < latest.odometerKm) {
+        throw ArgumentError('Odometer tidak boleh lebih rendah dari catatan terakhir.');
+      }
+    }
+    await updateMotorcycle(changes, motorcycleId);
+    if (odometerKm != null) {
+      final latest = await getLatestOdometer(motorcycleId);
+      if (latest == null || odometerKm > latest.odometerKm) {
+        await into(odometerLogs).insert(OdometerLogsCompanion.insert(
+          motorcycleId: motorcycleId,
+          odometerKm: odometerKm,
+          recordedAt: DateTime.now(),
+          source: const Value('manual'),
+        ));
+      }
+      await recalculateComponentStatuses(motorcycleId);
+    }
+  });
+
+  Future<int> deleteMotorcycle(int id) => transaction(() async {
+    if (await getMotorcycle(id) == null) return 0;
+    final inspections = await (select(selfInspections)
+      ..where((t) => t.motorcycleId.equals(id))).get();
+    for (final item in inspections) {
+      await (delete(inspectionAnswers)..where((t) => t.inspectionId.equals(item.id))).go();
+    }
+    final complaintsForMotor = await getComplaints(id);
+    for (final c in complaintsForMotor) {
+      await (delete(complaintMessages)..where((t) => t.complaintId.equals(c.id))).go();
+      await (delete(complaintAnalyses)..where((t) => t.complaintId.equals(c.id))).go();
+    }
+    // Complaints reference service records via resolved_by_service_id.
+    await (delete(complaints)..where((t) => t.motorcycleId.equals(id))).go();
+    await (delete(selfInspections)..where((t) => t.motorcycleId.equals(id))).go();
+    final plans = await (select(budgetPlans)..where((t) => t.motorcycleId.equals(id))).get();
+    for (final plan in plans) {
+      final recs = await (select(serviceRecommendations)
+        ..where((t) => t.budgetPlanId.equals(plan.id))).get();
+      for (final rec in recs) {
+        await (delete(recommendationItems)..where((t) => t.recommendationId.equals(rec.id))).go();
+      }
+      await (delete(serviceRecommendations)..where((t) => t.budgetPlanId.equals(plan.id))).go();
+    }
+    await (delete(budgetPlans)..where((t) => t.motorcycleId.equals(id))).go();
+    final records = await getServiceRecords(id);
+    for (final record in records) {
+      await (delete(serviceItems)..where((t) => t.serviceRecordId.equals(record.id))).go();
+    }
+    await (delete(serviceRecords)..where((t) => t.motorcycleId.equals(id))).go();
     await (delete(odometerLogs)..where((t) => t.motorcycleId.equals(id))).go();
     await (delete(componentStatuses)..where((t) => t.motorcycleId.equals(id))).go();
-    await (delete(serviceRecords)..where((t) => t.motorcycleId.equals(id))).go();
-    await (delete(selfInspections)..where((t) => t.motorcycleId.equals(id))).go();
-    await (delete(complaints)..where((t) => t.motorcycleId.equals(id))).go();
-    await (delete(budgetPlans)..where((t) => t.motorcycleId.equals(id))).go();
     await (delete(localReminders)..where((t) => t.motorcycleId.equals(id))).go();
-    return (delete(motorcycles)..where((t) => t.id.equals(id))).go();
-  }
+    final deleted = await (delete(motorcycles)..where((t) => t.id.equals(id))).go();
+    if (await getSetting('active_motorcycle_id') == id.toString()) {
+      await setSetting('active_motorcycle_id', '');
+    }
+    final remaining = await getAllMotorcycles();
+    if (remaining.isNotEmpty && !remaining.any((m) => m.isPrimary)) {
+      await setPrimaryMotorcycle(remaining.first.id);
+    }
+    return deleted;
+  });
 
-  Future<void> setPrimaryMotorcycle(int id) async {
+  Future<void> setPrimaryMotorcycle(int id) => transaction(() async {
+    if (await getMotorcycle(id) == null) throw ArgumentError('Motor tidak ditemukan');
     await (update(motorcycles)..where((t) => t.isPrimary.equals(true)))
         .write(const MotorcyclesCompanion(isPrimary: Value(false)));
     await (update(motorcycles)..where((t) => t.id.equals(id)))
         .write(const MotorcyclesCompanion(isPrimary: Value(true)));
-  }
+  });
 
   // ============================================================
   // ODOMETER
@@ -467,13 +625,20 @@ class AppDatabase extends _$AppDatabase {
   Future<List<OdometerLog>> getOdometerLogs(int motorcycleId) =>
       (select(odometerLogs)
         ..where((t) => t.motorcycleId.equals(motorcycleId))
-        ..orderBy([(t) => OrderingTerm.desc(t.recordedAt)]))
+        // Timestamps may tie at second precision; the newer row wins.
+        ..orderBy([
+          (t) => OrderingTerm.desc(t.recordedAt),
+          (t) => OrderingTerm.desc(t.id),
+        ]))
       .get();
 
   Future<OdometerLog?> getLatestOdometer(int motorcycleId) =>
       (select(odometerLogs)
         ..where((t) => t.motorcycleId.equals(motorcycleId))
-        ..orderBy([(t) => OrderingTerm.desc(t.recordedAt)])
+        ..orderBy([
+          (t) => OrderingTerm.desc(t.recordedAt),
+          (t) => OrderingTerm.desc(t.id),
+        ])
         ..limit(1))
       .getSingleOrNull();
 
@@ -498,8 +663,21 @@ class AppDatabase extends _$AppDatabase {
   Future<List<ComponentStatus>> getComponentStatuses(int motorcycleId) =>
       (select(componentStatuses)..where((t) => t.motorcycleId.equals(motorcycleId))).get();
 
-  Future<int> upsertComponentStatus(ComponentStatusesCompanion s) =>
-      into(componentStatuses).insertOnConflictUpdate(s);
+  Future<int> upsertComponentStatus(ComponentStatusesCompanion s) async {
+    if (!s.motorcycleId.present || !s.componentTypeId.present) {
+      throw ArgumentError('Status memerlukan motorcycleId dan componentTypeId');
+    }
+    final existing = await (select(componentStatuses)
+      ..where((t) => t.motorcycleId.equals(s.motorcycleId.value) &
+          t.componentTypeId.equals(s.componentTypeId.value)))
+      .getSingleOrNull();
+    if (existing != null) {
+      await (update(componentStatuses)..where((t) => t.id.equals(existing.id)))
+          .write(s.copyWith(id: const Value.absent()));
+      return existing.id;
+    }
+    return into(componentStatuses).insert(s.copyWith(id: const Value.absent()));
+  }
 
   // ============================================================
   // SERVICE RECORDS
@@ -520,10 +698,69 @@ class AppDatabase extends _$AppDatabase {
   Future<bool> updateServiceRecord(ServiceRecordsCompanion r, int id) =>
       (update(serviceRecords)..where((t) => t.id.equals(id))).write(r).then((r) => r > 0);
 
-  Future<int> deleteServiceRecord(int id) async {
+  /// Save a service visit, all actions, and an optional odometer reading atomically.
+  Future<int> createServiceWithItems({
+    required ServiceRecordsCompanion record,
+    required List<ServiceItemsCompanion> items,
+    double? odometerKm,
+  }) => transaction(() async {
+    if (items.isEmpty) throw ArgumentError('Minimal satu tindakan servis diperlukan.');
+    if (!record.motorcycleId.present ||
+        await getMotorcycle(record.motorcycleId.value) == null) {
+      throw ArgumentError('Motor servis tidak ditemukan.');
+    }
+    if (odometerKm != null && (!odometerKm.isFinite || odometerKm < 0)) {
+      throw ArgumentError('Odometer tidak valid.');
+    }
+    final total = items.fold<int>(0, (sum, i) =>
+      sum + (i.partsCost.present ? i.partsCost.value : 0) +
+            (i.laborCost.present ? i.laborCost.value : 0));
+    // Keep service_records.odometer_km consistent with the history log.
+    final recordId = await into(serviceRecords).insert(record.copyWith(
+      totalCost: Value(total),
+      odometerKm: odometerKm != null ? Value(odometerKm) : record.odometerKm,
+    ));
+    for (final item in items) {
+      if (!item.componentTypeId.present || item.componentTypeId.value == null) {
+        throw ArgumentError('Komponen servis harus dipilih.');
+      }
+      if (!const ['inspect', 'replace', 'repair', 'clean'].contains(item.action.value)) {
+        throw ArgumentError('Tindakan servis tidak valid.');
+      }
+      final parts = item.partsCost.present ? item.partsCost.value : 0;
+      final labor = item.laborCost.present ? item.laborCost.value : 0;
+      if (parts < 0 || labor < 0) throw ArgumentError('Biaya tidak boleh negatif.');
+      await into(serviceItems).insert(item.copyWith(
+        serviceRecordId: Value(recordId),
+        totalCost: Value(parts + labor),
+      ));
+    }
+    if (odometerKm != null) {
+      final previous = await getLatestOdometer(record.motorcycleId.value);
+      if (previous == null || odometerKm > previous.odometerKm) {
+        await into(odometerLogs).insert(OdometerLogsCompanion.insert(
+          motorcycleId: record.motorcycleId.value,
+          odometerKm: odometerKm,
+          recordedAt: record.servicedAt.value,
+          source: const Value('service_record'),
+        ));
+      }
+    }
+    await recalculateComponentStatuses(record.motorcycleId.value);
+    return recordId;
+  });
+
+  Future<int> deleteServiceRecord(int id) => transaction(() async {
+    final record = await getServiceRecord(id);
+    if (record == null) return 0;
+    // Avoid dangling complaint references to deleted service.
+    await (update(complaints)..where((t) => t.resolvedByServiceId.equals(id)))
+      .write(const ComplaintsCompanion(resolvedByServiceId: Value(null)));
     await (delete(serviceItems)..where((t) => t.serviceRecordId.equals(id))).go();
-    return (delete(serviceRecords)..where((t) => t.id.equals(id))).go();
-  }
+    final deleted = await (delete(serviceRecords)..where((t) => t.id.equals(id))).go();
+    await recalculateComponentStatuses(record.motorcycleId);
+    return deleted;
+  });
 
   // ============================================================
   // SERVICE ITEMS
@@ -677,7 +914,7 @@ class AppDatabase extends _$AppDatabase {
       .get();
     }
     return (select(maintenanceRules)
-      ..where((t) => t.componentTypeId.equals(componentTypeId)))
+      ..where((t) => t.componentTypeId.equals(componentTypeId) & t.modelId.isNull()))
     .get();
   }
 
@@ -797,18 +1034,14 @@ class AppDatabase extends _$AppDatabase {
       (select(motorcycleModels)..where((t) => t.id.equals(id))).getSingleOrNull();
 
   /// Look up a motorcycle model ID by brand and model name.
-  /// Falls back to first matching brand if model name not found.
+  /// Never silently substitute another model from the same brand.
   Future<int?> getMotorcycleModelId(String brand, String model) async {
     final results = await (select(motorcycleModels)
       ..where((t) => t.brand.equals(brand) & t.model.equals(model)))
       .get();
     if (results.isNotEmpty) return results.first.id;
 
-    // Fallback: match by brand only
-    final brandOnly = await (select(motorcycleModels)
-      ..where((t) => t.brand.equals(brand)))
-      .get();
-    return brandOnly.isNotEmpty ? brandOnly.first.id : null;
+    return null;
   }
 
   /// Get all models grouped by brand for dropdown selection.
@@ -829,10 +1062,16 @@ class AppDatabase extends _$AppDatabase {
       (select(spareparts)..where((t) => t.category.equals(category))).get();
 
   Future<List<Sparepart>> getSparepartsForModel(int modelId) async {
-    final fitments = await (select(sparepartFitments)..where((t) => t.modelId.equals(modelId))).get();
-    final ids = fitments.map((f) => f.sparepartId).toSet().toList();
+    final fitments = await (select(sparepartFitments)
+      ..where((t) => t.modelId.equals(modelId) & t.verifiedAt.isNotNull())).get();
+    // A record without a trustworthy source is not proof of fitment.
+    final trusted = fitments.where((f) {
+      final url = Uri.tryParse(f.sourceUrl ?? '');
+      return url != null && url.scheme == 'https' && url.host.isNotEmpty;
+    });
+    final ids = trusted.map((f) => f.sparepartId).toSet().toList();
     if (ids.isEmpty) return [];
-    return (select(spareparts)..where((t) => t.id.isIn(ids))).get();
+    return (select(spareparts)..where((t) => t.id.isIn(ids) & t.isVerified.equals(true))).get();
   }
 
   Future<int> insertSparepart(SparepartsCompanion s) =>
@@ -945,147 +1184,70 @@ class AppDatabase extends _$AppDatabase {
   /// Recalculate and persist all component statuses for a motorcycle.
   /// This should be called after service records are added/updated.
   Future<void> recalculateComponentStatuses(int motorcycleId) async {
-    final m = await getMotorcycle(motorcycleId);
-    if (m == null) return;
+    final motor = await getMotorcycle(motorcycleId);
+    if (motor == null) return;
+    final current = (await getLatestOdometer(motorcycleId))?.odometerKm;
+    final history = await getAllServiceItemsForMotorcycle(motorcycleId);
+    final components = await getApplicableComponents(motor.usageProfile);
+    final now = DateTime.now();
 
-    // Load all rules once (model-specific + generic)
-    final allRules = await select(maintenanceRules).get();
-    final allServiceItems = await getAllServiceItemsForMotorcycle(motorcycleId);
-    final latestOdo = await getLatestOdometer(motorcycleId);
-    final currentOdo = latestOdo?.odometerKm;
-    final allComponentTypes = await getApplicableComponents(m.usageProfile);
+    for (final component in components) {
+      final candidateRules = await getMaintenanceRules(motor.modelId, component.id);
+      // Only rules with a verified source are eligible for authoritative advice.
+      final verifiedRules = candidateRules.where((r) {
+        final url = Uri.tryParse(r.sourceUrl ?? '');
+        return r.verifiedAt != null && url != null &&
+            (url.scheme == 'https') && url.host.isNotEmpty;
+      }).toList();
+      final specific = verifiedRules.where((r) => r.modelId == motor.modelId && r.modelId != null).toList();
+      final generic = verifiedRules.where((r) => r.modelId == null).toList();
+      final MaintenanceRule? rule = specific.isNotEmpty ? specific.first : (generic.isNotEmpty ? generic.first : null);
+      final replacements = history.where((entry) =>
+        entry.item.componentTypeId == component.id && entry.item.action == 'replace').toList();
+      final replaced = replacements.isEmpty ? null : replacements.first.record;
 
-    for (final ct in allComponentTypes) {
-      // Find last replace/inspect action for this component
-      ServiceAction? lastAction;
-      for (final iwr in allServiceItems) {
-        if (iwr.item.componentTypeId == ct.id &&
-            (iwr.item.action == 'replace' || iwr.item.action == 'inspect')) {
-          lastAction = ServiceAction(
-            action: iwr.item.action,
-            servicedAt: iwr.record.servicedAt,
-            odometerKm: iwr.record.odometerKm,
-          );
-          break;
-        }
-      }
+      String state = 'unknown';
+      String explanation = 'Belum ada data perawatan dan interval tervalidasi untuk ${component.name}.';
+      double? score;
+      double? confidence;
 
-      // Find applicable rule (model-specific preferred over generic)
-      final componentRules = allRules.where((r) => r.componentTypeId == ct.id).toList();
-      MaintenanceRule? rule;
-      if (componentRules.isNotEmpty) {
-        rule = componentRules.cast<MaintenanceRule?>().firstWhere(
-          (r) => r!.modelId != null,
-          orElse: () => componentRules.first,
-        );
-      }
-
-      String status;
-      int? score;
-      String explanation;
-      double? kmSinceService;
-      int? daysSinceService;
-      final confidence = allServiceItems.length >= 3 ? 'high' : 'medium';
-
-      if (lastAction == null) {
-        // No replace/inspect action found
-        bool hasOdometerRecord = allServiceItems.any((iwr) => iwr.record.odometerKm != null);
-        if (!hasOdometerRecord) {
-          status = 'unknown';
-          score = null;
-          explanation = 'Belum ada data servis. Catat servis untuk memulai pemantauan.';
-        } else {
-          final mostRecent = allServiceItems.isNotEmpty ? allServiceItems.first.record : null;
-          if (mostRecent?.odometerKm != null) {
-            kmSinceService = (currentOdo ?? mostRecent!.odometerKm!) - mostRecent.odometerKm!;
-            daysSinceService = DateTime.now().difference(mostRecent.servicedAt).inDays;
-            final intervalKm = rule?.intervalKm;
-            if (intervalKm != null) {
-              final ratio = kmSinceService / intervalKm;
-              if (ratio >= 1.0) {
-                status = 'inspect';
-                score = 45;
-                explanation = 'Sudah ${kmSinceService.toStringAsFixed(0)} km. Periksa ${ct.name}.';
-              } else if (ratio >= 0.7) {
-                status = 'inspect';
-                score = 65;
-                explanation = '${kmSinceService.toStringAsFixed(0)} km dari ${intervalKm.toStringAsFixed(0)} km.';
-              } else {
-                status = 'good';
-                score = 80;
-                explanation = 'Dalam kondisi baik.';
-              }
-            } else {
-              status = 'good';
-              score = 75;
-              explanation = 'Dalam kondisi baik.';
-            }
+      if (rule != null && replaced != null) {
+        final km = (current != null && replaced.odometerKm != null)
+            ? current - replaced.odometerKm! : null;
+        final days = now.difference(replaced.servicedAt).inDays;
+        final kmValid = km != null && km >= 0 && rule.intervalKm != null && rule.intervalKm! > 0;
+        final daysValid = days >= 0 && rule.intervalDays != null && rule.intervalDays! > 0;
+        if (kmValid || daysValid) {
+          final kmFraction = kmValid ? km! / rule.intervalKm! : 0.0;
+          final dayFraction = daysValid ? days / rule.intervalDays! : 0.0;
+          final progress = kmFraction > dayFraction ? kmFraction : dayFraction;
+          if (progress >= 0.7) {
+            state = 'inspect';
+            explanation = progress >= 1
+                ? 'Jadwal perawatan ${component.name} telah tercapai; periksakan sesuai panduan pabrikan.'
+                : 'Jadwal perawatan ${component.name} mulai mendekat; rencanakan pemeriksaan.';
           } else {
-            status = 'unknown';
-            score = null;
-            explanation = 'Belum ada data servis. Catat servis untuk memulai pemantauan.';
+            state = 'good';
+            explanation = 'Belum mencapai jadwal perawatan estimasi ${component.name}; ini bukan pengukuran kondisi fisik.';
           }
+          score = (100 * (1 - progress.clamp(0.0, 1.0))).clamp(0.0, 100.0).toDouble();
+          confidence = 0.6;
         }
+      } else if (rule == null) {
+        explanation = 'Interval ${component.name} belum diverifikasi untuk model ini. Periksa buku manual atau bengkel.';
       } else {
-        kmSinceService = (currentOdo ?? lastAction.odometerKm ?? 0) - (lastAction.odometerKm ?? 0);
-        daysSinceService = DateTime.now().difference(lastAction.servicedAt).inDays;
-
-        if (lastAction.action == 'replace') {
-          final intervalKm = rule?.intervalKm;
-          if (intervalKm != null) {
-            final ratio = kmSinceService / intervalKm;
-            if (ratio >= 1.0) {
-              status = 'replace';
-              score = 40;
-              explanation = 'Sudah ${kmSinceService.toStringAsFixed(0)} km sejak ganti ${ct.name}.';
-            } else if (ratio >= 0.7) {
-              status = 'inspect';
-              score = 65;
-              explanation = '${kmSinceService.toStringAsFixed(0)} km dari ${intervalKm.toStringAsFixed(0)} km.';
-            } else {
-              status = 'good';
-              score = ((1 - ratio) * 40 + 60).round().clamp(0, 100);
-              explanation = 'Baru diganti. ${kmSinceService.toStringAsFixed(0)} km dari ${intervalKm.toStringAsFixed(0)} km.';
-            }
-          } else if (rule?.intervalDays != null && daysSinceService >= rule!.intervalDays!) {
-            status = 'inspect';
-            score = 60;
-            explanation = 'Perlu diperiksa setelah ${daysSinceService} hari.';
-          } else {
-            status = 'good';
-            score = 85;
-            explanation = 'Baru diganti ${ct.name}.';
-          }
-        } else {
-          status = 'inspect';
-          score = 55;
-          explanation = 'Terakhir diperiksa ${daysSinceService} hari lalu.';
-        }
-
-        if (ct.safetyCritical && score != null && score < 50) {
-          status = 'replace';
-          score = 35;
-          explanation = '⚠️ KESELAMATAN. $explanation';
-        }
+        explanation = 'Belum ada riwayat penggantian ${component.name}; pemeriksaan awal diperlukan.';
       }
-
-      if (score != null) score = score.clamp(0, 100);
-
-      // Always check for existing status
-      final existing = await (select(componentStatuses)
-        ..where((t) => t.motorcycleId.equals(motorcycleId) & t.componentTypeId.equals(ct.id)))
-        .getSingleOrNull();
 
       await upsertComponentStatus(ComponentStatusesCompanion(
-        id: Value(existing?.id ?? 0),
         motorcycleId: Value(motorcycleId),
-        componentTypeId: Value(ct.id),
-        estimatedStatus: Value(status),
+        componentTypeId: Value(component.id),
+        estimatedStatus: Value(state),
         score: Value(score),
         explanation: Value(explanation),
         confidence: Value(confidence),
-        calculatedAt: Value(DateTime.now()),
-        ruleVersion: Value(rule?.ruleVersion ?? 'unknown'),
+        calculatedAt: Value(now),
+        ruleVersion: Value(rule?.ruleVersion ?? 'unverified'),
       ));
     }
   }

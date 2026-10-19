@@ -5,11 +5,7 @@ class BuildHausLogo extends StatelessWidget {
   final double size;
   final bool showText;
 
-  const BuildHausLogo({
-    super.key,
-    this.size = 36,
-    this.showText = true,
-  });
+  const BuildHausLogo({super.key, this.size = 36, this.showText = true});
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +20,7 @@ class BuildHausLogo extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                Colors.grey.shade400,
-              ],
+              colors: [Colors.white, Colors.grey.shade400],
             ),
             borderRadius: BorderRadius.circular(size * 0.28),
           ),
@@ -162,10 +155,7 @@ class BuildHausLogoCompact extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Colors.grey.shade400,
-          ],
+          colors: [Colors.white, Colors.grey.shade400],
         ),
         borderRadius: BorderRadius.circular(size * 0.25),
       ),

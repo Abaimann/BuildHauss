@@ -12,7 +12,8 @@ class SelfInspectionScreen extends ConsumerStatefulWidget {
   const SelfInspectionScreen({super.key, required this.motorcycleId});
 
   @override
-  ConsumerState<SelfInspectionScreen> createState() => _SelfInspectionScreenState();
+  ConsumerState<SelfInspectionScreen> createState() =>
+      _SelfInspectionScreenState();
 }
 
 class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
@@ -21,24 +22,71 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
   bool _saving = false;
 
   final _questions = [
-    {'code': 'mesin_suara', 'question': 'Apakah mesin terdengar normal?', 'category': 'mesin'},
-    {'code': 'mesin_getar', 'question': 'Apakah ada getaran异常 yang tidak biasa?', 'category': 'mesin'},
-    {'code': 'mesin_starter', 'question': 'Apakah motor mudah distarter?', 'category': 'mesin'},
-    {'code': 'rem_respons', 'question': 'Apakah rem merespons dengan baik?', 'category': 'pengereman'},
-    {'code': 'rem_berisik', 'question': 'Apakah rem berbunyi aneh?', 'category': 'pengereman'},
-    {'code': 'ban_tekanan', 'question': 'Apakah tekanan ban terasa normal?', 'category': 'roda'},
-    {'code': 'ban_usangan', 'question': 'Apakah ada keausan tidak merata pada ban?', 'category': 'roda'},
-    {'code': 'kebocoran_oli', 'question': 'Apakah ada tanda kebocoran oli?', 'category': 'mesin'},
-    {'code': 'kelistrikan', 'question': 'Apakah lampu dan kelistrikan berfungsi normal?', 'category': 'kelistrikan'},
-    {'code': 'cvt_normal', 'question': 'Apakah transmisi CVT (jika ada) halus?', 'category': 'transmisi'},
-    {'code': 'knalpot_normal', 'question': 'Apakah knalpot tidak bocor atau berbunyi aneh?', 'category': 'mesin'},
+    {
+      'code': 'mesin_suara',
+      'question': 'Apakah mesin terdengar normal?',
+      'category': 'mesin',
+    },
+    {
+      'code': 'mesin_getar',
+      'question': 'Apakah ada getaran异常 yang tidak biasa?',
+      'category': 'mesin',
+    },
+    {
+      'code': 'mesin_starter',
+      'question': 'Apakah motor mudah distarter?',
+      'category': 'mesin',
+    },
+    {
+      'code': 'rem_respons',
+      'question': 'Apakah rem merespons dengan baik?',
+      'category': 'pengereman',
+    },
+    {
+      'code': 'rem_berisik',
+      'question': 'Apakah rem berbunyi aneh?',
+      'category': 'pengereman',
+    },
+    {
+      'code': 'ban_tekanan',
+      'question': 'Apakah tekanan ban terasa normal?',
+      'category': 'roda',
+    },
+    {
+      'code': 'ban_usangan',
+      'question': 'Apakah ada keausan tidak merata pada ban?',
+      'category': 'roda',
+    },
+    {
+      'code': 'kebocoran_oli',
+      'question': 'Apakah ada tanda kebocoran oli?',
+      'category': 'mesin',
+    },
+    {
+      'code': 'kelistrikan',
+      'question': 'Apakah lampu dan kelistrikan berfungsi normal?',
+      'category': 'kelistrikan',
+    },
+    {
+      'code': 'cvt_normal',
+      'question': 'Apakah transmisi CVT (jika ada) halus?',
+      'category': 'transmisi',
+    },
+    {
+      'code': 'knalpot_normal',
+      'question': 'Apakah knalpot tidak bocor atau berbunyi aneh?',
+      'category': 'mesin',
+    },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         title: const Text('Pemeriksaan Mandiri'),
         actions: [
           if (_step > 0)
@@ -59,8 +107,8 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
 
           Expanded(
             child: _step < _questions.length
-              ? _buildQuestion(_questions[_step])
-              : _buildResult(),
+                ? _buildQuestion(_questions[_step])
+                : _buildResult(),
           ),
         ],
       ),
@@ -83,7 +131,11 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
             ),
             child: Text(
               q['category']!.toUpperCase(),
-              style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: context.muted),
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                color: context.muted,
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -96,21 +148,27 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
             label: 'Ya, normal',
             icon: '✅',
             isSelected: answer == 'yes',
-            onTap: () => setState(() { _answers[q['code']!] = 'yes'; }),
+            onTap: () => setState(() {
+              _answers[q['code']!] = 'yes';
+            }),
           ),
           const SizedBox(height: 8),
           _AnswerButton(
             label: 'Tidak / Ada masalah',
             icon: '⚠️',
             isSelected: answer == 'no',
-            onTap: () => setState(() { _answers[q['code']!] = 'no'; }),
+            onTap: () => setState(() {
+              _answers[q['code']!] = 'no';
+            }),
           ),
           const SizedBox(height: 8),
           _AnswerButton(
             label: 'Tidak tahu',
             icon: '❓',
             isSelected: answer == 'unknown',
-            onTap: () => setState(() { _answers[q['code']!] = 'unknown'; }),
+            onTap: () => setState(() {
+              _answers[q['code']!] = 'unknown';
+            }),
           ),
           const Spacer(),
           if (answer != null)
@@ -130,16 +188,26 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
 
   Widget _buildResult() {
     final riskCount = _answers.values.where((v) => v == 'no').length;
-    final riskLevel = riskCount >= 4 ? 'high' : riskCount >= 2 ? 'medium' : 'low';
-    final riskColor = riskLevel == 'high' ? BuildHausTheme.danger
-      : riskLevel == 'medium' ? BuildHausTheme.warn : BuildHausTheme.ok;
+    final riskLevel = riskCount >= 4
+        ? 'high'
+        : riskCount >= 2
+        ? 'medium'
+        : 'low';
+    final riskColor = riskLevel == 'high'
+        ? BuildHausTheme.danger
+        : riskLevel == 'medium'
+        ? BuildHausTheme.warn
+        : BuildHausTheme.ok;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Hasil Inspeksi', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            'Hasil Inspeksi',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 16),
 
           Container(
@@ -151,27 +219,43 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
             ),
             child: Row(
               children: [
-                Text(riskLevel == 'high' ? '🔴' : riskLevel == 'medium' ? '🟡' : '🟢',
-                  style: const TextStyle(fontSize: 32)),
+                Text(
+                  riskLevel == 'high'
+                      ? '🔴'
+                      : riskLevel == 'medium'
+                      ? '🟡'
+                      : '🟢',
+                  style: const TextStyle(fontSize: 32),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        riskLevel == 'high' ? 'Risiko Tinggi'
-                          : riskLevel == 'medium' ? 'Perhatian'
-                          : 'Baik',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: riskColor),
+                        riskLevel == 'high'
+                            ? 'Risiko Tinggi'
+                            : riskLevel == 'medium'
+                            ? 'Perhatian'
+                            : 'Baik',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: riskColor,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         riskLevel == 'high'
-                          ? 'Ditemukan ${riskCount} masalah. Sebaiknya segera periksakan ke mekanik.'
-                          : riskLevel == 'medium'
+                            ? 'Ditemukan ${riskCount} masalah. Sebaiknya segera periksakan ke mekanik.'
+                            : riskLevel == 'medium'
                             ? 'Ditemukan ${riskCount} hal yang perlu diperhatikan.'
                             : 'Tidak ada masalah serius yang terdeteksi.',
-                        style: TextStyle(color: context.ink, fontSize: 12, height: 1.4),
+                        style: TextStyle(
+                          color: context.ink,
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
                       ),
                     ],
                   ),
@@ -196,7 +280,12 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
                   Expanded(
                     child: Text(
                       'Jika ada masalah rem, ban, atau kebocoran bahan bakar: JANGAN gunakan motor dan segera bawa ke mekanik profesional.',
-                      style: TextStyle(color: BuildHausTheme.danger, fontSize: 11, fontWeight: FontWeight.bold, height: 1.4),
+                      style: TextStyle(
+                        color: BuildHausTheme.danger,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        height: 1.4,
+                      ),
                     ),
                   ),
                 ],
@@ -205,7 +294,10 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
             const SizedBox(height: 16),
           ],
 
-          Text('Ringkasan Jawaban', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Ringkasan Jawaban',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
 
           ..._questions.map((q) {
@@ -219,10 +311,20 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
               ),
               child: Row(
                 children: [
-                  Text(a == 'yes' ? '✅' : a == 'no' ? '⚠️' : '❓', style: const TextStyle(fontSize: 14)),
+                  Text(
+                    a == 'yes'
+                        ? '✅'
+                        : a == 'no'
+                        ? '⚠️'
+                        : '❓',
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(q['question']!, style: TextStyle(fontSize: 11, color: context.ink)),
+                    child: Text(
+                      q['question']!,
+                      style: TextStyle(fontSize: 11, color: context.ink),
+                    ),
                   ),
                 ],
               ),
@@ -248,34 +350,38 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
     try {
       final db = ref.read(databaseProvider);
 
-      final inspectionId = await db.insertSelfInspection(SelfInspectionsCompanion(
-        motorcycleId: Value(widget.motorcycleId),
-        riskLevel: Value(riskLevel),
-        status: const Value('completed'),
-      ));
+      final inspectionId = await db.insertSelfInspection(
+        SelfInspectionsCompanion(
+          motorcycleId: Value(widget.motorcycleId),
+          riskLevel: Value(riskLevel),
+          status: const Value('completed'),
+        ),
+      );
 
       for (final entry in _answers.entries) {
         final isRisk = entry.value == 'no';
-        await db.insertInspectionAnswer(InspectionAnswersCompanion(
-          inspectionId: Value(inspectionId),
-          questionCode: Value(entry.key),
-          answer: Value(entry.value),
-          answerType: const Value('multiple_choice'),
-          riskFlag: Value(isRisk),
-        ));
+        await db.insertInspectionAnswer(
+          InspectionAnswersCompanion(
+            inspectionId: Value(inspectionId),
+            questionCode: Value(entry.key),
+            answer: Value(entry.value),
+            answerType: const Value('multiple_choice'),
+            riskFlag: Value(isRisk),
+          ),
+        );
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Inspeksi disimpan!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Inspeksi disimpan!')));
         context.pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);

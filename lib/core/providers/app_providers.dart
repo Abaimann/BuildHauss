@@ -5,7 +5,9 @@ import '../../core/database/app_database.dart';
 import 'database_provider.dart';
 
 // Theme provider
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
+  ref,
+) {
   return ThemeModeNotifier(ref);
 });
 
@@ -39,9 +41,10 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 }
 
 // Active motorcycle provider
-final activeMotorcycleProvider = StateNotifierProvider<ActiveMotorcycleNotifier, Motorcycle?>((ref) {
-  return ActiveMotorcycleNotifier(ref);
-});
+final activeMotorcycleProvider =
+    StateNotifierProvider<ActiveMotorcycleNotifier, Motorcycle?>((ref) {
+      return ActiveMotorcycleNotifier(ref);
+    });
 
 class ActiveMotorcycleNotifier extends StateNotifier<Motorcycle?> {
   final Ref ref;
@@ -76,10 +79,10 @@ class ActiveMotorcycleNotifier extends StateNotifier<Motorcycle?> {
   }
 
   Future<void> refresh() async {
-    if (state != null) {
-      final db = ref.read(databaseProvider);
-      state = await db.getMotorcycle(state!.id);
-    }
+    final db = ref.read(databaseProvider);
+    final previousId = state?.id;
+    state = previousId == null ? null : await db.getMotorcycle(previousId);
+    if (state == null) await _load();
   }
 }
 
@@ -90,36 +93,52 @@ final motorcyclesProvider = StreamProvider<List<Motorcycle>>((ref) {
 });
 
 // Odometer provider
-final odometerLogsProvider = FutureProvider.family<List<OdometerLog>, int>((ref, motorcycleId) {
+final odometerLogsProvider = FutureProvider.family<List<OdometerLog>, int>((
+  ref,
+  motorcycleId,
+) {
   final db = ref.watch(databaseProvider);
   return db.getOdometerLogs(motorcycleId);
 });
 
-final latestOdometerProvider = FutureProvider.family<OdometerLog?, int>((ref, motorcycleId) {
+final latestOdometerProvider = FutureProvider.family<OdometerLog?, int>((
+  ref,
+  motorcycleId,
+) {
   final db = ref.watch(databaseProvider);
   return db.getLatestOdometer(motorcycleId);
 });
 
 // Component statuses provider
-final componentStatusesProvider = FutureProvider.family<List<ComponentStatus>, int>((ref, motorcycleId) {
-  final db = ref.watch(databaseProvider);
-  return db.getComponentStatuses(motorcycleId);
-});
+final componentStatusesProvider =
+    FutureProvider.family<List<ComponentStatus>, int>((ref, motorcycleId) {
+      final db = ref.watch(databaseProvider);
+      return db.getComponentStatuses(motorcycleId);
+    });
 
 // Service records provider
-final serviceRecordsProvider = FutureProvider.family<List<ServiceRecord>, int>((ref, motorcycleId) {
+final serviceRecordsProvider = FutureProvider.family<List<ServiceRecord>, int>((
+  ref,
+  motorcycleId,
+) {
   final db = ref.watch(databaseProvider);
   return db.getServiceRecords(motorcycleId);
 });
 
 // Complaints provider
-final complaintsProvider = FutureProvider.family<List<Complaint>, int>((ref, motorcycleId) {
+final complaintsProvider = FutureProvider.family<List<Complaint>, int>((
+  ref,
+  motorcycleId,
+) {
   final db = ref.watch(databaseProvider);
   return db.getComplaints(motorcycleId);
 });
 
 // Budget plan provider
-final activeBudgetPlanProvider = FutureProvider.family<BudgetPlan?, int>((ref, motorcycleId) {
+final activeBudgetPlanProvider = FutureProvider.family<BudgetPlan?, int>((
+  ref,
+  motorcycleId,
+) {
   final db = ref.watch(databaseProvider);
   return db.getActiveBudgetPlan(motorcycleId);
 });
@@ -159,7 +178,8 @@ final motorcycleModelsProvider = FutureProvider<List<MotorcycleModel>>((ref) {
 });
 
 // Spareparts by category
-final sparepartsByCategoryProvider = FutureProvider.family<List<Sparepart>, String>((ref, category) {
-  final db = ref.watch(databaseProvider);
-  return db.getSparepartsByCategory(category);
-});
+final sparepartsByCategoryProvider =
+    FutureProvider.family<List<Sparepart>, String>((ref, category) {
+      final db = ref.watch(databaseProvider);
+      return db.getSparepartsByCategory(category);
+    });

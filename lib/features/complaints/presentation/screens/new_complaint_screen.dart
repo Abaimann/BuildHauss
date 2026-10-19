@@ -30,7 +30,10 @@ class _NewComplaintScreenState extends ConsumerState<NewComplaintScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         title: const Text('Keluhan Baru'),
       ),
       body: SingleChildScrollView(
@@ -38,7 +41,10 @@ class _NewComplaintScreenState extends ConsumerState<NewComplaintScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tulis Keluhan', style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              'Tulis Keluhan',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 4),
             Text(
               'Ceritakan gejala motor yang kamu alami.',
@@ -46,15 +52,31 @@ class _NewComplaintScreenState extends ConsumerState<NewComplaintScreen> {
             ),
             const SizedBox(height: 24),
 
-            Text('Judul singkat', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: context.ink)),
+            Text(
+              'Judul singkat',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: context.ink,
+              ),
+            ),
             const SizedBox(height: 4),
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(hintText: 'Contoh: Rem berbunyi'),
+              decoration: const InputDecoration(
+                hintText: 'Contoh: Rem berbunyi',
+              ),
             ),
             const SizedBox(height: 16),
 
-            Text('Deskripsi', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: context.ink)),
+            Text(
+              'Deskripsi',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: context.ink,
+              ),
+            ),
             const SizedBox(height: 4),
             TextField(
               controller: _descController,
@@ -90,8 +112,12 @@ class _NewComplaintScreenState extends ConsumerState<NewComplaintScreen> {
             ElevatedButton(
               onPressed: _saving ? null : _save,
               child: _saving
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Simpan Keluhan'),
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Simpan Keluhan'),
             ),
           ],
         ),
@@ -128,31 +154,41 @@ class _NewComplaintScreenState extends ConsumerState<NewComplaintScreen> {
       final latestOdo = await db.getLatestOdometer(activeMotor.id);
       if (latestOdo != null) odo = latestOdo.odometerKm;
 
-      final complaintId = await db.insertComplaint(ComplaintsCompanion(
-        motorcycleId: Value(activeMotor.id),
-        title: Value(title),
-        description: Value(desc),
-        status: const Value(' baru'),
-        odometerKm: Value(odo),
-      ));
+      final complaintId = await db.insertComplaint(
+        ComplaintsCompanion(
+          motorcycleId: Value(activeMotor.id),
+          title: Value(title),
+          description: Value(desc),
+          status: const Value(' baru'),
+          odometerKm: Value(odo),
+        ),
+      );
 
       // Insert initial system message
-      await db.insertComplaintMessage(ComplaintMessagesCompanion(
-        complaintId: Value(complaintId),
-        role: const Value('system'),
-        content: Value('Keluhan "$title" dicatat pada ${DateTime.now().toString().substring(0, 16)}. '
-            'Deskripsi: $desc'),
-      ));
+      await db.insertComplaintMessage(
+        ComplaintMessagesCompanion(
+          complaintId: Value(complaintId),
+          role: const Value('system'),
+          content: Value(
+            'Keluhan "$title" dicatat pada ${DateTime.now().toString().substring(0, 16)}. '
+            'Deskripsi: $desc',
+          ),
+        ),
+      );
 
       // Insert initial rule-based analysis
       final risk = _assessRisk(desc);
-      await db.insertComplaintAnalysis(ComplaintAnalysesCompanion(
-        complaintId: Value(complaintId),
-        symptomsJson: Value('["${desc.substring(0, desc.length > 50 ? 50 : desc.length)}"]'),
-        riskLevel: Value(risk),
-        summary: Value(_generateSummary(desc, risk)),
-        analysisMode: const Value('rule_based'),
-      ));
+      await db.insertComplaintAnalysis(
+        ComplaintAnalysesCompanion(
+          complaintId: Value(complaintId),
+          symptomsJson: Value(
+            '["${desc.substring(0, desc.length > 50 ? 50 : desc.length)}"]',
+          ),
+          riskLevel: Value(risk),
+          summary: Value(_generateSummary(desc, risk)),
+          analysisMode: const Value('rule_based'),
+        ),
+      );
 
       ref.invalidate(complaintsProvider(activeMotor.id));
 
@@ -164,9 +200,9 @@ class _NewComplaintScreenState extends ConsumerState<NewComplaintScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -175,8 +211,24 @@ class _NewComplaintScreenState extends ConsumerState<NewComplaintScreen> {
 
   String _assessRisk(String desc) {
     final lower = desc.toLowerCase();
-    final dangerKeywords = ['rem tidak fungsi', 'rem blong', 'ban pecah', 'bahan bakar bocor', 'oli bocor', 'mesin mati mendadak', 'kemudi tidak responsif'];
-    final warnKeywords = ['berisik', 'bergetar', 'susah starter', 'lambat', 'berasa', 'kurang', 'lemah'];
+    final dangerKeywords = [
+      'rem tidak fungsi',
+      'rem blong',
+      'ban pecah',
+      'bahan bakar bocor',
+      'oli bocor',
+      'mesin mati mendadak',
+      'kemudi tidak responsif',
+    ];
+    final warnKeywords = [
+      'berisik',
+      'bergetar',
+      'susah starter',
+      'lambat',
+      'berasa',
+      'kurang',
+      'lemah',
+    ];
 
     for (final kw in dangerKeywords) {
       if (lower.contains(kw)) return 'high';

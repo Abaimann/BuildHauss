@@ -34,7 +34,10 @@ class _SparepartsScreenState extends ConsumerState<SparepartsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/home')),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/home'),
+        ),
         title: const Text('Sparepart & Kondisi'),
         actions: [
           TextButton.icon(
@@ -52,10 +55,13 @@ class _SparepartsScreenState extends ConsumerState<SparepartsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Pilih kategori', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Pilih kategori',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  'Tekan untuk melihat rekomendasi sparepart.',
+                  'Katalog referensi. Kecocokan dan harga perlu diverifikasi.',
                   style: TextStyle(color: context.muted, fontSize: 11),
                 ),
               ],
@@ -75,7 +81,9 @@ class _SparepartsScreenState extends ConsumerState<SparepartsScreen> {
                 final cat = _categories[i];
                 final isSelected = _selectedCategory == cat['key'];
                 return GestureDetector(
-                  onTap: () => setState(() => _selectedCategory = isSelected ? null : cat['key']),
+                  onTap: () => setState(
+                    () => _selectedCategory = isSelected ? null : cat['key'],
+                  ),
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -90,10 +98,17 @@ class _SparepartsScreenState extends ConsumerState<SparepartsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(cat['icon']!, style: const TextStyle(fontSize: 24)),
+                        Text(
+                          cat['icon']!,
+                          style: const TextStyle(fontSize: 24),
+                        ),
                         Text(
                           cat['name']!,
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.ink),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: context.ink,
+                          ),
                         ),
                         if (isSelected)
                           Text(
@@ -133,11 +148,17 @@ class _SparepartsScreenState extends ConsumerState<SparepartsScreen> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Text(_categories.firstWhere((c) => c['key'] == _selectedCategory)['icon']!,
-                  style: const TextStyle(fontSize: 20)),
+                Text(
+                  _categories.firstWhere(
+                    (c) => c['key'] == _selectedCategory,
+                  )['icon']!,
+                  style: const TextStyle(fontSize: 20),
+                ),
                 const SizedBox(width: 8),
                 Text(
-                  _categories.firstWhere((c) => c['key'] == _selectedCategory)['name']!,
+                  _categories.firstWhere(
+                    (c) => c['key'] == _selectedCategory,
+                  )['name']!,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const Spacer(),
@@ -159,7 +180,10 @@ class _SparepartsScreenState extends ConsumerState<SparepartsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('📦', style: TextStyle(fontSize: 32, color: context.muted)),
+                        Text(
+                          '📦',
+                          style: TextStyle(fontSize: 32, color: context.muted),
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           'Belum ada data sparepart untuk kategori ini.',
@@ -168,7 +192,7 @@ class _SparepartsScreenState extends ConsumerState<SparepartsScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Data dapat diperbarui melalui menu Pengaturan > AI Model.',
+                          'Data untuk kategori ini belum tersedia.',
                           style: TextStyle(color: context.muted, fontSize: 10),
                           textAlign: TextAlign.center,
                         ),
@@ -192,14 +216,19 @@ class _SparepartsScreenState extends ConsumerState<SparepartsScreen> {
                       child: Row(
                         children: [
                           Container(
-                            width: 40, height: 40,
+                            width: 40,
+                            height: 40,
                             decoration: BoxDecoration(
                               color: context.soft,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Center(
-                              child: Text(_categories.firstWhere((c) => c['key'] == _selectedCategory)['icon']!,
-                                style: const TextStyle(fontSize: 18)),
+                              child: Text(
+                                _categories.firstWhere(
+                                  (c) => c['key'] == _selectedCategory,
+                                )['icon']!,
+                                style: const TextStyle(fontSize: 18),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -207,15 +236,42 @@ class _SparepartsScreenState extends ConsumerState<SparepartsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(p.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: context.ink)),
+                                Text(
+                                  p.name,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                    color: context.ink,
+                                  ),
+                                ),
                                 if (p.partNumber != null)
-                                  Text('Part No: ${p.partNumber}', style: TextStyle(fontSize: 9, color: context.muted)),
+                                  Text(
+                                    'Kode referensi: ${p.partNumber}',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      color: context.muted,
+                                    ),
+                                  ),
+                                if (!p.isVerified)
+                                  Text(
+                                    'Belum diverifikasi; kecocokan tidak dijamin',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      color: context.muted,
+                                    ),
+                                  ),
                                 if (p.productUrl != null)
                                   GestureDetector(
-                                    onTap: () { /* open URL */ },
+                                    onTap: () {
+                                      /* open URL */
+                                    },
                                     child: Text(
                                       'Lihat sumber resmi',
-                                      style: TextStyle(fontSize: 9, color: Colors.blue, decoration: TextDecoration.underline),
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        color: Colors.blue,
+                                        decoration: TextDecoration.underline,
+                                      ),
                                     ),
                                   ),
                               ],
@@ -225,18 +281,33 @@ class _SparepartsScreenState extends ConsumerState<SparepartsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                p.referencePrice != null ? Formatters.currency(p.referencePrice) : 'Harga ref.',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: context.ink),
+                                p.referencePrice != null
+                                    ? Formatters.currency(p.referencePrice)
+                                    : 'Harga ref.',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                  color: context.ink,
+                                ),
                               ),
                               if (p.isVerified)
                                 Container(
                                   margin: const EdgeInsets.only(top: 4),
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: BuildHausTheme.okBg,
                                     borderRadius: BorderRadius.circular(99),
                                   ),
-                                  child: Text('✓ Terverifikasi', style: TextStyle(fontSize: 8, color: BuildHausTheme.ok)),
+                                  child: Text(
+                                    '✓ Terverifikasi',
+                                    style: TextStyle(
+                                      fontSize: 8,
+                                      color: BuildHausTheme.ok,
+                                    ),
+                                  ),
                                 ),
                             ],
                           ),

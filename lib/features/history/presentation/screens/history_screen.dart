@@ -60,7 +60,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
           indicatorColor: context.ink,
           labelColor: context.ink,
           unselectedLabelColor: context.muted,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
           unselectedLabelStyle: const TextStyle(fontSize: 13),
           tabs: const [
             Tab(text: 'Servis'),
@@ -193,17 +196,35 @@ class _ServiceCard extends StatelessWidget {
                   children: [
                     Text(
                       record.notes ?? 'Servis',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: context.ink),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: context.ink,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(_fmtDate(record.servicedAt), style: TextStyle(fontSize: 11, color: context.muted)),
-                    if (record.workshopName != null && record.workshopName!.isNotEmpty)
-                      Text(record.workshopName!, style: TextStyle(fontSize: 10, color: context.muted)),
+                    Text(
+                      _fmtDate(record.servicedAt),
+                      style: TextStyle(fontSize: 11, color: context.muted),
+                    ),
+                    if (record.workshopName != null &&
+                        record.workshopName!.isNotEmpty)
+                      Text(
+                        record.workshopName!,
+                        style: TextStyle(fontSize: 10, color: context.muted),
+                      ),
                   ],
                 ),
               ),
-              Text(costText, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: BuildHausTheme.warn)),
+              Text(
+                costText,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: BuildHausTheme.warn,
+                ),
+              ),
             ],
           ),
           if (record.odometerKm != null) ...[
@@ -287,9 +308,16 @@ class _OdometerCard extends StatelessWidget {
               children: [
                 Text(
                   '${log.odometerKm.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')} km',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: context.ink),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: context.ink,
+                  ),
                 ),
-                Text(_fmtDate(log.recordedAt), style: TextStyle(fontSize: 11, color: context.muted)),
+                Text(
+                  _fmtDate(log.recordedAt),
+                  style: TextStyle(fontSize: 11, color: context.muted),
+                ),
               ],
             ),
           ),
@@ -351,16 +379,16 @@ class _ReminderCard extends StatelessWidget {
     final color = isOverdue
         ? BuildHausTheme.danger
         : isUrgent
-            ? BuildHausTheme.warn
-            : BuildHausTheme.ok;
+        ? BuildHausTheme.warn
+        : BuildHausTheme.ok;
 
     String dueText = '';
     if (dueDate != null) {
       dueText = isOverdue
           ? 'Jatuh tempo ${-daysLeft} hari lalu'
           : daysLeft == 0
-              ? 'Jatuh tempo hari ini!'
-              : 'Jatuh tempo $daysLeft hari lagi';
+          ? 'Jatuh tempo hari ini!'
+          : 'Jatuh tempo $daysLeft hari lagi';
     } else if (reminder.dueOdometerKm != null) {
       dueText = 'Pada ${reminder.dueOdometerKm!.toStringAsFixed(0)} km';
     }
@@ -370,7 +398,11 @@ class _ReminderCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.surface2,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isOverdue ? BuildHausTheme.danger.withValues(alpha: 0.3) : context.line),
+        border: Border.all(
+          color: isOverdue
+              ? BuildHausTheme.danger.withValues(alpha: 0.3)
+              : context.line,
+        ),
       ),
       child: Row(
         children: [
@@ -378,11 +410,15 @@ class _ReminderCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: reminder.enabled ? color.withValues(alpha: 0.12) : context.soft,
+              color: reminder.enabled
+                  ? color.withValues(alpha: 0.12)
+                  : context.soft,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              reminder.enabled ? Icons.schedule : Icons.notifications_off_outlined,
+              reminder.enabled
+                  ? Icons.schedule
+                  : Icons.notifications_off_outlined,
               color: reminder.enabled ? color : context.muted,
               size: 20,
             ),
@@ -392,7 +428,14 @@ class _ReminderCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(reminder.reminderType, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: context.ink)),
+                Text(
+                  reminder.reminderType,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: context.ink,
+                  ),
+                ),
                 if (dueText.isNotEmpty)
                   Text(dueText, style: TextStyle(fontSize: 11, color: color)),
               ],
@@ -401,12 +444,18 @@ class _ReminderCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: reminder.enabled ? color.withValues(alpha: 0.15) : context.soft,
+              color: reminder.enabled
+                  ? color.withValues(alpha: 0.15)
+                  : context.soft,
               borderRadius: BorderRadius.circular(99),
             ),
             child: Text(
               reminder.enabled ? 'Aktif' : 'Nonaktif',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: reminder.enabled ? color : context.muted),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: reminder.enabled ? color : context.muted,
+              ),
             ),
           ),
         ],
@@ -441,9 +490,20 @@ class _EmptyStateWidget extends StatelessWidget {
           children: [
             Icon(icon, size: 56, color: context.muted),
             const SizedBox(height: 16),
-            Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: context.ink)),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: context.ink,
+              ),
+            ),
             const SizedBox(height: 6),
-            Text(subtitle, style: TextStyle(fontSize: 12, color: context.muted), textAlign: TextAlign.center),
+            Text(
+              subtitle,
+              style: TextStyle(fontSize: 12, color: context.muted),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: onAdd,
@@ -459,6 +519,19 @@ class _EmptyStateWidget extends StatelessWidget {
 }
 
 String _fmtDate(DateTime dt) {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'Mei',
+    'Jun',
+    'Jul',
+    'Agu',
+    'Sep',
+    'Okt',
+    'Nov',
+    'Des',
+  ];
   return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
 }

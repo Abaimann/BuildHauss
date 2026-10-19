@@ -2,7 +2,7 @@ import '../database/app_database.dart';
 
 /// Mileage prediction engine.
 /// Estimates future odometer readings based on historical data.
-/// 
+///
 /// Algorithm:
 /// - Requires at least 2 odometer readings on different dates
 /// - Calculates km/day from consecutive readings
@@ -17,7 +17,8 @@ class MileagePredictor {
   double? get kmPerDay {
     if (_logs.length < 2) return null;
 
-    final sorted = [..._logs]..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
+    final sorted = [..._logs]
+      ..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
 
     // Simple average of daily rates between consecutive readings
     double totalKm = 0;
@@ -57,7 +58,10 @@ class MileagePredictor {
   }
 
   /// Estimated date when odometer will reach target km
-  DateTime? predictDateForOdometer(double currentOdometer, double targetOdometer) {
+  DateTime? predictDateForOdometer(
+    double currentOdometer,
+    double targetOdometer,
+  ) {
     if (kmPerDay == null || kmPerDay! <= 0) return null;
     final kmRemaining = targetOdometer - currentOdometer;
     if (kmRemaining <= 0) return DateTime.now();

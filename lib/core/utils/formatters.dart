@@ -1,7 +1,11 @@
 import 'package:intl/intl.dart';
 
 class Formatters {
-  static final _currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+  static final _currencyFormat = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  );
   static final _kmFormat = NumberFormat('#,###', 'id_ID');
   static final _dateFormat = DateFormat('dd MMM yyyy', 'id_ID');
   static final _dateTimeFormat = DateFormat('dd MMM yyyy, HH:mm', 'id_ID');

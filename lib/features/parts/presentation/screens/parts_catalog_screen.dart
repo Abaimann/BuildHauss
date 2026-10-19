@@ -52,7 +52,14 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                     const BuildHausLogoCompact(size: 40),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text('Katalog Sparepart', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: context.ink)),
+                      child: Text(
+                        'Katalog Sparepart',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: context.ink,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -91,7 +98,10 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                 final categories = ['Semua', ...(snap.data ?? [])];
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: categories.map((cat) {
                       final isSelected = _selectedCategory == cat;
@@ -101,17 +111,26 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                           onTap: () => setState(() => _selectedCategory = cat),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 7,
+                            ),
                             decoration: BoxDecoration(
-                              color: isSelected ? context.ink : context.surface2,
+                              color: isSelected
+                                  ? context.ink
+                                  : context.surface2,
                               borderRadius: BorderRadius.circular(99),
-                              border: Border.all(color: isSelected ? context.ink : context.line),
+                              border: Border.all(
+                                color: isSelected ? context.ink : context.line,
+                              ),
                             ),
                             child: Text(
                               cat,
                               style: TextStyle(
                                 fontSize: 12,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
                                 color: isSelected ? context.bg : context.ink,
                               ),
                             ),
@@ -130,7 +149,10 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Row(
                 children: [
-                  Text('Sortir: ', style: TextStyle(fontSize: 12, color: context.muted)),
+                  Text(
+                    'Sortir: ',
+                    style: TextStyle(fontSize: 12, color: context.muted),
+                  ),
                   ...[
                     ('name', 'Nama'),
                     ('price_low', 'Harga ⬆'),
@@ -142,16 +164,23 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                       child: GestureDetector(
                         onTap: () => setState(() => _sortBy = s.$1),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: isSelected ? context.ink : Colors.transparent,
+                            color: isSelected
+                                ? context.ink
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             s.$2,
                             style: TextStyle(
                               fontSize: 11,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                               color: isSelected ? context.bg : context.muted,
                             ),
                           ),
@@ -168,10 +197,15 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
 
           // Parts Grid
           FutureBuilder<List<Sparepart>>(
-            future: db.searchSpareparts(category: _selectedCategory, query: _searchQuery),
+            future: db.searchSpareparts(
+              category: _selectedCategory,
+              query: _searchQuery,
+            ),
             builder: (context, snap) {
               if (snap.connectionState == ConnectionState.waiting) {
-                return const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator()));
+                return const SliverToBoxAdapter(
+                  child: Center(child: CircularProgressIndicator()),
+                );
               }
 
               var parts = snap.data ?? [];
@@ -179,10 +213,18 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
               // Sort
               switch (_sortBy) {
                 case 'price_low':
-                  parts.sort((a, b) => (a.referencePrice ?? 0).compareTo(b.referencePrice ?? 0));
+                  parts.sort(
+                    (a, b) => (a.referencePrice ?? 0).compareTo(
+                      b.referencePrice ?? 0,
+                    ),
+                  );
                   break;
                 case 'price_high':
-                  parts.sort((a, b) => (b.referencePrice ?? 0).compareTo(a.referencePrice ?? 0));
+                  parts.sort(
+                    (a, b) => (b.referencePrice ?? 0).compareTo(
+                      a.referencePrice ?? 0,
+                    ),
+                  );
                   break;
                 default:
                   parts.sort((a, b) => a.name.compareTo(b.name));
@@ -196,9 +238,16 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                       padding: const EdgeInsets.all(40),
                       child: Column(
                         children: [
-                          Icon(Icons.search_off, size: 48, color: context.muted),
+                          Icon(
+                            Icons.search_off,
+                            size: 48,
+                            color: context.muted,
+                          ),
                           const SizedBox(height: 12),
-                          Text('Sparepart tidak ditemukan', style: TextStyle(color: context.muted)),
+                          Text(
+                            'Sparepart tidak ditemukan',
+                            style: TextStyle(color: context.muted),
+                          ),
                         ],
                       ),
                     ),
@@ -257,9 +306,16 @@ class _PartCard extends StatelessWidget {
               height: 90,
               decoration: BoxDecoration(
                 color: context.surface3,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(15),
+                ),
               ),
-              child: Center(child: Text(_getPartEmoji(part.name, part.category), style: const TextStyle(fontSize: 40))),
+              child: Center(
+                child: Text(
+                  _getPartEmoji(part.name, part.category),
+                  style: const TextStyle(fontSize: 40),
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(12),
@@ -270,18 +326,52 @@ class _PartCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(color: context.soft, borderRadius: BorderRadius.circular(4)),
-                      child: Text(part.category, style: TextStyle(fontSize: 9, color: context.muted, fontWeight: FontWeight.w600)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: context.soft,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        part.category,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: context.muted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 6),
-                    Text(part.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.ink), maxLines: 2, overflow: TextOverflow.ellipsis),
+                    Text(
+                      part.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: context.ink,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     if (part.brand != null && part.brand!.isNotEmpty) ...[
                       const SizedBox(height: 2),
-                      Text(part.brand!, style: TextStyle(fontSize: 10, color: context.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(
+                        part.brand!,
+                        style: TextStyle(fontSize: 10, color: context.muted),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                     const Spacer(),
-                    Text(priceText, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: BuildHausTheme.warn)),
+                    Text(
+                      'Est. $priceText',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: BuildHausTheme.warn,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -295,7 +385,8 @@ class _PartCard extends StatelessWidget {
   String _getPartEmoji(String name, String category) {
     final n = name.toLowerCase();
     if (n.contains('oli') || n.contains('oil')) return '🛢️';
-    if (n.contains('rem') || n.contains('brake') || n.contains('kampas')) return '🛑';
+    if (n.contains('rem') || n.contains('brake') || n.contains('kampas'))
+      return '🛑';
     if (n.contains('rantai') || n.contains('chain')) return '⛓️';
     if (n.contains('busi') || n.contains('spark')) return '⚡';
     if (n.contains('filter')) return '🔧';
@@ -329,7 +420,10 @@ class _PartCard extends StatelessWidget {
                 child: Container(
                   width: 36,
                   height: 4,
-                  decoration: BoxDecoration(color: context.line, borderRadius: BorderRadius.circular(99)),
+                  decoration: BoxDecoration(
+                    color: context.line,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -341,31 +435,69 @@ class _PartCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: context.line),
                 ),
-                child: Center(child: Text(_getPartEmoji(part.name, part.category), style: const TextStyle(fontSize: 64))),
+                child: Center(
+                  child: Text(
+                    _getPartEmoji(part.name, part.category),
+                    style: const TextStyle(fontSize: 64),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: context.soft, borderRadius: BorderRadius.circular(6)),
-                child: Text(part.category, style: TextStyle(fontSize: 11, color: context.muted, fontWeight: FontWeight.w600)),
+                decoration: BoxDecoration(
+                  color: context.soft,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  part.category,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: context.muted,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
               const SizedBox(height: 8),
               Text(part.name, style: Theme.of(context).textTheme.headlineSmall),
               if (part.brand != null && part.brand!.isNotEmpty) ...[
                 const SizedBox(height: 4),
-                Text('Merek: ${part.brand}', style: TextStyle(fontSize: 12, color: context.muted)),
+                Text(
+                  'Merek: ${part.brand}',
+                  style: TextStyle(fontSize: 12, color: context.muted),
+                ),
               ],
               const SizedBox(height: 12),
               if (price != null) ...[
-                Text(priceText, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: BuildHausTheme.warn)),
+                Text(
+                  priceText,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                    color: BuildHausTheme.warn,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('* Harga referensi, bisa berbeda di toko', style: TextStyle(fontSize: 10, color: context.muted)),
+                Text(
+                  '* Harga referensi, bisa berbeda di toko',
+                  style: TextStyle(fontSize: 10, color: context.muted),
+                ),
                 const SizedBox(height: 16),
               ],
               if (part.partNumber != null && part.partNumber!.isNotEmpty) ...[
-                Text('Nomor Part', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: context.ink)),
+                Text(
+                  'Nomor Part',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: context.ink,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(part.partNumber!, style: TextStyle(fontSize: 13, color: context.muted)),
+                Text(
+                  part.partNumber!,
+                  style: TextStyle(fontSize: 13, color: context.muted),
+                ),
                 const SizedBox(height: 16),
               ],
               const SizedBox(height: 8),
@@ -374,7 +506,9 @@ class _PartCard extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('"${part.name}" disimpan!')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('"${part.name}" disimpan!')),
+                    );
                   },
                   icon: const Icon(Icons.bookmark_border),
                   label: const Text('Simpan ke Wishlist'),
@@ -386,7 +520,9 @@ class _PartCard extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Buka di browser...')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Buka di browser...')),
+                    );
                   },
                   icon: const Icon(Icons.local_offer_outlined),
                   label: const Text('Cek Toko Terdekat'),

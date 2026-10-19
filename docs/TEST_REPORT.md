@@ -147,3 +147,12 @@ SHA1: (see .sha1 file alongside)
 | Native llama.cpp integration | ⏳ |
 | LLM model download | ⏳ |
 | Runtime HP testing | ⏳ |
+
+
+---
+
+## Catatan pemeriksaan terkini — 2026-10-19 (Tahap 01)
+
+Perbaikan source dan tes database baru ditambahkan, **namun belum ada command Flutter yang dapat dijalankan pada lingkungan audit ini**. Semua klaim hasil pengujian di bagian lama dokumen ini adalah laporan historis dan tidak otomatis berlaku untuk perubahan terbaru.
+
+Untuk memverifikasi perubahan terbaru, jalankan perintah pada `docs/OPENCODE_CHECKPOINT.md` dan tempel hasil nyata beserta waktu pengujiannya.

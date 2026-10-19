@@ -17,16 +17,14 @@ void main() async {
   ]);
 
   // Set system UI overlay style
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Color(0xFF1b1b1b),
-    systemNavigationBarIconBrightness: Brightness.light,
-  ));
-
-  runApp(
-    const ProviderScope(
-      child: BuildHausApp(),
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Color(0xFF1b1b1b),
+      systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
+
+  runApp(const ProviderScope(child: BuildHausApp()));
 }

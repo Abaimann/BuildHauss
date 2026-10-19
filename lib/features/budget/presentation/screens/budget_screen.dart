@@ -58,9 +58,15 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Tambahkan motor terlebih dahulu', style: TextStyle(color: context.muted)),
+              Text(
+                'Tambahkan motor terlebih dahulu',
+                style: TextStyle(color: context.muted),
+              ),
               const SizedBox(height: 16),
-              ElevatedButton(onPressed: () => context.push('/add-motor'), child: const Text('Tambah Motor')),
+              ElevatedButton(
+                onPressed: () => context.push('/add-motor'),
+                child: const Text('Tambah Motor'),
+              ),
             ],
           ),
         ),
@@ -69,10 +75,16 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/home')),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/home'),
+        ),
         title: const Text('Prioritas Servis'),
         actions: [
-          TextButton(onPressed: _showEditBudget, child: const Text('Ubah Budget')),
+          TextButton(
+            onPressed: _showEditBudget,
+            child: const Text('Ubah Budget'),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -80,7 +92,10 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Prioritas servis', style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              'Prioritas servis',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 4),
             Text(
               'Contoh pembagian jika anggaran terbatas.',
@@ -101,15 +116,25 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('ANGGARAN', style: TextStyle(color: context.muted, fontSize: 10)),
+                      Text(
+                        'ANGGARAN',
+                        style: TextStyle(color: context.muted, fontSize: 10),
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         Formatters.currency(_budgetAmount),
-                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
-                  Text('BuildHaus', style: TextStyle(color: context.muted, fontSize: 11)),
+                  Text(
+                    'BuildHaus',
+                    style: TextStyle(color: context.muted, fontSize: 11),
+                  ),
                 ],
               ),
             ),
@@ -121,7 +146,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               context,
               priority: '1',
               title: 'Periksa rem, prioritas',
-              desc: 'Utamakan keselamatan. Jika rem melemah atau terasa blong, jangan tunda dan minta mekanik memeriksa.',
+              desc:
+                  'Utamakan keselamatan. Jika rem melemah atau terasa blong, jangan tunda dan minta mekanik memeriksa.',
               cost: 30000,
               isSafety: true,
             ),
@@ -129,14 +155,16 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               context,
               priority: '2',
               title: 'Periksa oli mesin',
-              desc: 'Cek jarak pemakaian dan rekomendasi buku manual. Menunda terlalu lama dapat mempercepat keausan mesin.',
+              desc:
+                  'Cek jarak pemakaian dan rekomendasi buku manual. Menunda terlalu lama dapat mempercepat keausan mesin.',
               cost: 75000,
             ),
             _buildPriorityItem(
               context,
               priority: '3',
               title: 'Aksesori knalpot',
-              desc: 'Jika tidak ada kebocoran atau gangguan, upgrade aksesori bisa menunggu. Risiko terutama kenyamanan/preferensi.',
+              desc:
+                  'Jika tidak ada kebocoran atau gangguan, upgrade aksesori bisa menunggu. Risiko terutama kenyamanan/preferensi.',
               cost: 185000,
               isDeferred: true,
             ),
@@ -190,7 +218,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
         color: context.surface2,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isSafety ? BuildHausTheme.danger.withValues(alpha: 0.3) : context.line,
+          color: isSafety
+              ? BuildHausTheme.danger.withValues(alpha: 0.3)
+              : context.line,
         ),
       ),
       child: Column(
@@ -201,33 +231,67 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               if (isSafety)
                 Container(
                   margin: const EdgeInsets.only(right: 6),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: BuildHausTheme.dangerBg,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text('KESELAMATAN', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: BuildHausTheme.danger)),
+                  child: Text(
+                    'KESELAMATAN',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: BuildHausTheme.danger,
+                    ),
+                  ),
                 ),
               if (isDeferred)
                 Container(
                   margin: const EdgeInsets.only(right: 6),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: context.soft,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text('BISA DITUNDA', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: context.muted)),
+                  child: Text(
+                    'BISA DITUNDA',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: context.muted,
+                    ),
+                  ),
                 ),
-              Text('$priority · $title', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.ink)),
+              Text(
+                '$priority · $title',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: context.ink,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 6),
-          Text(desc, style: TextStyle(color: context.muted, fontSize: 11, height: 1.5)),
+          Text(
+            desc,
+            style: TextStyle(color: context.muted, fontSize: 11, height: 1.5),
+          ),
           if (cost != null) ...[
             const SizedBox(height: 6),
             Text(
               'Estimasi Rp ${cost.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: context.ink),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
+                color: context.ink,
+              ),
             ),
           ],
         ],
@@ -251,7 +315,10 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
           ElevatedButton(
             onPressed: () {
               final val = int.tryParse(controller.text);
@@ -277,21 +344,24 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     final existing = await db.getActiveBudgetPlan(activeMotor.id);
 
     if (existing != null) {
-      await db.updateBudgetPlan(BudgetPlansCompanion(
-        budgetAmount: Value(amount),
-      ), existing.id);
+      await db.updateBudgetPlan(
+        BudgetPlansCompanion(budgetAmount: Value(amount)),
+        existing.id,
+      );
     } else {
-      await db.insertBudgetPlan(BudgetPlansCompanion(
-        motorcycleId: Value(activeMotor.id),
-        budgetAmount: Value(amount),
-        period: const Value('bulanan'),
-      ));
+      await db.insertBudgetPlan(
+        BudgetPlansCompanion(
+          motorcycleId: Value(activeMotor.id),
+          budgetAmount: Value(amount),
+          period: const Value('bulanan'),
+        ),
+      );
     }
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Budget disimpan!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Budget disimpan!')));
     }
   }
 }

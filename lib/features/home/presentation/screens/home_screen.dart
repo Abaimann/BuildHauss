@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/database/app_database.dart' show Motorcycle, OdometerLog, ComponentStatusWithName, MotorcycleModel;
+import '../../../../core/database/app_database.dart'
+    show Motorcycle, OdometerLog, ComponentStatusWithName, MotorcycleModel;
 import '../../../../shared/widgets/buildhaus_logo.dart';
 
 // Helper widget to show brand name instead of emoji
@@ -125,10 +126,7 @@ class _HomeContent extends ConsumerWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    context.surface,
-                    context.bg,
-                  ],
+                  colors: [context.surface, context.bg],
                 ),
               ),
               padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
@@ -262,7 +260,11 @@ class _GreetingChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             greeting,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.ink),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: context.ink,
+            ),
           ),
         ],
       ),
@@ -276,10 +278,7 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.titleMedium,
-    );
+    return Text(title, style: Theme.of(context).textTheme.titleMedium);
   }
 }
 
@@ -301,7 +300,9 @@ class _MotorSelector extends ConsumerWidget {
           final m = motors[i];
           final isActive = activeMotor?.id == m.id;
           return GestureDetector(
-            onTap: () => ref.read(activeMotorcycleProvider.notifier).setActiveMotorcycle(m),
+            onTap: () => ref
+                .read(activeMotorcycleProvider.notifier)
+                .setActiveMotorcycle(m),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               width: 76,
@@ -314,8 +315,14 @@ class _MotorSelector extends ConsumerWidget {
                   width: isActive ? 2 : 1,
                 ),
                 boxShadow: isActive
-                  ? [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 4))]
-                  : null,
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : null,
               ),
               child: FittedBox(
                 fit: BoxFit.contain,
@@ -323,7 +330,11 @@ class _MotorSelector extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _BrandBadge(modelId: m.modelId, fontSize: 10, color: isActive ? context.bg : context.ink),
+                    _BrandBadge(
+                      modelId: m.modelId,
+                      fontSize: 10,
+                      color: isActive ? context.bg : context.ink,
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       m.nickname.split(' ').first,
@@ -340,7 +351,9 @@ class _MotorSelector extends ConsumerWidget {
                       m.manufactureYear.toString(),
                       style: TextStyle(
                         fontSize: 8,
-                        color: isActive ? context.bg.withValues(alpha: 0.6) : context.muted,
+                        color: isActive
+                            ? context.bg.withValues(alpha: 0.6)
+                            : context.muted,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -378,10 +391,7 @@ class _BikeCard extends ConsumerWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFF1a2a1a),
-                const Color(0xFF0f1a0f),
-              ],
+              colors: [const Color(0xFF1a2a1a), const Color(0xFF0f1a0f)],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: BuildHausTheme.ok.withValues(alpha: 0.2)),
@@ -394,7 +404,10 @@ class _BikeCard extends ConsumerWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: BuildHausTheme.ok.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(99),
@@ -402,7 +415,11 @@ class _BikeCard extends ConsumerWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.star, size: 12, color: Color(0xFF3da96e)),
+                          const Icon(
+                            Icons.star,
+                            size: 12,
+                            color: Color(0xFF3da96e),
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'MOTOR UTAMA',
@@ -418,21 +435,32 @@ class _BikeCard extends ConsumerWidget {
                     ),
                     const Spacer(),
                     Flexible(
-                      child: _BrandBadge(modelId: motorcycle.modelId, fontSize: 16, color: Colors.white),
+                      child: _BrandBadge(
+                        modelId: motorcycle.modelId,
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Text(
                   motorcycle.nickname,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (motorcycle.plateNumber != null)
                   Text(
                     motorcycle.plateNumber!,
-                    style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.6)),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.6),
+                    ),
                   ),
                 const SizedBox(height: 16),
                 Row(
@@ -442,11 +470,22 @@ class _BikeCard extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Odometer', style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.5))),
+                          Text(
+                            'Odometer',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white.withValues(alpha: 0.5),
+                            ),
+                          ),
                           const SizedBox(height: 2),
                           Text(
                             odoText,
-                            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5),
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: -0.5,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -455,7 +494,8 @@ class _BikeCard extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     TextButton.icon(
-                      onPressed: () => context.push('/motor/${motorcycle.id}/odometer'),
+                      onPressed: () =>
+                          context.push('/motor/${motorcycle.id}/odometer'),
                       icon: const Icon(Icons.edit_outlined, size: 16),
                       label: const Text('Update'),
                       style: TextButton.styleFrom(
@@ -513,8 +553,18 @@ class _QuickActionCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: context.ink)),
-                  Text(subtitle, style: TextStyle(fontSize: 11, color: context.muted)),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: context.ink,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(fontSize: 11, color: context.muted),
+                  ),
                 ],
               ),
             ),
@@ -541,7 +591,11 @@ class _QuickActionCard extends StatelessWidget {
           const SizedBox(height: 3),
           Text(
             label,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: context.ink),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+              color: context.ink,
+            ),
             textAlign: TextAlign.center,
           ),
           Text(
@@ -618,13 +672,15 @@ class _HealthSummary extends ConsumerWidget {
         }
 
         final scores = statuses.map((s) => s.status.score ?? 0.0).toList();
-        final avgScore = scores.isEmpty ? 0.0 : scores.reduce((a, b) => a + b) / scores.length;
+        final avgScore = scores.isEmpty
+            ? 0.0
+            : scores.reduce((a, b) => a + b) / scores.length;
 
         final statusColor = avgScore >= 75
             ? BuildHausTheme.ok
             : avgScore >= 50
-                ? BuildHausTheme.warn
-                : BuildHausTheme.danger;
+            ? BuildHausTheme.warn
+            : BuildHausTheme.danger;
 
         return Container(
           padding: const EdgeInsets.all(16),
@@ -647,7 +703,11 @@ class _HealthSummary extends ConsumerWidget {
                     child: Center(
                       child: Text(
                         avgScore > 0 ? '${avgScore.round()}' : '?',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: statusColor),
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: statusColor,
+                        ),
                       ),
                     ),
                   ),
@@ -656,20 +716,30 @@ class _HealthSummary extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Skor Kesehatan', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: context.ink)),
+                        Text(
+                          'Skor Kesehatan',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: context.ink,
+                          ),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           avgScore >= 75
                               ? 'Baik — semua komponen prima'
                               : avgScore >= 50
-                                  ? 'Perlu perhatian — beberapa komponen perlu dicek'
-                                  : 'Perlu segera ditangani',
+                              ? 'Perlu perhatian — beberapa komponen perlu dicek'
+                              : 'Perlu segera ditangani',
                           style: TextStyle(fontSize: 11, color: context.muted),
                         ),
                       ],
                     ),
                   ),
-                  TextButton(onPressed: () => context.go('/health'), child: const Text('Detail')),
+                  TextButton(
+                    onPressed: () => context.go('/health'),
+                    child: const Text('Detail'),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -709,7 +779,9 @@ class _ReminderNotice extends StatelessWidget {
               color: BuildHausTheme.warn.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Center(child: Text('🔔', style: TextStyle(fontSize: 16))),
+            child: const Center(
+              child: Text('🔔', style: TextStyle(fontSize: 16)),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -718,12 +790,20 @@ class _ReminderNotice extends StatelessWidget {
               children: [
                 Text(
                   'Pengingat',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: BuildHausTheme.warn),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: BuildHausTheme.warn,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'Periksa kampas rem secara berkala untuk keselamatan.',
-                  style: TextStyle(fontSize: 11, color: context.muted, height: 1.4),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: context.muted,
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),

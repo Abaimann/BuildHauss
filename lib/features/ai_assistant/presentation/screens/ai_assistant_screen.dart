@@ -28,14 +28,17 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   }
 
   void _addSystemMessage() {
-    _messages.add(_ChatMessage(
-      role: 'system',
-      content: 'Halo! Saya asisten AI BuildHaus. '
-          'Ceritakan keluhan atau pertanyaan tentang motor kamu. '
-          'Saya akan membantu menganalisis berdasarkan data yang ada.\n\n'
-          '⚠️ Ingat: analisis ini bersifat bantuan, bukan diagnosis pasti. '
-          'Untuk masalah keselamatan, segera periksakan ke mekanik profesional.',
-    ));
+    _messages.add(
+      _ChatMessage(
+        role: 'system',
+        content:
+            'Halo! Saya asisten AI BuildHaus. '
+            'Ceritakan keluhan atau pertanyaan tentang motor kamu. '
+            'Saya akan membantu menganalisis berdasarkan data yang ada.\n\n'
+            '⚠️ Ingat: analisis ini bersifat bantuan, bukan diagnosis pasti. '
+            'Untuk masalah keselamatan, segera periksakan ke mekanik profesional.',
+      ),
+    );
   }
 
   @override
@@ -51,21 +54,30 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         title: const Text('AI Health Assistant'),
         actions: [
           aiStatus.when(
             data: (status) => status == 'ready'
-              ? Chip(
-                  label: Text('🤖 LLM', style: TextStyle(fontSize: 10, color: BuildHausTheme.ok)),
-                  backgroundColor: BuildHausTheme.okBg,
-                  side: BorderSide.none,
-                )
-              : Chip(
-                  label: Text('📋 Rule-based', style: TextStyle(fontSize: 10, color: context.muted)),
-                  backgroundColor: context.soft,
-                  side: BorderSide.none,
-                ),
+                ? Chip(
+                    label: Text(
+                      '🤖 LLM',
+                      style: TextStyle(fontSize: 10, color: BuildHausTheme.ok),
+                    ),
+                    backgroundColor: BuildHausTheme.okBg,
+                    side: BorderSide.none,
+                  )
+                : Chip(
+                    label: Text(
+                      '📋 Rule-based',
+                      style: TextStyle(fontSize: 10, color: context.muted),
+                    ),
+                    backgroundColor: context.soft,
+                    side: BorderSide.none,
+                  ),
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
           ),
@@ -104,8 +116,13 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                           controller: _messageController,
                           decoration: InputDecoration(
                             hintText: 'Tanyakan tentang keluhan motor...',
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(99)),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(99),
+                            ),
                           ),
                           maxLines: 3,
                           minLines: 1,
@@ -117,8 +134,14 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                       IconButton(
                         onPressed: _sending ? null : _send,
                         icon: _sending
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                          : Icon(Icons.send, color: context.ink),
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Icon(Icons.send, color: context.ink),
                         style: IconButton.styleFrom(
                           backgroundColor: context.ink,
                           foregroundColor: context.bg,
@@ -162,11 +185,18 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
             children: [
               Text(
                 isUser ? 'Anda' : 'BuildHaus AI',
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: context.muted),
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: context.muted,
+                ),
               ),
               const Spacer(),
               if (m.timestamp != null)
-                Text(Formatters.shortDate(m.timestamp), style: TextStyle(fontSize: 9, color: context.muted)),
+                Text(
+                  Formatters.shortDate(m.timestamp),
+                  style: TextStyle(fontSize: 9, color: context.muted),
+                ),
             ],
           ),
           const SizedBox(height: 6),
@@ -221,8 +251,10 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     final lower = input.toLowerCase();
 
     // Safety keywords
-    if (lower.contains('rem tidak') || lower.contains('rem blong') ||
-        lower.contains('ban pecah') || lower.contains('bahan bakar bocor')) {
+    if (lower.contains('rem tidak') ||
+        lower.contains('rem blong') ||
+        lower.contains('ban pecah') ||
+        lower.contains('bahan bakar bocor')) {
       return '⚠️ PERHATIAN: Keluhan yang Anda sebutkan menyangkut keselamatan.\n\n'
           '🚨 JANGAN menggunakan motor dalam kondisi rem tidak berfungsi, ban bermasalah, '
           'atau ada kebocoran bahan bakar.\n\n'
@@ -231,7 +263,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     }
 
     // Oil related
-    if (lower.contains('oli') || lower.contains('mesin') && lower.contains('panas')) {
+    if (lower.contains('oli') ||
+        lower.contains('mesin') && lower.contains('panas')) {
       return '🛢️ Mengenai oli mesin:\n\n'
           '• Periksa level oli dengan dipstick saat mesin dingin dan datar\n'
           '• Oli yang tepat untuk motor kamu bisa dilihat di menu Sparepart\n'
@@ -241,7 +274,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     }
 
     // Starter issues
-    if (lower.contains('starter') || lower.contains('suara klik') || lower.contains('tidak mau')) {
+    if (lower.contains('starter') ||
+        lower.contains('suara klik') ||
+        lower.contains('tidak mau')) {
       return '🔋 Kemungkinan masalah starter:\n\n'
           '1. **Aki lemah** - Coba nyalakan lampu, jika redup kemungkinan aki lemah\n'
           '2. **Kontak kotor** - Periksa terminal aki, bersihkan jika berkarat\n'
@@ -266,7 +301,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     }
 
     // CVT related
-    if (lower.contains('cvt') || lower.contains('mati') && lower.contains('jalan')) {
+    if (lower.contains('cvt') ||
+        lower.contains('mati') && lower.contains('jalan')) {
       return '⚙️ Mengenai CVT (transmisi otomatis):\n\n'
           '• Gejala CVT bermasalah: motor mati saat jalan, tarikan tidak smooth\n'
           '• Periksa belt CVT apakah pecah atau aus\n'
@@ -318,7 +354,10 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Tutup')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tutup'),
+          ),
         ],
       ),
     );
@@ -330,9 +369,5 @@ class _ChatMessage {
   final String content;
   final DateTime? timestamp;
 
-  _ChatMessage({
-    required this.role,
-    required this.content,
-    this.timestamp,
-  });
+  _ChatMessage({required this.role, required this.content, this.timestamp});
 }

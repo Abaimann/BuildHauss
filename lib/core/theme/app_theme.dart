@@ -85,7 +85,10 @@ class BuildHausTheme {
         unselectedItemColor: darkMuted,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
-        selectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600),
+        selectedLabelStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
         unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 11),
       ),
       navigationBarTheme: NavigationBarThemeData(
@@ -95,7 +98,11 @@ class BuildHausTheme {
         elevation: 0,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: darkInk);
+            return GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: darkInk,
+            );
           }
           return GoogleFonts.plusJakartaSans(fontSize: 11, color: darkMuted);
         }),
@@ -110,7 +117,10 @@ class BuildHausTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: darkSurface2,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: darkLine),
@@ -128,7 +138,10 @@ class BuildHausTheme {
           borderSide: BorderSide(color: danger),
         ),
         labelStyle: GoogleFonts.plusJakartaSans(color: darkMuted, fontSize: 13),
-        hintStyle: GoogleFonts.plusJakartaSans(color: darkMuted.withValues(alpha: 0.7), fontSize: 13),
+        hintStyle: GoogleFonts.plusJakartaSans(
+          color: darkMuted.withValues(alpha: 0.7),
+          fontSize: 13,
+        ),
       ),
       // Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -137,8 +150,14 @@ class BuildHausTheme {
           foregroundColor: darkBg,
           elevation: 0,
           minimumSize: const Size(double.infinity, 52),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          textStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: 0.3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          textStyle: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+            letterSpacing: 0.3,
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         ),
       ),
@@ -147,14 +166,18 @@ class BuildHausTheme {
           foregroundColor: darkInk,
           minimumSize: const Size(double.infinity, 48),
           side: BorderSide(color: darkLine),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: darkInk2,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       ),
       // List Tiles
@@ -168,7 +191,11 @@ class BuildHausTheme {
       // SnackBars
       snackBarTheme: SnackBarThemeData(
         backgroundColor: darkInk,
-        contentTextStyle: GoogleFonts.plusJakartaSans(color: darkBg, fontSize: 13, fontWeight: FontWeight.w500),
+        contentTextStyle: GoogleFonts.plusJakartaSans(
+          color: darkBg,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
       ),
@@ -191,17 +218,62 @@ class BuildHausTheme {
       ),
       // Text
       textTheme: TextTheme(
-        headlineLarge: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -1),
-        headlineMedium: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.5),
-        headlineSmall: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 20, fontWeight: FontWeight.w700),
-        titleLarge: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 17, fontWeight: FontWeight.w600),
-        titleMedium: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 15, fontWeight: FontWeight.w600),
-        titleSmall: GoogleFonts.plusJakartaSans(color: darkInk2, fontSize: 13, fontWeight: FontWeight.w500),
-        bodyLarge: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 15, height: 1.5),
-        bodyMedium: GoogleFonts.plusJakartaSans(color: darkInk2, fontSize: 13, height: 1.5),
-        bodySmall: GoogleFonts.plusJakartaSans(color: darkMuted, fontSize: 11, height: 1.4),
-        labelLarge: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 13, fontWeight: FontWeight.w600),
-        labelMedium: GoogleFonts.plusJakartaSans(color: darkMuted, fontSize: 11),
+        headlineLarge: GoogleFonts.plusJakartaSans(
+          color: darkInk,
+          fontSize: 30,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -1,
+        ),
+        headlineMedium: GoogleFonts.plusJakartaSans(
+          color: darkInk,
+          fontSize: 24,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.5,
+        ),
+        headlineSmall: GoogleFonts.plusJakartaSans(
+          color: darkInk,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+        ),
+        titleLarge: GoogleFonts.plusJakartaSans(
+          color: darkInk,
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+        ),
+        titleMedium: GoogleFonts.plusJakartaSans(
+          color: darkInk,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
+        titleSmall: GoogleFonts.plusJakartaSans(
+          color: darkInk2,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+        bodyLarge: GoogleFonts.plusJakartaSans(
+          color: darkInk,
+          fontSize: 15,
+          height: 1.5,
+        ),
+        bodyMedium: GoogleFonts.plusJakartaSans(
+          color: darkInk2,
+          fontSize: 13,
+          height: 1.5,
+        ),
+        bodySmall: GoogleFonts.plusJakartaSans(
+          color: darkMuted,
+          fontSize: 11,
+          height: 1.4,
+        ),
+        labelLarge: GoogleFonts.plusJakartaSans(
+          color: darkInk,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+        labelMedium: GoogleFonts.plusJakartaSans(
+          color: darkMuted,
+          fontSize: 11,
+        ),
         labelSmall: GoogleFonts.plusJakartaSans(color: darkMuted, fontSize: 10),
       ),
     );
@@ -230,7 +302,11 @@ class BuildHausTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 18, fontWeight: FontWeight.bold),
+        titleTextStyle: GoogleFonts.plusJakartaSans(
+          color: lightInk,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       cardTheme: CardThemeData(
         color: lightSurface,
@@ -255,7 +331,11 @@ class BuildHausTheme {
         elevation: 0,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: lightInk);
+            return GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: lightInk,
+            );
           }
           return GoogleFonts.plusJakartaSans(fontSize: 11, color: lightMuted);
         }),
@@ -269,7 +349,10 @@ class BuildHausTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: lightSurface2,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: lightLine),
@@ -282,8 +365,14 @@ class BuildHausTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: lightInk2, width: 1.5),
         ),
-        labelStyle: GoogleFonts.plusJakartaSans(color: lightMuted, fontSize: 13),
-        hintStyle: GoogleFonts.plusJakartaSans(color: lightMuted.withValues(alpha: 0.7), fontSize: 13),
+        labelStyle: GoogleFonts.plusJakartaSans(
+          color: lightMuted,
+          fontSize: 13,
+        ),
+        hintStyle: GoogleFonts.plusJakartaSans(
+          color: lightMuted.withValues(alpha: 0.7),
+          fontSize: 13,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -291,8 +380,13 @@ class BuildHausTheme {
           foregroundColor: lightSurface,
           elevation: 0,
           minimumSize: const Size(double.infinity, 52),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          textStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          textStyle: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+          ),
         ),
       ),
       listTileTheme: ListTileThemeData(
@@ -302,17 +396,60 @@ class BuildHausTheme {
       ),
       dividerTheme: DividerThemeData(color: lightLine, thickness: 1, space: 1),
       textTheme: TextTheme(
-        headlineLarge: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -1),
-        headlineMedium: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 24, fontWeight: FontWeight.w700),
-        headlineSmall: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 20, fontWeight: FontWeight.w700),
-        titleLarge: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 17, fontWeight: FontWeight.w600),
-        titleMedium: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 15, fontWeight: FontWeight.w600),
-        bodyLarge: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 15, height: 1.5),
-        bodyMedium: GoogleFonts.plusJakartaSans(color: lightInk2, fontSize: 13, height: 1.5),
-        bodySmall: GoogleFonts.plusJakartaSans(color: lightMuted, fontSize: 11, height: 1.4),
-        labelLarge: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 13, fontWeight: FontWeight.w600),
-        labelMedium: GoogleFonts.plusJakartaSans(color: lightMuted, fontSize: 11),
-        labelSmall: GoogleFonts.plusJakartaSans(color: lightMuted, fontSize: 10),
+        headlineLarge: GoogleFonts.plusJakartaSans(
+          color: lightInk,
+          fontSize: 30,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -1,
+        ),
+        headlineMedium: GoogleFonts.plusJakartaSans(
+          color: lightInk,
+          fontSize: 24,
+          fontWeight: FontWeight.w700,
+        ),
+        headlineSmall: GoogleFonts.plusJakartaSans(
+          color: lightInk,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+        ),
+        titleLarge: GoogleFonts.plusJakartaSans(
+          color: lightInk,
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+        ),
+        titleMedium: GoogleFonts.plusJakartaSans(
+          color: lightInk,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
+        bodyLarge: GoogleFonts.plusJakartaSans(
+          color: lightInk,
+          fontSize: 15,
+          height: 1.5,
+        ),
+        bodyMedium: GoogleFonts.plusJakartaSans(
+          color: lightInk2,
+          fontSize: 13,
+          height: 1.5,
+        ),
+        bodySmall: GoogleFonts.plusJakartaSans(
+          color: lightMuted,
+          fontSize: 11,
+          height: 1.4,
+        ),
+        labelLarge: GoogleFonts.plusJakartaSans(
+          color: lightInk,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+        labelMedium: GoogleFonts.plusJakartaSans(
+          color: lightMuted,
+          fontSize: 11,
+        ),
+        labelSmall: GoogleFonts.plusJakartaSans(
+          color: lightMuted,
+          fontSize: 10,
+        ),
       ),
     );
   }
@@ -323,12 +460,16 @@ extension BuildHausColors on BuildContext {
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
 
   Color get bg => isDark ? BuildHausTheme.darkBg : BuildHausTheme.lightBg;
-  Color get surface => isDark ? BuildHausTheme.darkSurface : BuildHausTheme.lightSurface;
-  Color get surface2 => isDark ? BuildHausTheme.darkSurface2 : BuildHausTheme.lightSurface2;
-  Color get surface3 => isDark ? BuildHausTheme.darkSurface3 : BuildHausTheme.lightSurface3;
+  Color get surface =>
+      isDark ? BuildHausTheme.darkSurface : BuildHausTheme.lightSurface;
+  Color get surface2 =>
+      isDark ? BuildHausTheme.darkSurface2 : BuildHausTheme.lightSurface2;
+  Color get surface3 =>
+      isDark ? BuildHausTheme.darkSurface3 : BuildHausTheme.lightSurface3;
   Color get ink => isDark ? BuildHausTheme.darkInk : BuildHausTheme.lightInk;
   Color get ink2 => isDark ? BuildHausTheme.darkInk2 : BuildHausTheme.lightInk2;
-  Color get muted => isDark ? BuildHausTheme.darkMuted : BuildHausTheme.lightMuted;
+  Color get muted =>
+      isDark ? BuildHausTheme.darkMuted : BuildHausTheme.lightMuted;
   Color get line => isDark ? BuildHausTheme.darkLine : BuildHausTheme.lightLine;
   Color get soft => isDark ? BuildHausTheme.darkSoft : BuildHausTheme.lightSoft;
 

@@ -27,49 +27,97 @@ final appRouter = GoRouter(
   initialLocation: '/home',
   routes: [
     StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) => AppShell(navigationShell: navigationShell),
+      builder: (context, state, navigationShell) =>
+          AppShell(navigationShell: navigationShell),
       branches: [
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/home', pageBuilder: (_, __) => const NoTransitionPage(child: HomeScreen())),
+            GoRoute(
+              path: '/home',
+              pageBuilder: (_, __) =>
+                  const NoTransitionPage(child: HomeScreen()),
+            ),
           ],
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/health', pageBuilder: (_, __) => const NoTransitionPage(child: HealthScreen())),
+            GoRoute(
+              path: '/health',
+              pageBuilder: (_, __) =>
+                  const NoTransitionPage(child: HealthScreen()),
+            ),
           ],
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/parts', pageBuilder: (_, __) => const NoTransitionPage(child: PartsCatalogScreen())),
+            GoRoute(
+              path: '/parts',
+              pageBuilder: (_, __) =>
+                  const NoTransitionPage(child: PartsCatalogScreen()),
+            ),
           ],
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/history', pageBuilder: (_, __) => const NoTransitionPage(child: HistoryScreen())),
+            GoRoute(
+              path: '/history',
+              pageBuilder: (_, __) =>
+                  const NoTransitionPage(child: HistoryScreen()),
+            ),
           ],
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/account', pageBuilder: (_, __) => const NoTransitionPage(child: AccountScreen())),
+            GoRoute(
+              path: '/account',
+              pageBuilder: (_, __) =>
+                  const NoTransitionPage(child: AccountScreen()),
+            ),
           ],
         ),
       ],
     ),
     // Non-shell routes
-    GoRoute(path: '/add-motor', builder: (_, __) => const AddMotorcycleScreen()),
-    GoRoute(path: '/motor/:id/edit', builder: (_, state) => EditMotorcycleScreen(id: int.parse(state.pathParameters['id']!))),
-    GoRoute(path: '/motor/:id/odometer', builder: (_, state) => OdometerScreen(motorcycleId: int.parse(state.pathParameters['id']!))),
-    GoRoute(path: '/motor/:id/odometer-history', builder: (_, state) => OdometerHistoryScreen(motorcycleId: int.parse(state.pathParameters['id']!))),
-    GoRoute(path: '/motor/:id/inspection', builder: (_, state) => SelfInspectionScreen(motorcycleId: int.parse(state.pathParameters['id']!))),
-    GoRoute(path: '/motor/:id/service/add', builder: (_, state) => AddServiceScreen(motorcycleId: int.parse(state.pathParameters['id']!))),
+    GoRoute(
+      path: '/add-motor',
+      builder: (_, __) => const AddMotorcycleScreen(),
+    ),
+    GoRoute(
+      path: '/motor/:id/edit',
+      builder: (_, state) =>
+          EditMotorcycleScreen(id: int.parse(state.pathParameters['id']!)),
+    ),
+    GoRoute(
+      path: '/motor/:id/odometer',
+      builder: (_, state) =>
+          OdometerScreen(motorcycleId: int.parse(state.pathParameters['id']!)),
+    ),
+    GoRoute(
+      path: '/motor/:id/odometer-history',
+      builder: (_, state) => OdometerHistoryScreen(
+        motorcycleId: int.parse(state.pathParameters['id']!),
+      ),
+    ),
+    GoRoute(
+      path: '/motor/:id/inspection',
+      builder: (_, state) => SelfInspectionScreen(
+        motorcycleId: int.parse(state.pathParameters['id']!),
+      ),
+    ),
+    GoRoute(
+      path: '/motor/:id/service/add',
+      builder: (_, state) => AddServiceScreen(
+        motorcycleId: int.parse(state.pathParameters['id']!),
+      ),
+    ),
 
     // Placeholder routes (feature not yet implemented)
     GoRoute(
       path: '/motor/:id/reminder/add',
       builder: (_, state) => ComingSoonScreen(
         title: 'Tambah Pengingat',
-        description: 'Fitur pengingat servis berdasarkan jarak tempuh atau tanggal. Akan hadir di versi berikutnya.',
+        description:
+            'Fitur pengingat servis berdasarkan jarak tempuh atau tanggal. Akan hadir di versi berikutnya.',
         icon: Icons.notifications_outlined,
         backRoute: '/home',
       ),
@@ -78,7 +126,8 @@ final appRouter = GoRouter(
       path: '/motor/:id/reminders',
       builder: (_, state) => ComingSoonScreen(
         title: 'Daftar Pengingat',
-        description: 'Pengingat servis yang sudah dibuat. Akan hadir di versi berikutnya.',
+        description:
+            'Pengingat servis yang sudah dibuat. Akan hadir di versi berikutnya.',
         icon: Icons.notifications_active_outlined,
         backRoute: '/home',
       ),
@@ -87,7 +136,8 @@ final appRouter = GoRouter(
       path: '/motor/:id/expense/add',
       builder: (_, state) => ComingSoonScreen(
         title: 'Catat Pengeluaran',
-        description: 'Catat pengeluaran sparepart dan biaya servis. Akan hadir di versi berikutnya.',
+        description:
+            'Catat pengeluaran sparepart dan biaya servis. Akan hadir di versi berikutnya.',
         icon: Icons.receipt_long_outlined,
         backRoute: '/home',
       ),
@@ -96,16 +146,23 @@ final appRouter = GoRouter(
       path: '/motor/:id/oil/add',
       builder: (_, state) => ComingSoonScreen(
         title: 'Catat Ganti Oli',
-        description: 'Catat penggantian oli mesin dengan cepat. Akan hadir di versi berikutnya.',
+        description:
+            'Catat penggantian oli mesin dengan cepat. Akan hadir di versi berikutnya.',
         icon: Icons.opacity_outlined,
         backRoute: '/home',
       ),
     ),
 
     // AI routes
-    GoRoute(path: '/ai-recommendation', builder: (_, __) => const AiAssistantScreen()),
+    GoRoute(
+      path: '/ai-recommendation',
+      builder: (_, __) => const AiAssistantScreen(),
+    ),
     GoRoute(path: '/ai-chat', builder: (_, __) => const AiAssistantScreen()),
-    GoRoute(path: '/ai-model', builder: (_, __) => const AiModelManagerScreen()),
+    GoRoute(
+      path: '/ai-model',
+      builder: (_, __) => const AiModelManagerScreen(),
+    ),
 
     // Budget route
     GoRoute(path: '/budget', builder: (_, __) => const BudgetScreen()),
@@ -115,7 +172,8 @@ final appRouter = GoRouter(
       path: '/backup',
       builder: (_, __) => const ComingSoonScreen(
         title: 'Backup Data',
-        description: 'Backup semua data motor ke file lokal. Fitur ini akan segera hadir.',
+        description:
+            'Backup semua data motor ke file lokal. Fitur ini akan segera hadir.',
         icon: Icons.cloud_upload_outlined,
         backRoute: '/account',
       ),
@@ -124,7 +182,8 @@ final appRouter = GoRouter(
       path: '/restore',
       builder: (_, __) => const ComingSoonScreen(
         title: 'Pulihkan Data',
-        description: 'Pulihkan data dari file backup. Fitur ini akan segera hadir.',
+        description:
+            'Pulihkan data dari file backup. Fitur ini akan segera hadir.',
         icon: Icons.cloud_download_outlined,
         backRoute: '/account',
       ),
@@ -133,14 +192,24 @@ final appRouter = GoRouter(
       path: '/licenses',
       builder: (_, __) => Scaffold(
         appBar: AppBar(title: const Text('Lisensi')),
-        body: const Center(child: Text('Lisensi pihak ketiga akan ditampilkan di sini.')),
+        body: const Center(
+          child: Text('Lisensi pihak ketiga akan ditampilkan di sini.'),
+        ),
       ),
     ),
 
     // Complaints
     GoRoute(path: '/complaints', builder: (_, __) => const ComplaintsScreen()),
-    GoRoute(path: '/complaints/new', builder: (_, __) => const NewComplaintScreen()),
-    GoRoute(path: '/complaints/:id', builder: (_, state) => ComplaintDetailScreen(complaintId: int.parse(state.pathParameters['id']!))),
+    GoRoute(
+      path: '/complaints/new',
+      builder: (_, __) => const NewComplaintScreen(),
+    ),
+    GoRoute(
+      path: '/complaints/:id',
+      builder: (_, state) => ComplaintDetailScreen(
+        complaintId: int.parse(state.pathParameters['id']!),
+      ),
+    ),
 
     // History
     GoRoute(path: '/history/add', builder: (_, __) => const AddServiceScreen()),

@@ -8,16 +8,18 @@ import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 
 // Provider for motorcycle models grouped by brand
-final motorcycleModelsGroupedProvider = FutureProvider<Map<String, List<MotorcycleModel>>>((ref) async {
-  final db = ref.watch(databaseProvider);
-  return db.getMotorcycleModelsGrouped();
-});
+final motorcycleModelsGroupedProvider =
+    FutureProvider<Map<String, List<MotorcycleModel>>>((ref) async {
+      final db = ref.watch(databaseProvider);
+      return db.getMotorcycleModelsGrouped();
+    });
 
 class AddMotorcycleScreen extends ConsumerStatefulWidget {
   const AddMotorcycleScreen({super.key});
 
   @override
-  ConsumerState<AddMotorcycleScreen> createState() => _AddMotorcycleScreenState();
+  ConsumerState<AddMotorcycleScreen> createState() =>
+      _AddMotorcycleScreenState();
 }
 
 class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
@@ -35,7 +37,11 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
 
   final _years = List.generate(15, (i) => DateTime.now().year - i);
   final _usageProfiles = ['harian_dalam_kota', 'jarak_jauh', 'campuran'];
-  final _usageLabels = {'harian_dalam_kota': 'Harian dalam kota', 'jarak_jauh': 'Jarak jauh', 'campuran': 'Campuran'};
+  final _usageLabels = {
+    'harian_dalam_kota': 'Harian dalam kota',
+    'jarak_jauh': 'Jarak jauh',
+    'campuran': 'Campuran',
+  };
 
   @override
   void dispose() {
@@ -52,7 +58,10 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         title: const Text('Tambah Motor'),
       ),
       body: modelsAsync.when(
@@ -76,9 +85,6 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
           // Initialize defaults if not set
           _selectedBrand ??= brands.first;
           final brandModels = modelsByBrand[_selectedBrand] ?? [];
-          if (_selectedModel == null && brandModels.isNotEmpty) {
-            _selectedModel = brandModels.first;
-          }
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -87,9 +93,15 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Motor baru', style: Theme.of(context).textTheme.headlineSmall),
+                  Text(
+                    'Motor baru',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: 4),
-                  Text('Catat motor lain yang kamu punya.', style: TextStyle(color: context.muted, fontSize: 12)),
+                  Text(
+                    'Catat motor lain yang kamu punya.',
+                    style: TextStyle(color: context.muted, fontSize: 12),
+                  ),
                   const SizedBox(height: 24),
 
                   // Emoji
@@ -106,8 +118,11 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   _buildLabel('Nama / Plat nomor'),
                   TextFormField(
                     controller: _nicknameController,
-                    decoration: const InputDecoration(hintText: 'Contoh: Honda Beat B 1234 XYZ'),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
+                    decoration: const InputDecoration(
+                      hintText: 'Contoh: Honda Beat B 1234 XYZ',
+                    ),
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
                   ),
                   const SizedBox(height: 8),
 
@@ -116,13 +131,14 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   DropdownButtonFormField<String>(
                     value: _selectedBrand,
                     decoration: const InputDecoration(),
-                    items: brands.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+                    items: brands
+                        .map((b) => DropdownMenuItem(value: b, child: Text(b)))
+                        .toList(),
                     onChanged: (v) {
                       if (v == null) return;
-                      final newModels = modelsByBrand[v] ?? [];
                       setState(() {
                         _selectedBrand = v;
-                        _selectedModel = newModels.isNotEmpty ? newModels.first : null;
+                        _selectedModel = null;
                       });
                     },
                   ),
@@ -139,7 +155,15 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                           : m.model;
                       return DropdownMenuItem(value: m, child: Text(label));
                     }).toList(),
-                    onChanged: (v) => setState(() => _selectedModel = v),
+                    onChanged: (v) => setState(() {
+                      _selectedModel = v;
+                      if (v != null &&
+                          (_selectedYear < v.yearStart ||
+                              (v.yearEnd != null &&
+                                  _selectedYear > v.yearEnd!))) {
+                        _selectedYear = v.yearStart;
+                      }
+                    }),
                     validator: (v) => v == null ? 'Pilih model' : null,
                   ),
                   const SizedBox(height: 8),
@@ -149,8 +173,22 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   DropdownButtonFormField<int>(
                     value: _selectedYear,
                     decoration: const InputDecoration(),
-                    items: _years.map((y) => DropdownMenuItem(value: y, child: Text('$y'))).toList(),
+                    items: _years
+                        .map(
+                          (y) => DropdownMenuItem(value: y, child: Text('$y')),
+                        )
+                        .toList(),
                     onChanged: (v) => setState(() => _selectedYear = v!),
+                    validator: (v) {
+                      final model = _selectedModel;
+                      if (model == null || v == null)
+                        return 'Pilih model dan tahun';
+                      if (v < model.yearStart ||
+                          (model.yearEnd != null && v > model.yearEnd!)) {
+                        return 'Tahun tidak sesuai model';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 8),
 
@@ -158,7 +196,9 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   _buildLabel('Plat nomor (opsional)'),
                   TextFormField(
                     controller: _plateController,
-                    decoration: const InputDecoration(hintText: 'Contoh: B 1234 XYZ'),
+                    decoration: const InputDecoration(
+                      hintText: 'Contoh: B 1234 XYZ',
+                    ),
                   ),
                   const SizedBox(height: 8),
 
@@ -171,7 +211,8 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                     validator: (v) {
                       if (v != null && v.isNotEmpty) {
                         final n = double.tryParse(v);
-                        if (n == null || n < 0) return 'Masukkan angka yang valid';
+                        if (n == null || n < 0)
+                          return 'Masukkan angka yang valid';
                       }
                       return null;
                     },
@@ -183,17 +224,24 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   DropdownButtonFormField<String>(
                     value: _selectedUsage,
                     decoration: const InputDecoration(),
-                    items: _usageProfiles.map((u) => DropdownMenuItem(
-                      value: u,
-                      child: Text(_usageLabels[u]!),
-                    )).toList(),
+                    items: _usageProfiles
+                        .map(
+                          (u) => DropdownMenuItem(
+                            value: u,
+                            child: Text(_usageLabels[u]!),
+                          ),
+                        )
+                        .toList(),
                     onChanged: (v) => setState(() => _selectedUsage = v!),
                   ),
 
                   const SizedBox(height: 24),
 
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: context.soft,
                       borderRadius: BorderRadius.circular(9),
@@ -205,7 +253,10 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                         Expanded(
                           child: Text(
                             'Motor pertama yang ditambahkan otomatis menjadi motor utama.',
-                            style: TextStyle(color: context.muted, fontSize: 11),
+                            style: TextStyle(
+                              color: context.muted,
+                              fontSize: 11,
+                            ),
                           ),
                         ),
                       ],
@@ -217,7 +268,11 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   ElevatedButton(
                     onPressed: _saving ? null : () => _save(modelsByBrand),
                     child: _saving
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Text('Simpan Motor'),
                   ),
                 ],
@@ -232,7 +287,14 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
-      child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: context.ink)),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: context.ink,
+        ),
+      ),
     );
   }
 
@@ -243,47 +305,30 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
     try {
       final db = ref.read(databaseProvider);
 
-      // Check if this is the first motor
-      final existing = await db.getAllMotorcycles();
-      final isFirst = existing.isEmpty;
-
-      // Resolve modelId: use selected model, or fallback to brand lookup
-      int? modelId = _selectedModel?.id;
-      if (modelId == null && _selectedBrand != null) {
-        modelId = await db.getMotorcycleModelId(_selectedBrand!, _selectedModel?.model ?? '');
+      final selected = _selectedModel;
+      if (selected == null || selected.brand != _selectedBrand) {
+        throw StateError('Pilih model motor yang tersedia.');
       }
-
-      // Insert motorcycle with modelId
-      final motorId = await db.insertMotorcycle(MotorcyclesCompanion(
-        modelId: Value(modelId),
-        nickname: Value(_nicknameController.text.trim().isEmpty
-            ? '${_selectedBrand ?? ''} ${_selectedModel?.model ?? ''}'.trim()
-            : _nicknameController.text.trim()),
-        manufactureYear: Value(_selectedYear),
-        plateNumber: Value(_plateController.text.trim().isEmpty ? null : _plateController.text.trim()),
-        emoji: Value(_emojiController.text.isEmpty ? '🏍️' : _emojiController.text),
-        usageProfile: Value(_selectedUsage),
-        isPrimary: Value(isFirst),
-      ));
-
-      // Insert initial odometer if provided
+      final isFirst = (await db.getAllMotorcycles()).isEmpty;
       final odoText = _odometerController.text.trim();
-      if (odoText.isNotEmpty) {
-        final odoVal = double.tryParse(odoText);
-        if (odoVal != null && odoVal >= 0) {
-          await db.insertOdometerLog(OdometerLogsCompanion(
-            motorcycleId: Value(motorId),
-            odometerKm: Value(odoVal),
-            recordedAt: Value(DateTime.now()),
-            source: const Value('manual'),
-          ));
-        }
-      }
-
-      // Set as primary if first
-      if (isFirst) {
-        await db.setPrimaryMotorcycle(motorId);
-      }
+      final odo = odoText.isEmpty ? null : double.tryParse(odoText);
+      final motorId = await db.createMotorcycle(
+        motorcycle: MotorcyclesCompanion.insert(
+          modelId: Value(selected.id),
+          nickname: _nicknameController.text.trim(),
+          manufactureYear: _selectedYear,
+          plateNumber: Value(
+            _plateController.text.trim().isEmpty
+                ? null
+                : _plateController.text.trim(),
+          ),
+          emoji: Value(
+            _emojiController.text.isEmpty ? '🏍️' : _emojiController.text,
+          ),
+          usageProfile: Value(_selectedUsage),
+        ),
+        initialOdometerKm: odo,
+      );
 
       // Refresh providers
       ref.invalidate(motorcyclesProvider);
@@ -291,20 +336,28 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
       ref.invalidate(motorcycleModelsGroupedProvider);
       final newMotor = await db.getMotorcycle(motorId);
       if (newMotor != null) {
-        await ref.read(activeMotorcycleProvider.notifier).setActiveMotorcycle(newMotor);
+        await ref
+            .read(activeMotorcycleProvider.notifier)
+            .setActiveMotorcycle(newMotor);
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isFirst ? 'Motor berhasil ditambahkan!' : 'Motor berhasil ditambahkan!')),
+          SnackBar(
+            content: Text(
+              isFirst
+                  ? 'Motor berhasil ditambahkan!'
+                  : 'Motor berhasil ditambahkan!',
+            ),
+          ),
         );
         context.pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);

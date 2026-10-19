@@ -7,7 +7,7 @@ import 'health_engine.dart';
 /// - Health engine results
 /// - User's budget
 /// - Component costs
-/// 
+///
 /// Priority order:
 /// 1. Safety-critical components needing attention
 /// 2. High-urgency components (within 20% of service interval)
@@ -22,9 +22,9 @@ class BudgetEngine {
     required List<ComponentHealthResult> componentHealths,
     required int budgetAmount,
     Map<String, int>? componentCostEstimates,
-  })  : _componentHealths = componentHealths,
-        _budgetAmount = budgetAmount,
-        _componentCostEstimates = componentCostEstimates ?? _defaultCosts;
+  }) : _componentHealths = componentHealths,
+       _budgetAmount = budgetAmount,
+       _componentCostEstimates = componentCostEstimates ?? _defaultCosts;
 
   static const _defaultCosts = {
     'oli_mesin': 75000,
@@ -43,11 +43,12 @@ class BudgetEngine {
     var remainingBudget = _budgetAmount;
 
     // Sort by priority: safety > replace > inspect
-    final sorted = [..._componentHealths]..sort((a, b) {
-      final aP = _priority(a);
-      final bP = _priority(b);
-      return aP.compareTo(bP);
-    });
+    final sorted = [..._componentHealths]
+      ..sort((a, b) {
+        final aP = _priority(a);
+        final bP = _priority(b);
+        return aP.compareTo(bP);
+      });
 
     for (final health in sorted) {
       final componentName = _getComponentName(health);
@@ -55,37 +56,45 @@ class BudgetEngine {
       final decision = _determineDecision(health, remainingBudget);
 
       if (decision == 'safety_alert') {
-        results.add(BudgetRecommendation(
-          componentName: componentName,
-          priority: 'safety',
-          decision: decision,
-          estimatedCost: cost,
-          reason: '⚠️ Komponen keselamatan memerlukan perhatian segera.',
-          consequenceIfDelayed: 'Risiko kecelakaan jika ditunda.',
-          requiresInspection: true,
-        ));
-      } else if (decision == 'selected') {
-        if (remainingBudget >= cost) {
-          results.add(BudgetRecommendation(
+        results.add(
+          BudgetRecommendation(
             componentName: componentName,
-            priority: health.score != null && health.score! < 50 ? 'high' : 'medium',
+            priority: 'safety',
             decision: decision,
             estimatedCost: cost,
-            reason: 'Dalam anggaran dan perlu perhatian.',
-            consequenceIfDelayed: 'Kondisi bisa memburuk jika ditunda.',
-            requiresInspection: health.needsInspection,
-          ));
+            reason: '⚠️ Komponen keselamatan memerlukan perhatian segera.',
+            consequenceIfDelayed: 'Risiko kecelakaan jika ditunda.',
+            requiresInspection: true,
+          ),
+        );
+      } else if (decision == 'selected') {
+        if (remainingBudget >= cost) {
+          results.add(
+            BudgetRecommendation(
+              componentName: componentName,
+              priority: health.score != null && health.score! < 50
+                  ? 'high'
+                  : 'medium',
+              decision: decision,
+              estimatedCost: cost,
+              reason: 'Dalam anggaran dan perlu perhatian.',
+              consequenceIfDelayed: 'Kondisi bisa memburuk jika ditunda.',
+              requiresInspection: health.needsInspection,
+            ),
+          );
           remainingBudget -= cost;
         } else {
-          results.add(BudgetRecommendation(
-            componentName: componentName,
-            priority: 'medium',
-            decision: 'deferred',
-            estimatedCost: cost,
-            reason: 'Diperlukan tapi budget tidak mencukupi.',
-            consequenceIfDelayed: 'Butuh tabungan tambahan.',
-            requiresInspection: true,
-          ));
+          results.add(
+            BudgetRecommendation(
+              componentName: componentName,
+              priority: 'medium',
+              decision: 'deferred',
+              estimatedCost: cost,
+              reason: 'Diperlukan tapi budget tidak mencukupi.',
+              consequenceIfDelayed: 'Butuh tabungan tambahan.',
+              requiresInspection: true,
+            ),
+          );
         }
       }
       // Skip items that are 'good' status

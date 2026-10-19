@@ -37,7 +37,12 @@ void main() {
       final engine = HealthEngine(
         statuses: [],
         serviceRecords: [
-          _createServiceRecord(1, 1, 8000, DateTime.now().subtract(const Duration(days: 30))),
+          _createServiceRecord(
+            1,
+            1,
+            8000,
+            DateTime.now().subtract(const Duration(days: 30)),
+          ),
         ],
         odometerLogs: [],
         rules: [_createRule(1, 1, 3000, 90)],
@@ -54,7 +59,12 @@ void main() {
       final engine = HealthEngine(
         statuses: [],
         serviceRecords: [
-          _createServiceRecord(1, 1, 7500, DateTime.now().subtract(const Duration(days: 60))),
+          _createServiceRecord(
+            1,
+            1,
+            7500,
+            DateTime.now().subtract(const Duration(days: 60)),
+          ),
         ],
         odometerLogs: [],
         rules: [_createRule(1, 1, 3000, 90)],
@@ -71,7 +81,12 @@ void main() {
       final engine = HealthEngine(
         statuses: [],
         serviceRecords: [
-          _createServiceRecord(1, 1, 5000, DateTime.now().subtract(const Duration(days: 100))),
+          _createServiceRecord(
+            1,
+            1,
+            5000,
+            DateTime.now().subtract(const Duration(days: 100)),
+          ),
         ],
         odometerLogs: [],
         rules: [_createRule(1, 1, 3000, 90)],
@@ -88,11 +103,18 @@ void main() {
       final engine = HealthEngine(
         statuses: [],
         serviceRecords: [
-          _createServiceRecord(1, 1, 5000, DateTime.now().subtract(const Duration(days: 100))),
+          _createServiceRecord(
+            1,
+            1,
+            5000,
+            DateTime.now().subtract(const Duration(days: 100)),
+          ),
         ],
         odometerLogs: [],
         rules: [_createRule(1, 1, 3000, 90)],
-        componentTypes: [_createComponentType(1, 'Rem', true)], // safety critical
+        componentTypes: [
+          _createComponentType(1, 'Rem', true),
+        ], // safety critical
         currentOdometer: 10000,
       );
 
@@ -105,13 +127,16 @@ void main() {
       final engine = HealthEngine(
         statuses: [],
         serviceRecords: [
-          _createServiceRecord(1, 1, 9000, DateTime.now().subtract(const Duration(days: 14))),
+          _createServiceRecord(
+            1,
+            1,
+            9000,
+            DateTime.now().subtract(const Duration(days: 14)),
+          ),
         ],
         odometerLogs: [],
         rules: [_createRule(1, 1, 3000, 90)],
-        componentTypes: [
-          _createComponentType(1, 'Oli mesin', false),
-        ],
+        componentTypes: [_createComponentType(1, 'Oli mesin', false)],
         currentOdometer: 10000,
       );
 
@@ -125,7 +150,12 @@ void main() {
       final engine = HealthEngine(
         statuses: [],
         serviceRecords: [
-          _createServiceRecord(1, 1, 8000, DateTime.now().subtract(const Duration(days: 20))),
+          _createServiceRecord(
+            1,
+            1,
+            8000,
+            DateTime.now().subtract(const Duration(days: 20)),
+          ),
         ],
         odometerLogs: [],
         rules: [_createRule(1, 1, 3000, 90)],
@@ -152,7 +182,12 @@ ComponentType _createComponentType(int id, String name, bool safetyCritical) {
   );
 }
 
-MaintenanceRule _createRule(int id, int componentTypeId, double intervalKm, int intervalDays) {
+MaintenanceRule _createRule(
+  int id,
+  int componentTypeId,
+  double intervalKm,
+  int intervalDays,
+) {
   return MaintenanceRule(
     id: id,
     modelId: null,
@@ -166,7 +201,12 @@ MaintenanceRule _createRule(int id, int componentTypeId, double intervalKm, int 
   );
 }
 
-ServiceRecord _createServiceRecord(int id, int motorcycleId, double odometer, DateTime date) {
+ServiceRecord _createServiceRecord(
+  int id,
+  int motorcycleId,
+  double odometer,
+  DateTime date,
+) {
   return ServiceRecord(
     id: id,
     motorcycleId: motorcycleId,

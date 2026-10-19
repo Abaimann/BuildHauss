@@ -16,7 +16,10 @@ class OdometerHistoryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         title: const Text('Riwayat Odometer'),
       ),
       body: logsAsync.when(
@@ -28,12 +31,19 @@ class OdometerHistoryScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('📊', style: TextStyle(fontSize: 48, color: context.muted)),
+                  Text(
+                    '📊',
+                    style: TextStyle(fontSize: 48, color: context.muted),
+                  ),
                   const SizedBox(height: 12),
-                  Text('Belum ada data odometer', style: TextStyle(color: context.muted)),
+                  Text(
+                    'Belum ada data odometer',
+                    style: TextStyle(color: context.muted),
+                  ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => context.push('/motor/$motorcycleId/odometer'),
+                    onPressed: () =>
+                        context.push('/motor/$motorcycleId/odometer'),
                     child: const Text('Input Odometer'),
                   ),
                 ],
@@ -63,12 +73,15 @@ class OdometerHistoryScreen extends ConsumerWidget {
                 child: Row(
                   children: [
                     Container(
-                      width: 40, height: 40,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
                         color: context.soft,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Center(child: Text('🔢', style: const TextStyle(fontSize: 18))),
+                      child: Center(
+                        child: Text('🔢', style: const TextStyle(fontSize: 18)),
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -77,26 +90,40 @@ class OdometerHistoryScreen extends ConsumerWidget {
                         children: [
                           Text(
                             '${log.odometerKm.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} km',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: context.ink),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: context.ink,
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             Formatters.dateTime(log.recordedAt),
-                            style: TextStyle(color: context.muted, fontSize: 10),
+                            style: TextStyle(
+                              color: context.muted,
+                              fontSize: 10,
+                            ),
                           ),
                         ],
                       ),
                     ),
                     if (diff != null && diff > 0)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: context.soft,
                           borderRadius: BorderRadius.circular(99),
                         ),
                         child: Text(
                           '+${diff.toStringAsFixed(0)} km',
-                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: context.ink),
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: context.ink,
+                          ),
                         ),
                       ),
                   ],

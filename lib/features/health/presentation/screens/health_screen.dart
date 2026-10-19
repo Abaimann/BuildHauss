@@ -75,15 +75,31 @@ class HealthScreen extends ConsumerWidget {
                         children: [
                           Text(
                             'Kesehatan Motor',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: context.ink),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: context.ink,
+                            ),
                           ),
-                          Text(activeMotor.nickname, style: TextStyle(fontSize: 12, color: context.muted)),
+                          Text(
+                            activeMotor.nickname,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: context.muted,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: context.soft, borderRadius: BorderRadius.circular(99)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: context.soft,
+                        borderRadius: BorderRadius.circular(99),
+                      ),
                       child: _HealthBrandLabel(modelId: activeMotor.modelId),
                     ),
                   ],
@@ -121,7 +137,8 @@ class _SectionTitle extends StatelessWidget {
   final String title;
   const _SectionTitle(this.title);
   @override
-  Widget build(BuildContext context) => Text(title, style: Theme.of(context).textTheme.titleMedium);
+  Widget build(BuildContext context) =>
+      Text(title, style: Theme.of(context).textTheme.titleMedium);
 }
 
 class _HealthBrandLabel extends ConsumerWidget {
@@ -158,31 +175,44 @@ class _HealthScoreCard extends ConsumerWidget {
       future: db.getComponentStatusesWithNames(motorcycle.id),
       builder: (context, snap) {
         final data = snap.data ?? [];
-        final scores = data.map((d) => d.status.score ?? 0.0).toList();
-        final avgScore = scores.isEmpty ? 0.0 : scores.reduce((a, b) => a + b) / scores.length;
+        final scores = data
+            .where((d) => d.status.score != null)
+            .map((d) => d.status.score!)
+            .toList();
+        final hasEvidence = scores.isNotEmpty;
+        final avgScore = hasEvidence
+            ? scores.reduce((a, b) => a + b) / scores.length
+            : 0.0;
 
-        final color = avgScore >= 75
+        final color = !hasEvidence
+            ? context.muted
+            : avgScore >= 75
             ? BuildHausTheme.ok
             : avgScore >= 50
-                ? BuildHausTheme.warn
-                : BuildHausTheme.danger;
+            ? BuildHausTheme.warn
+            : BuildHausTheme.danger;
 
-        final statusText = avgScore >= 85
+        final statusText = !hasEvidence
+            ? 'Belum cukup data'
+            : avgScore >= 85
             ? 'Sangat Baik'
             : avgScore >= 70
-                ? 'Baik'
-                : avgScore >= 50
-                    ? 'Cukup'
-                    : avgScore >= 30
-                        ? 'Buruk'
-                        : 'Sangat Buruk';
+            ? 'Baik'
+            : avgScore >= 50
+            ? 'Cukup'
+            : avgScore >= 30
+            ? 'Buruk'
+            : 'Sangat Buruk';
 
         return Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
+              colors: [
+                color.withValues(alpha: 0.15),
+                color.withValues(alpha: 0.05),
+              ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: color.withValues(alpha: 0.3)),
@@ -200,39 +230,72 @@ class _HealthScoreCard extends ConsumerWidget {
                         color: color.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Stack(alignment: Alignment.center, children: [
-                        SizedBox(
-                          width: 56,
-                          height: 56,
-                          child: CircularProgressIndicator(
-                            value: avgScore / 100,
-                            strokeWidth: 6,
-                            backgroundColor: context.soft,
-                            color: color,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: 56,
+                            height: 56,
+                            child: CircularProgressIndicator(
+                              value: hasEvidence ? avgScore / 100 : null,
+                              strokeWidth: 6,
+                              backgroundColor: context.soft,
+                              color: color,
+                            ),
                           ),
-                        ),
-                        Text(
-                          avgScore > 0 ? '${avgScore.round()}' : '?',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color),
-                        ),
-                      ]),
+                          Text(
+                            hasEvidence ? '${avgScore.round()}' : '?',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: color,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(width: 20),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Skor Kesehatan', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: context.ink)),
+                          Text(
+                            'Skor Kesehatan',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: context.ink,
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(99)),
-                            child: Text(statusText.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color, letterSpacing: 0.5)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(99),
+                            ),
+                            child: Text(
+                              statusText.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: color,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            avgScore >= 75 ? 'Kondisi motor prima!' : avgScore >= 50 ? 'Perlu perhatian lebih' : 'Perlu servis segera',
-                            style: TextStyle(fontSize: 12, color: context.muted),
+                            !hasEvidence
+                                ? 'Status belum dapat dipastikan dari data tersedia'
+                                : 'Estimasi berdasarkan riwayat dan interval, bukan pemeriksaan fisik',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: context.muted,
+                            ),
                           ),
                         ],
                       ),
@@ -241,7 +304,10 @@ class _HealthScoreCard extends ConsumerWidget {
                 ),
                 if (data.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  Text('${data.length} komponen dipantau', style: TextStyle(fontSize: 11, color: context.muted)),
+                  Text(
+                    '${data.length} komponen dipantau',
+                    style: TextStyle(fontSize: 11, color: context.muted),
+                  ),
                 ],
               ],
             ),
@@ -279,21 +345,53 @@ class _AIRecommendationCard extends ConsumerWidget {
                   Container(
                     width: 36,
                     height: 36,
-                    decoration: BoxDecoration(color: Colors.indigo.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
-                    child: const Center(child: Text('🤖', style: TextStyle(fontSize: 18))),
+                    decoration: BoxDecoration(
+                      color: Colors.indigo.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text('🤖', style: TextStyle(fontSize: 18)),
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  Text('AI Rekomendasi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: context.ink)),
+                  Text(
+                    'AI Rekomendasi',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: context.ink,
+                    ),
+                  ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: Colors.indigo.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(99)),
-                    child: const Text('OFFLINE', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.indigo)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.indigo.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: const Text(
+                      'OFFLINE',
+                      style: TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo,
+                      ),
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              Text(recommendation, style: TextStyle(fontSize: 12, color: context.muted, height: 1.5)),
+              Text(
+                recommendation,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: context.muted,
+                  height: 1.5,
+                ),
+              ),
               const SizedBox(height: 12),
               Align(
                 alignment: Alignment.centerRight,
@@ -301,7 +399,9 @@ class _AIRecommendationCard extends ConsumerWidget {
                   onPressed: () => context.push('/ai-chat'),
                   icon: const Icon(Icons.auto_awesome, size: 16),
                   label: const Text('Detail Lengkap'),
-                  style: TextButton.styleFrom(textStyle: const TextStyle(fontSize: 12)),
+                  style: TextButton.styleFrom(
+                    textStyle: const TextStyle(fontSize: 12),
+                  ),
                 ),
               ),
             ],
@@ -316,7 +416,11 @@ class _AIRecommendationCard extends ConsumerWidget {
     final reminders = await db.getUpcomingReminders(motorId);
 
     final urgent = statuses.where((s) => (s.status.score ?? 100) < 50).toList();
-    final warns = statuses.where((s) => (s.status.score ?? 100) >= 50 && (s.status.score ?? 100) < 75).toList();
+    final warns = statuses
+        .where(
+          (s) => (s.status.score ?? 100) >= 50 && (s.status.score ?? 100) < 75,
+        )
+        .toList();
 
     if (urgent.isNotEmpty) {
       return '⚠️ ${urgent.first.componentName} dalam kondisi kritis. Disarankan untuk segera ditangani di bengkel.';
@@ -356,15 +460,26 @@ class _ComponentStatusSection extends ConsumerWidget {
               children: [
                 Icon(Icons.build_outlined, size: 40, color: context.muted),
                 const SizedBox(height: 12),
-                Text('Belum ada data komponen', style: TextStyle(fontWeight: FontWeight.bold, color: context.ink)),
+                Text(
+                  'Belum ada data komponen',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: context.ink,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('Catat servis untuk melihat status', style: TextStyle(fontSize: 12, color: context.muted)),
+                Text(
+                  'Catat servis untuk melihat status',
+                  style: TextStyle(fontSize: 12, color: context.muted),
+                ),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () => context.push('/history/add'),
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text('Catat Servis'),
-                  style: ElevatedButton.styleFrom(minimumSize: const Size(0, 44)),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(0, 44),
+                  ),
                 ),
               ],
             ),
@@ -378,7 +493,10 @@ class _ComponentStatusSection extends ConsumerWidget {
             GestureDetector(
               onTap: () => context.push('/history/add'),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(14),
@@ -386,9 +504,20 @@ class _ComponentStatusSection extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.add_circle_outline, color: context.muted, size: 20),
+                    Icon(
+                      Icons.add_circle_outline,
+                      color: context.muted,
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
-                    Text('Catat Servis Baru', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: context.muted)),
+                    Text(
+                      'Catat Servis Baru',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: context.muted,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -406,12 +535,14 @@ class _ComponentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final score = data.status.score ?? 0;
-    final color = score >= 75
+    final score = data.status.score;
+    final color = score == null
+        ? context.muted
+        : score >= 75
         ? BuildHausTheme.ok
         : score >= 50
-            ? BuildHausTheme.warn
-            : BuildHausTheme.danger;
+        ? BuildHausTheme.warn
+        : BuildHausTheme.danger;
     final statusLabel = data.status.estimatedStatus;
 
     return Padding(
@@ -428,17 +559,37 @@ class _ComponentTile extends StatelessWidget {
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
-              child: Center(child: Text(_getEmoji(data.componentName), style: const TextStyle(fontSize: 20))),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Text(
+                  _getEmoji(data.componentName),
+                  style: const TextStyle(fontSize: 20),
+                ),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(data.componentName, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: context.ink)),
+                  Text(
+                    data.componentName,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: context.ink,
+                    ),
+                  ),
                   if (data.status.explanation.isNotEmpty)
-                    Text(data.status.explanation, style: TextStyle(fontSize: 10, color: context.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(
+                      data.status.explanation,
+                      style: TextStyle(fontSize: 10, color: context.muted),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                 ],
               ),
             ),
@@ -446,11 +597,31 @@ class _ComponentTile extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('${score.round()}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
+                Text(
+                  score == null ? '—' : '${score.round()}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: color,
+                  ),
+                ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(99)),
-                  child: Text(statusLabel, style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: color)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text(
+                    statusLabel,
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -498,10 +669,17 @@ class _RemindersSection extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.check_circle_outline, color: BuildHausTheme.ok, size: 20),
+                Icon(
+                  Icons.check_circle_outline,
+                  color: BuildHausTheme.ok,
+                  size: 20,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text('Tidak ada pengingat servis mendatang', style: TextStyle(color: context.muted, fontSize: 12)),
+                  child: Text(
+                    'Tidak ada pengingat servis mendatang',
+                    style: TextStyle(color: context.muted, fontSize: 12),
+                  ),
                 ),
               ],
             ),
@@ -509,7 +687,10 @@ class _RemindersSection extends ConsumerWidget {
         }
 
         return Column(
-          children: reminders.take(3).map((r) => _ReminderTile(reminder: r)).toList(),
+          children: reminders
+              .take(3)
+              .map((r) => _ReminderTile(reminder: r))
+              .toList(),
         );
       },
     );
@@ -531,8 +712,8 @@ class _ReminderTile extends StatelessWidget {
     final color = isOverdue
         ? BuildHausTheme.danger
         : isUrgent
-            ? BuildHausTheme.warn
-            : BuildHausTheme.ok;
+        ? BuildHausTheme.warn
+        : BuildHausTheme.ok;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -541,29 +722,50 @@ class _ReminderTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.surface2,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: isOverdue ? BuildHausTheme.danger.withValues(alpha: 0.3) : isUrgent ? BuildHausTheme.warn.withValues(alpha: 0.3) : context.line),
+          border: Border.all(
+            color: isOverdue
+                ? BuildHausTheme.danger.withValues(alpha: 0.3)
+                : isUrgent
+                ? BuildHausTheme.warn.withValues(alpha: 0.3)
+                : context.line,
+          ),
         ),
         child: Row(
           children: [
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
-              child: Center(child: Text(isOverdue ? '⚠️' : '📅', style: const TextStyle(fontSize: 18))),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Text(
+                  isOverdue ? '⚠️' : '📅',
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(reminder.componentName, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: context.ink)),
+                  Text(
+                    reminder.componentName,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: context.ink,
+                    ),
+                  ),
                   if (dueDate != null)
                     Text(
                       isOverdue
                           ? 'Jatuh tempo ${-daysLeft} hari lalu'
                           : daysLeft == 0
-                              ? 'Jatuh tempo hari ini!'
-                              : 'Jatuh tempo $daysLeft hari lagi',
+                          ? 'Jatuh tempo hari ini!'
+                          : 'Jatuh tempo $daysLeft hari lagi',
                       style: TextStyle(fontSize: 10, color: color),
                     )
                   else if (reminder.reminder.dueOdometerKm != null)

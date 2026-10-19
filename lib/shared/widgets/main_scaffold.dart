@@ -57,11 +57,21 @@ class MainScaffold extends StatelessWidget {
 
   void _onNav(BuildContext context, int i) {
     switch (i) {
-      case 0: context.go('/home'); break;
-      case 1: context.go('/health'); break;
-      case 2: context.go('/parts'); break;
-      case 3: context.go('/history'); break;
-      case 4: context.go('/account'); break;
+      case 0:
+        context.go('/home');
+        break;
+      case 1:
+        context.go('/health');
+        break;
+      case 2:
+        context.go('/parts');
+        break;
+      case 3:
+        context.go('/history');
+        break;
+      case 4:
+        context.go('/account');
+        break;
     }
   }
 }

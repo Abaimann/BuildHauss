@@ -19,9 +19,15 @@ class ComplaintsScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Tambahkan motor terlebih dahulu', style: TextStyle(color: context.muted)),
+              Text(
+                'Tambahkan motor terlebih dahulu',
+                style: TextStyle(color: context.muted),
+              ),
               const SizedBox(height: 16),
-              ElevatedButton(onPressed: () => context.push('/add-motor'), child: const Text('Tambah Motor')),
+              ElevatedButton(
+                onPressed: () => context.push('/add-motor'),
+                child: const Text('Tambah Motor'),
+              ),
             ],
           ),
         ),
@@ -32,7 +38,10 @@ class ComplaintsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/home')),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/home'),
+        ),
         title: const Text('Keluhan'),
         actions: [
           IconButton(
@@ -60,9 +69,15 @@ class ComplaintsScreen extends ConsumerWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('📝', style: TextStyle(fontSize: 48, color: context.muted)),
+                        Text(
+                          '📝',
+                          style: TextStyle(fontSize: 48, color: context.muted),
+                        ),
                         const SizedBox(height: 12),
-                        Text('Belum ada keluhan', style: TextStyle(color: context.muted)),
+                        Text(
+                          'Belum ada keluhan',
+                          style: TextStyle(color: context.muted),
+                        ),
                         const SizedBox(height: 16),
                         ElevatedButton.icon(
                           onPressed: () => context.push('/complaints/new'),
@@ -97,30 +112,52 @@ class ComplaintsScreen extends ConsumerWidget {
                             Row(
                               children: [
                                 Expanded(
-                                  child: Text(c.title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.ink)),
+                                  child: Text(
+                                    c.title,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                      color: context.ink,
+                                    ),
+                                  ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: statusColor.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(99),
                                   ),
-                                  child: Text(_getStatusLabel(c.status),
-                                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: statusColor)),
+                                  child: Text(
+                                    _getStatusLabel(c.status),
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: statusColor,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 6),
                             Text(
                               c.description,
-                              style: TextStyle(color: context.muted, fontSize: 11),
+                              style: TextStyle(
+                                color: context.muted,
+                                fontSize: 11,
+                              ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 6),
                             Text(
                               Formatters.date(c.openedAt),
-                              style: TextStyle(color: context.muted, fontSize: 10),
+                              style: TextStyle(
+                                color: context.muted,
+                                fontSize: 10,
+                              ),
                             ),
                           ],
                         ),
@@ -144,24 +181,37 @@ class ComplaintsScreen extends ConsumerWidget {
 
   Color _getStatusColor(String status) {
     switch (status.trim()) {
-      case 'selesai': return BuildHausTheme.ok;
-      case 'ditangani': return BuildHausTheme.ok;
-      case 'perlu_pemeriksaan': return BuildHausTheme.warn;
-      case 'dianalisis': return BuildHausTheme.warn;
-      case 'dibuka_kembali': return BuildHausTheme.danger;
-      default: return const Color(0xFF888888);
+      case 'selesai':
+        return BuildHausTheme.ok;
+      case 'ditangani':
+        return BuildHausTheme.ok;
+      case 'perlu_pemeriksaan':
+        return BuildHausTheme.warn;
+      case 'dianalisis':
+        return BuildHausTheme.warn;
+      case 'dibuka_kembali':
+        return BuildHausTheme.danger;
+      default:
+        return const Color(0xFF888888);
     }
   }
 
   String _getStatusLabel(String status) {
     switch (status.trim()) {
-      case ' baru': return 'BARU';
-      case 'dianalisis': return 'DIANALISIS';
-      case 'perlu_pemeriksaan': return 'PERLU CEK';
-      case 'ditangani': return 'DITANGANI';
-      case 'selesai': return 'SELESAI';
-      case 'dibuka_kembali': return 'DIBUKA LG';
-      default: return status.toUpperCase();
+      case ' baru':
+        return 'BARU';
+      case 'dianalisis':
+        return 'DIANALISIS';
+      case 'perlu_pemeriksaan':
+        return 'PERLU CEK';
+      case 'ditangani':
+        return 'DITANGANI';
+      case 'selesai':
+        return 'SELESAI';
+      case 'dibuka_kembali':
+        return 'DIBUKA LG';
+      default:
+        return status.toUpperCase();
     }
   }
 }

@@ -13,7 +13,8 @@ class ComplaintDetailScreen extends ConsumerStatefulWidget {
   const ComplaintDetailScreen({super.key, required this.complaintId});
 
   @override
-  ConsumerState<ComplaintDetailScreen> createState() => _ComplaintDetailScreenState();
+  ConsumerState<ComplaintDetailScreen> createState() =>
+      _ComplaintDetailScreenState();
 }
 
 class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
@@ -67,7 +68,10 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         title: Text(c.title),
         actions: [
           PopupMenuButton<String>(
@@ -100,23 +104,50 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: _getStatusColor(c.status).withValues(alpha: 0.15),
+                              color: _getStatusColor(
+                                c.status,
+                              ).withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(99),
                             ),
-                            child: Text(_getStatusLabel(c.status),
-                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: _getStatusColor(c.status))),
+                            child: Text(
+                              _getStatusLabel(c.status),
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: _getStatusColor(c.status),
+                              ),
+                            ),
                           ),
                           const Spacer(),
-                          Text(Formatters.date(c.openedAt), style: TextStyle(fontSize: 10, color: context.muted)),
+                          Text(
+                            Formatters.date(c.openedAt),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: context.muted,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Text(c.description, style: TextStyle(fontSize: 13, color: context.ink, height: 1.5)),
+                      Text(
+                        c.description,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: context.ink,
+                          height: 1.5,
+                        ),
+                      ),
                       if (c.odometerKm != null) ...[
                         const SizedBox(height: 8),
-                        Text('Odometer saat itu: ${c.odometerKm!.toStringAsFixed(0)} km', style: TextStyle(fontSize: 11, color: context.muted)),
+                        Text(
+                          'Odometer saat itu: ${c.odometerKm!.toStringAsFixed(0)} km',
+                          style: TextStyle(fontSize: 11, color: context.muted),
+                        ),
                       ],
                     ],
                   ),
@@ -125,7 +156,10 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
                 const SizedBox(height: 16),
 
                 // Messages / Chat
-                Text('Percakapan', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Percakapan',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 10),
 
                 if (_messages.isEmpty)
@@ -137,7 +171,10 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
                     ),
                     child: Column(
                       children: [
-                        Text('💬', style: TextStyle(fontSize: 28, color: context.muted)),
+                        Text(
+                          '💬',
+                          style: TextStyle(fontSize: 28, color: context.muted),
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           'Belum ada analisis. Tanyakan keluhan kamu di bawah.',
@@ -173,8 +210,13 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
                       controller: _chatController,
                       decoration: InputDecoration(
                         hintText: 'Tanyakan keluhan ini...',
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(99)),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(99),
+                        ),
                       ),
                       maxLines: 1,
                     ),
@@ -214,14 +256,24 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
             children: [
               Text(
                 isUser ? 'Anda' : 'BuildHaus',
-                style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: context.muted),
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: context.muted,
+                ),
               ),
               const Spacer(),
-              Text(Formatters.dateTime(m.createdAt), style: TextStyle(fontSize: 9, color: context.muted)),
+              Text(
+                Formatters.dateTime(m.createdAt),
+                style: TextStyle(fontSize: 9, color: context.muted),
+              ),
             ],
           ),
           const SizedBox(height: 4),
-          Text(m.content, style: TextStyle(fontSize: 12, color: context.ink, height: 1.4)),
+          Text(
+            m.content,
+            style: TextStyle(fontSize: 12, color: context.ink, height: 1.4),
+          ),
         ],
       ),
     );
@@ -253,22 +305,46 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: _getRiskColor(analysis.riskLevel).withValues(alpha: 0.15),
+                          color: _getRiskColor(
+                            analysis.riskLevel,
+                          ).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(99),
                         ),
-                        child: Text('RISIKO: ${analysis.riskLevel.toUpperCase()}',
-                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: _getRiskColor(analysis.riskLevel))),
+                        child: Text(
+                          'RISIKO: ${analysis.riskLevel.toUpperCase()}',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: _getRiskColor(analysis.riskLevel),
+                          ),
+                        ),
                       ),
                       const Spacer(),
-                      Text('Mode: ${analysis.analysisMode}', style: TextStyle(fontSize: 9, color: context.muted)),
+                      Text(
+                        'Mode: ${analysis.analysisMode}',
+                        style: TextStyle(fontSize: 9, color: context.muted),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
-                  Text(analysis.summary, style: TextStyle(fontSize: 12, color: context.ink, height: 1.5)),
+                  Text(
+                    analysis.summary,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: context.ink,
+                      height: 1.5,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  Text(Formatters.dateTime(analysis.analyzedAt), style: TextStyle(fontSize: 10, color: context.muted)),
+                  Text(
+                    Formatters.dateTime(analysis.analyzedAt),
+                    style: TextStyle(fontSize: 10, color: context.muted),
+                  ),
                 ],
               ),
             ),
@@ -280,9 +356,12 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
 
   Color _getRiskColor(String risk) {
     switch (risk) {
-      case 'high': return BuildHausTheme.danger;
-      case 'medium': return BuildHausTheme.warn;
-      default: return BuildHausTheme.ok;
+      case 'high':
+        return BuildHausTheme.danger;
+      case 'medium':
+        return BuildHausTheme.warn;
+      default:
+        return BuildHausTheme.ok;
     }
   }
 
@@ -294,24 +373,29 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
     final db = ref.read(databaseProvider);
 
     // Add user message
-    await db.insertComplaintMessage(ComplaintMessagesCompanion(
-      complaintId: Value(widget.complaintId),
-      role: const Value('user'),
-      content: Value(text),
-    ));
+    await db.insertComplaintMessage(
+      ComplaintMessagesCompanion(
+        complaintId: Value(widget.complaintId),
+        role: const Value('user'),
+        content: Value(text),
+      ),
+    );
 
     // Add system response (rule-based analysis)
-    final response = 'Terima kasih telah menjelaskan. Keluhan "$text" telah dicatat. '
+    final response =
+        'Terima kasih telah menjelaskan. Keluhan "$text" telah dicatat. '
         'Untuk analisis lebih lanjut, pastikan model AI sudah diunduh di menu Akun > AI Model. '
         'Sementara itu, jika keluhan menyangkut keselamatan (rem, ban, kebocoran bahan bakar), '
         'segeralah periksakan ke mekanik profesional.';
 
-    await db.insertComplaintMessage(ComplaintMessagesCompanion(
-      complaintId: Value(widget.complaintId),
-      role: const Value('assistant'),
-      content: Value(response),
-      analysisMode: const Value('rule_based'),
-    ));
+    await db.insertComplaintMessage(
+      ComplaintMessagesCompanion(
+        complaintId: Value(widget.complaintId),
+        role: const Value('assistant'),
+        content: Value(response),
+        analysisMode: const Value('rule_based'),
+      ),
+    );
 
     await _load();
   }
@@ -319,17 +403,23 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
   Future<void> _handleAction(String action) async {
     final db = ref.read(databaseProvider);
     if (action == 'close') {
-      await db.updateComplaint(ComplaintsCompanion(
-        status: const Value('selesai'),
-        closedAt: Value(DateTime.now()),
-        updatedAt: Value(DateTime.now()),
-      ), widget.complaintId);
+      await db.updateComplaint(
+        ComplaintsCompanion(
+          status: const Value('selesai'),
+          closedAt: Value(DateTime.now()),
+          updatedAt: Value(DateTime.now()),
+        ),
+        widget.complaintId,
+      );
     } else if (action == 'reopen') {
-      await db.updateComplaint(ComplaintsCompanion(
-        status: const Value('dibuka_kembali'),
-        closedAt: const Value(null),
-        updatedAt: Value(DateTime.now()),
-      ), widget.complaintId);
+      await db.updateComplaint(
+        ComplaintsCompanion(
+          status: const Value('dibuka_kembali'),
+          closedAt: const Value(null),
+          updatedAt: Value(DateTime.now()),
+        ),
+        widget.complaintId,
+      );
     } else if (action == 'delete') {
       final confirm = await showDialog<bool>(
         context: context,
@@ -337,10 +427,16 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
           title: const Text('Hapus Keluhan?'),
           content: const Text('Keluhan ini akan dihapus permanen.'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Batal'),
+            ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: Text('Hapus', style: TextStyle(color: BuildHausTheme.danger)),
+              child: Text(
+                'Hapus',
+                style: TextStyle(color: BuildHausTheme.danger),
+              ),
             ),
           ],
         ),
@@ -353,30 +449,45 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
     }
     await _load();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Status keluhan diperbarui')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Status keluhan diperbarui')),
+      );
     }
   }
 
   Color _getStatusColor(String status) {
     switch (status.trim()) {
-      case 'selesai': return BuildHausTheme.ok;
-      case 'ditangani': return BuildHausTheme.ok;
-      case 'perlu_pemeriksaan': return BuildHausTheme.warn;
-      case 'dianalisis': return BuildHausTheme.warn;
-      case 'dibuka_kembali': return BuildHausTheme.danger;
-      default: return context.muted;
+      case 'selesai':
+        return BuildHausTheme.ok;
+      case 'ditangani':
+        return BuildHausTheme.ok;
+      case 'perlu_pemeriksaan':
+        return BuildHausTheme.warn;
+      case 'dianalisis':
+        return BuildHausTheme.warn;
+      case 'dibuka_kembali':
+        return BuildHausTheme.danger;
+      default:
+        return context.muted;
     }
   }
 
   String _getStatusLabel(String status) {
     switch (status.trim()) {
-      case ' baru': return 'BARU';
-      case 'dianalisis': return 'DIANALISIS';
-      case 'perlu_pemeriksaan': return 'PERLU CEK';
-      case 'ditangani': return 'DITANGANI';
-      case 'selesai': return 'SELESAI';
-      case 'dibuka_kembali': return 'DIBUKA LG';
-      default: return status.toUpperCase();
+      case ' baru':
+        return 'BARU';
+      case 'dianalisis':
+        return 'DIANALISIS';
+      case 'perlu_pemeriksaan':
+        return 'PERLU CEK';
+      case 'ditangani':
+        return 'DITANGANI';
+      case 'selesai':
+        return 'SELESAI';
+      case 'dibuka_kembali':
+        return 'DIBUKA LG';
+      default:
+        return status.toUpperCase();
     }
   }
 }

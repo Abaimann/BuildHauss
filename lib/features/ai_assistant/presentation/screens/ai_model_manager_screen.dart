@@ -11,7 +11,8 @@ class AiModelManagerScreen extends ConsumerStatefulWidget {
   const AiModelManagerScreen({super.key});
 
   @override
-  ConsumerState<AiModelManagerScreen> createState() => _AiModelManagerScreenState();
+  ConsumerState<AiModelManagerScreen> createState() =>
+      _AiModelManagerScreenState();
 }
 
 class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
@@ -24,15 +25,13 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
   static const _modelManifest = {
     'name': 'Qwen3-0.6B-GGUF',
     'version': '1.0',
-    'description': 'Model bahasa kecil untuk analisis keluhan motor (6 parameter).',
+    'description':
+        'Model bahasa kecil untuk analisis keluhan motor (6 parameter).',
     'size_mb': 350,
     'license': 'Apache 2.0',
-    'source_note': 'Model harus diunduh dari sumber resmi. URL akan dikonfirmasi.',
-    'requirements': {
-      'min_ram_gb': 2,
-      'min_storage_mb': 500,
-      'android_min': 24,
-    },
+    'source_note':
+        'Model harus diunduh dari sumber resmi. URL akan dikonfirmasi.',
+    'requirements': {'min_ram_gb': 2, 'min_storage_mb': 500, 'android_min': 24},
   };
 
   @override
@@ -42,13 +41,19 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         title: const Text('AI Model Manager'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('AI Health Assistant', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            'AI Health Assistant',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 4),
           Text(
             'Kelola model AI offline untuk analisis keluhan motor.',
@@ -70,12 +75,15 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                 Row(
                   children: [
                     Container(
-                      width: 48, height: 48,
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
                         color: context.soft,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Center(child: Text('🤖', style: const TextStyle(fontSize: 24))),
+                      child: Center(
+                        child: Text('🤖', style: const TextStyle(fontSize: 24)),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -84,18 +92,26 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                         children: [
                           Text(
                             _modelManifest['name'] as String,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: context.ink),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: context.ink,
+                            ),
                           ),
                           Text(
                             'Versi ${_modelManifest['version']}',
-                            style: TextStyle(color: context.muted, fontSize: 11),
+                            style: TextStyle(
+                              color: context.muted,
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
                     ),
                     aiStatus.when(
                       data: (status) => _buildStatusChip(status),
-                      loading: () => const CircularProgressIndicator(strokeWidth: 2),
+                      loading: () =>
+                          const CircularProgressIndicator(strokeWidth: 2),
                       error: (_, __) => const Chip(label: Text('Error')),
                     ),
                   ],
@@ -109,11 +125,27 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                 const SizedBox(height: 12),
                 const Divider(),
                 const SizedBox(height: 12),
-                Text('Persyaratan perangkat:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: context.ink)),
+                Text(
+                  'Persyaratan perangkat:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    color: context.ink,
+                  ),
+                ),
                 const SizedBox(height: 6),
-                _InfoRow('RAM minimum', '${(_modelManifest['requirements'] as Map)['min_ram_gb']} GB'),
-                _InfoRow('Penyimpanan', '~${(_modelManifest['requirements'] as Map)['min_storage_mb']} MB bebas'),
-                _InfoRow('Android minimum', 'API ${(_modelManifest['requirements'] as Map)['android_min']}'),
+                _InfoRow(
+                  'RAM minimum',
+                  '${(_modelManifest['requirements'] as Map)['min_ram_gb']} GB',
+                ),
+                _InfoRow(
+                  'Penyimpanan',
+                  '~${(_modelManifest['requirements'] as Map)['min_storage_mb']} MB bebas',
+                ),
+                _InfoRow(
+                  'Android minimum',
+                  'API ${(_modelManifest['requirements'] as Map)['android_min']}',
+                ),
               ],
             ),
           ),
@@ -136,7 +168,14 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                     children: [
                       Text('📥', style: const TextStyle(fontSize: 20)),
                       const SizedBox(width: 8),
-                      Text('Mengunduh model...', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.ink)),
+                      Text(
+                        'Mengunduh model...',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: context.ink,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -164,7 +203,10 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                       const SizedBox(width: 8),
                       TextButton(
                         onPressed: _cancelDownload,
-                        child: Text('Batal', style: TextStyle(color: BuildHausTheme.danger)),
+                        child: Text(
+                          'Batal',
+                          style: TextStyle(color: BuildHausTheme.danger),
+                        ),
                       ),
                     ],
                   ),
@@ -187,7 +229,13 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                   Text('❌', style: const TextStyle(fontSize: 16)),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(_lastError!, style: TextStyle(color: BuildHausTheme.danger, fontSize: 12)),
+                    child: Text(
+                      _lastError!,
+                      style: TextStyle(
+                        color: BuildHausTheme.danger,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -204,23 +252,45 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                 decoration: BoxDecoration(
                   color: BuildHausTheme.okBg,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: BuildHausTheme.ok.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: BuildHausTheme.ok.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.check_circle, color: BuildHausTheme.ok, size: 20),
+                        Icon(
+                          Icons.check_circle,
+                          color: BuildHausTheme.ok,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
-                        Text('Model Terpasang', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: BuildHausTheme.ok)),
+                        Text(
+                          'Model Terpasang',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: BuildHausTheme.ok,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text('Model: ${model.modelName}', style: TextStyle(fontSize: 11, color: context.ink)),
-                    Text('Versi: ${model.version}', style: TextStyle(fontSize: 11, color: context.muted)),
+                    Text(
+                      'Model: ${model.modelName}',
+                      style: TextStyle(fontSize: 11, color: context.ink),
+                    ),
+                    Text(
+                      'Versi: ${model.version}',
+                      style: TextStyle(fontSize: 11, color: context.muted),
+                    ),
                     if (model.installedAt != null)
-                      Text('Dipasang: ${model.installedAt.toString().substring(0, 16)}', style: TextStyle(fontSize: 11, color: context.muted)),
+                      Text(
+                        'Dipasang: ${model.installedAt.toString().substring(0, 16)}',
+                        style: TextStyle(fontSize: 11, color: context.muted),
+                      ),
                   ],
                 ),
               );
@@ -238,7 +308,10 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                 return Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: context.soft,
                         borderRadius: BorderRadius.circular(9),
@@ -250,7 +323,10 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                           Expanded(
                             child: Text(
                               'Model AI sudah terpasang dan siap digunakan untuk analisis keluhan.',
-                              style: TextStyle(color: context.muted, fontSize: 11),
+                              style: TextStyle(
+                                color: context.muted,
+                                fontSize: 11,
+                              ),
                             ),
                           ),
                         ],
@@ -259,8 +335,14 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
                       onPressed: () => _deleteModel(context),
-                      icon: Icon(Icons.delete_outline, color: BuildHausTheme.danger),
-                      label: Text('Hapus Model', style: TextStyle(color: BuildHausTheme.danger)),
+                      icon: Icon(
+                        Icons.delete_outline,
+                        color: BuildHausTheme.danger,
+                      ),
+                      label: Text(
+                        'Hapus Model',
+                        style: TextStyle(color: BuildHausTheme.danger),
+                      ),
                     ),
                   ],
                 );
@@ -295,7 +377,14 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                   children: [
                     Text('🔒', style: TextStyle(fontSize: 14)),
                     const SizedBox(width: 8),
-                    Text('Privasi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: context.ink)),
+                    Text(
+                      'Privasi',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        color: context.ink,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -304,7 +393,11 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                   '• Tidak ada data yang dikirim ke server manapun\n'
                   '• Analisis keluhan dilakukan 100% offline\n'
                   '• SHA-256 checksum diverifikasi saat download',
-                  style: TextStyle(color: context.muted, fontSize: 10, height: 1.5),
+                  style: TextStyle(
+                    color: context.muted,
+                    fontSize: 10,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),
@@ -328,7 +421,14 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Tanpa model AI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.ink)),
+                      Text(
+                        'Tanpa model AI',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: context.ink,
+                        ),
+                      ),
                       Text(
                         'Analisis rule-based tetap tersedia untuk membantu memahami keluhan motor.',
                         style: TextStyle(color: context.muted, fontSize: 10),
@@ -353,19 +453,28 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
     switch (status) {
       case 'ready':
         return Chip(
-          label: Text('✓ Siap', style: TextStyle(fontSize: 10, color: BuildHausTheme.ok)),
+          label: Text(
+            '✓ Siap',
+            style: TextStyle(fontSize: 10, color: BuildHausTheme.ok),
+          ),
           backgroundColor: BuildHausTheme.okBg,
           side: BorderSide.none,
         );
       case 'downloading':
         return Chip(
-          label: Text('↓ Unduh', style: TextStyle(fontSize: 10, color: BuildHausTheme.warn)),
+          label: Text(
+            '↓ Unduh',
+            style: TextStyle(fontSize: 10, color: BuildHausTheme.warn),
+          ),
           backgroundColor: BuildHausTheme.warnBg,
           side: BorderSide.none,
         );
       default:
         return Chip(
-          label: Text('⏳ Belum', style: TextStyle(fontSize: 10, color: context.muted)),
+          label: Text(
+            '⏳ Belum',
+            style: TextStyle(fontSize: 10, color: context.muted),
+          ),
           backgroundColor: context.soft,
           side: BorderSide.none,
         );
@@ -397,8 +506,10 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
         // For demo, we show the UI flow works
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Fitur download memerlukan konfigurasi URL model resmi. '
-                'Analisis rule-based tetap tersedia.'),
+            content: Text(
+              'Fitur download memerlukan konfigurasi URL model resmi. '
+              'Analisis rule-based tetap tersedia.',
+            ),
           ),
         );
       });
@@ -427,19 +538,25 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
           'Anda masih bisa menggunakan analisis rule-based tanpa AI.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Hapus', style: TextStyle(color: BuildHausTheme.danger)),
+            child: Text(
+              'Hapus',
+              style: TextStyle(color: BuildHausTheme.danger),
+            ),
           ),
         ],
       ),
     );
 
     if (confirm == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Model AI dihapus.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Model AI dihapus.')));
       ref.invalidate(aiModelStatusProvider);
     }
   }
@@ -459,10 +576,16 @@ class _InfoRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 100,
-            child: Text(label, style: TextStyle(color: context.muted, fontSize: 11)),
+            child: Text(
+              label,
+              style: TextStyle(color: context.muted, fontSize: 11),
+            ),
           ),
           Expanded(
-            child: Text(value, style: TextStyle(color: context.ink, fontSize: 11)),
+            child: Text(
+              value,
+              style: TextStyle(color: context.ink, fontSize: 11),
+            ),
           ),
         ],
       ),

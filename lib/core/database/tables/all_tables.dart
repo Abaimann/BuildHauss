@@ -40,10 +40,9 @@ class OdometerLogs extends Table {
   TextColumn get source => text().withDefault(const Constant('manual'))();
   TextColumn get note => text().nullable()();
 
-  @override
-  List<String> get customConstraints => [
-    'UNIQUE(motorcycle_id, recorded_at)',
-  ];
+  // Multiple readings can be recorded in the same second. The primary key
+  // distinguishes these events; a UNIQUE(motorcycle_id, recorded_at) constraint
+  // would incorrectly reject valid service and manual entries.
 }
 
 // Tabel 4: component_types

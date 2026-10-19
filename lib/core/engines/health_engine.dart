@@ -5,7 +5,7 @@ import '../database/app_database.dart';
 /// - Maintenance rules (interval_km, interval_days)
 /// - Odometer readings
 /// - Usage profile
-/// 
+///
 /// Returns estimated status, score (0-100), and explanation.
 /// Status can be: 'good', 'inspect', 'replace', 'unknown'
 class HealthEngine {
@@ -25,18 +25,20 @@ class HealthEngine {
     required List<ComponentType> componentTypes,
     double? currentOdometer,
     String usageProfile = 'campuran',
-  })  : _statuses = statuses,
-        _serviceRecords = serviceRecords,
-        _odometerLogs = odometerLogs,
-        _rules = rules,
-        _componentTypes = componentTypes,
-        _currentOdometer = currentOdometer,
-        _usageProfile = usageProfile;
+  }) : _statuses = statuses,
+       _serviceRecords = serviceRecords,
+       _odometerLogs = odometerLogs,
+       _rules = rules,
+       _componentTypes = componentTypes,
+       _currentOdometer = currentOdometer,
+       _usageProfile = usageProfile;
 
   /// Calculate health for a specific component type.
   ComponentHealthResult calculateHealth(int componentTypeId) {
     // Find applicable rules
-    final rules = _rules.where((r) => r.componentTypeId == componentTypeId).toList();
+    final rules = _rules
+        .where((r) => r.componentTypeId == componentTypeId)
+        .toList();
     if (rules.isEmpty) {
       return ComponentHealthResult(
         status: 'unknown',
@@ -54,7 +56,9 @@ class HealthEngine {
     }
 
     // Find last replacement/inspection for this component
-    final relevantServices = _serviceRecords.where((s) => s.odometerKm != null).toList();
+    final relevantServices = _serviceRecords
+        .where((s) => s.odometerKm != null)
+        .toList();
     if (relevantServices.isEmpty) {
       return ComponentHealthResult(
         status: 'unknown',
@@ -82,7 +86,9 @@ class HealthEngine {
     final intervalDays = rule.intervalDays;
 
     // Calculate days since service
-    final daysSinceService = DateTime.now().difference(latestService.servicedAt).inDays;
+    final daysSinceService = DateTime.now()
+        .difference(latestService.servicedAt)
+        .inDays;
 
     if (intervalKm == null && intervalDays == null) {
       return ComponentHealthResult(
@@ -106,22 +112,26 @@ class HealthEngine {
       if (ratio >= 1.0) {
         status = 'replace';
         score = ((1 - (ratio - 1).clamp(0, 0.5)) * 40).round();
-        explanation = 'Sudah ${kmSinceService.toStringAsFixed(0)} km sejak servis. Interval rekomendasi ${effectiveInterval.toStringAsFixed(0)} km.';
+        explanation =
+            'Sudah ${kmSinceService.toStringAsFixed(0)} km sejak servis. Interval rekomendasi ${effectiveInterval.toStringAsFixed(0)} km.';
       } else if (ratio >= 0.7) {
         status = 'inspect';
         score = ((1 - ratio) * 30 + 60).round();
-        explanation = '${kmSinceService.toStringAsFixed(0)} km dari ${effectiveInterval.toStringAsFixed(0)} km. Segera periksa.';
+        explanation =
+            '${kmSinceService.toStringAsFixed(0)} km dari ${effectiveInterval.toStringAsFixed(0)} km. Segera periksa.';
       } else {
         status = 'good';
         score = ((1 - ratio) * 40 + 60).round().clamp(0, 100);
-        explanation = 'Dalam kondisi baik. Sudah ${kmSinceService.toStringAsFixed(0)} km dari ${effectiveInterval.toStringAsFixed(0)} km.';
+        explanation =
+            'Dalam kondisi baik. Sudah ${kmSinceService.toStringAsFixed(0)} km dari ${effectiveInterval.toStringAsFixed(0)} km.';
       }
     } else {
       // Time-based only
       if (intervalDays != null && daysSinceService >= intervalDays) {
         status = 'inspect';
         score = 55;
-        explanation = 'Perlu diperiksa. Sudah ${daysSinceService} hari sejak servis terakhir.';
+        explanation =
+            'Perlu diperiksa. Sudah ${daysSinceService} hari sejak servis terakhir.';
       } else {
         status = 'good';
         score = 75;
@@ -130,7 +140,9 @@ class HealthEngine {
     }
 
     // Safety override
-    final component = _componentTypes.where((c) => c.id == componentTypeId).firstOrNull;
+    final component = _componentTypes
+        .where((c) => c.id == componentTypeId)
+        .firstOrNull;
     if (component?.safetyCritical == true && score < 50) {
       status = 'replace';
       explanation = '⚠️ Komponen KESELAMATAN. $explanation';
@@ -150,8 +162,13 @@ class HealthEngine {
 
   /// Calculate overall health score as average of component scores
   double? calculateOverallScore() {
-    final results = _componentTypes.map((ct) => calculateHealth(ct.id)).toList();
-    final validScores = results.where((r) => r.score != null).map((r) => r.score!).toList();
+    final results = _componentTypes
+        .map((ct) => calculateHealth(ct.id))
+        .toList();
+    final validScores = results
+        .where((r) => r.score != null)
+        .map((r) => r.score!)
+        .toList();
     if (validScores.isEmpty) return null;
     return validScores.reduce((a, b) => a + b) / validScores.length;
   }

@@ -51,7 +51,10 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         title: const Text('Catat Servis'),
       ),
       body: Form(
@@ -59,13 +62,26 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text('Catat Servis', style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              'Catat Servis',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 4),
-            Text('Catatan perawatan dan biaya.', style: TextStyle(color: context.muted, fontSize: 12)),
+            Text(
+              'Catatan perawatan dan biaya.',
+              style: TextStyle(color: context.muted, fontSize: 12),
+            ),
             const SizedBox(height: 20),
 
             // Date picker
-            Text('Tanggal Servis', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: context.ink)),
+            Text(
+              'Tanggal Servis',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: context.ink,
+              ),
+            ),
             const SizedBox(height: 4),
             GestureDetector(
               onTap: () async {
@@ -78,7 +94,10 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                 if (date != null) setState(() => _servicedAt = date);
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: context.surface2,
                   borderRadius: BorderRadius.circular(9),
@@ -86,7 +105,10 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                 ),
                 child: Row(
                   children: [
-                    Text(Formatters.date(_servicedAt), style: TextStyle(color: context.ink)),
+                    Text(
+                      Formatters.date(_servicedAt),
+                      style: TextStyle(color: context.ink),
+                    ),
                     const Spacer(),
                     Icon(Icons.calendar_today, size: 18, color: context.muted),
                   ],
@@ -96,16 +118,32 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
             const SizedBox(height: 12),
 
             // Workshop
-            Text('Nama Bengkel (opsional)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: context.ink)),
+            Text(
+              'Nama Bengkel (opsional)',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: context.ink,
+              ),
+            ),
             const SizedBox(height: 4),
             TextFormField(
               controller: _workshopController,
-              decoration: const InputDecoration(hintText: 'Contoh: Sinar Motor'),
+              decoration: const InputDecoration(
+                hintText: 'Contoh: Sinar Motor',
+              ),
             ),
             const SizedBox(height: 12),
 
             // Odometer
-            Text('Odometer (km)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: context.ink)),
+            Text(
+              'Odometer (km)',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: context.ink,
+              ),
+            ),
             const SizedBox(height: 4),
             TextFormField(
               controller: _odometerController,
@@ -122,19 +160,31 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
             const SizedBox(height: 12),
 
             // Notes
-            Text('Catatan', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: context.ink)),
+            Text(
+              'Catatan',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: context.ink,
+              ),
+            ),
             const SizedBox(height: 4),
             TextFormField(
               controller: _notesController,
               maxLines: 2,
-              decoration: const InputDecoration(hintText: 'Catatan tambahan...'),
+              decoration: const InputDecoration(
+                hintText: 'Catatan tambahan...',
+              ),
             ),
             const SizedBox(height: 20),
 
             // Service items
             Row(
               children: [
-                Text('Item Servis', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Item Servis',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const Spacer(),
                 TextButton.icon(
                   onPressed: _addItem,
@@ -154,7 +204,10 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                 ),
                 child: Column(
                   children: [
-                    Text('📋', style: TextStyle(fontSize: 28, color: context.muted)),
+                    Text(
+                      '📋',
+                      style: TextStyle(fontSize: 28, color: context.muted),
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       'Belum ada item servis. Tekan "Tambah" untuk mencatat.',
@@ -172,7 +225,11 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
             ElevatedButton(
               onPressed: _saving ? null : _save,
               child: _saving
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
                   : const Text('Simpan Servis'),
             ),
           ],
@@ -200,7 +257,10 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                   value: item.componentTypeId,
                   decoration: const InputDecoration(
                     labelText: 'Komponen',
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
                   items: _componentTypes.map((ct) {
                     return DropdownMenuItem<int?>(
@@ -209,7 +269,8 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                     );
                   }).toList(),
                   onChanged: (v) {
-                    final ct = _componentTypes.firstWhere((c) => c.id == v, orElse: () => _componentTypes.first);
+                    if (v == null || _componentTypes.isEmpty) return;
+                    final ct = _componentTypes.firstWhere((c) => c.id == v);
                     setState(() {
                       _items[index].componentTypeId = v;
                       _items[index].componentName = ct.name;
@@ -231,7 +292,10 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                   value: item.action,
                   decoration: const InputDecoration(
                     labelText: 'Aksi',
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
                   items: const [
                     DropdownMenuItem(value: 'inspect', child: Text('Periksa')),
@@ -249,27 +313,39 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
             children: [
               Expanded(
                 child: TextFormField(
-                  initialValue: item.partsCost > 0 ? item.partsCost.toString() : '',
+                  initialValue: item.partsCost > 0
+                      ? item.partsCost.toString()
+                      : '',
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'Biaya Part',
                     hintText: '0',
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
-                  onChanged: (v) => _items[index].partsCost = int.tryParse(v) ?? 0,
+                  onChanged: (v) =>
+                      _items[index].partsCost = int.tryParse(v) ?? 0,
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: TextFormField(
-                  initialValue: item.laborCost > 0 ? item.laborCost.toString() : '',
+                  initialValue: item.laborCost > 0
+                      ? item.laborCost.toString()
+                      : '',
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'Jasa',
                     hintText: '0',
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
-                  onChanged: (v) => _items[index].laborCost = int.tryParse(v) ?? 0,
+                  onChanged: (v) =>
+                      _items[index].laborCost = int.tryParse(v) ?? 0,
                 ),
               ),
             ],
@@ -282,13 +358,15 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   void _addItem() {
     if (_componentTypes.isEmpty) return;
     setState(() {
-      _items.add(_ServiceItemEntry(
-        action: 'replace',
-        componentTypeId: _componentTypes.first.id,
-        componentName: _componentTypes.first.name,
-        partsCost: 0,
-        laborCost: 0,
-      ));
+      _items.add(
+        _ServiceItemEntry(
+          action: 'replace',
+          componentTypeId: _componentTypes.first.id,
+          componentName: _componentTypes.first.name,
+          partsCost: 0,
+          laborCost: 0,
+        ),
+      );
     });
   }
 
@@ -318,44 +396,50 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       double? odo;
       if (odoText.isNotEmpty) odo = double.tryParse(odoText);
 
-      final totalCost = _items.fold<int>(0, (sum, item) => sum + item.partsCost + item.laborCost);
+      final totalCost = _items.fold<int>(
+        0,
+        (sum, item) => sum + item.partsCost + item.laborCost,
+      );
 
-      final recordId = await db.insertServiceRecord(ServiceRecordsCompanion(
-        motorcycleId: Value(motorId),
-        servicedAt: Value(_servicedAt),
-        odometerKm: Value(odo),
-        workshopName: Value(_workshopController.text.trim().isEmpty ? null : _workshopController.text.trim()),
-        notes: Value(_notesController.text.trim().isEmpty ? null : _notesController.text.trim()),
-        totalCost: Value(totalCost),
-      ));
-
-      for (final item in _items) {
-        await db.insertServiceItem(ServiceItemsCompanion(
-          serviceRecordId: Value(recordId),
-          componentTypeId: Value(item.componentTypeId),
-          action: Value(item.action),
-          partsCost: Value(item.partsCost),
-          laborCost: Value(item.laborCost),
-          totalCost: Value(item.partsCost + item.laborCost),
-          notes: Value(item.componentName),
-        ));
+      if (_items.any(
+        (item) =>
+            item.componentTypeId == null ||
+            item.partsCost < 0 ||
+            item.laborCost < 0,
+      )) {
+        throw StateError('Semua item harus memiliki komponen dan biaya valid.');
       }
-
-      // Update odometer if provided
-      if (odo != null) {
-        final latest = await db.getLatestOdometer(motorId);
-        if (latest == null || odo > latest.odometerKm) {
-          await db.insertOdometerLog(OdometerLogsCompanion(
-            motorcycleId: Value(motorId),
-            odometerKm: Value(odo),
-            recordedAt: Value(_servicedAt),
-            source: const Value('service_record'),
-          ));
-        }
-      }
-
-      // Recalculate component statuses after service
-      await db.recalculateComponentStatuses(motorId);
+      await db.createServiceWithItems(
+        record: ServiceRecordsCompanion.insert(
+          motorcycleId: motorId,
+          servicedAt: _servicedAt,
+          odometerKm: Value(odo),
+          workshopName: Value(
+            _workshopController.text.trim().isEmpty
+                ? null
+                : _workshopController.text.trim(),
+          ),
+          notes: Value(
+            _notesController.text.trim().isEmpty
+                ? null
+                : _notesController.text.trim(),
+          ),
+          totalCost: Value(totalCost),
+        ),
+        items: _items
+            .map(
+              (item) => ServiceItemsCompanion(
+                componentTypeId: Value(item.componentTypeId),
+                action: Value(item.action),
+                partsCost: Value(item.partsCost),
+                laborCost: Value(item.laborCost),
+                totalCost: Value(item.partsCost + item.laborCost),
+                notes: Value(item.componentName),
+              ),
+            )
+            .toList(),
+        odometerKm: odo,
+      );
 
       ref.invalidate(serviceRecordsProvider(motorId));
       ref.invalidate(latestOdometerProvider(motorId));
@@ -369,9 +453,9 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);

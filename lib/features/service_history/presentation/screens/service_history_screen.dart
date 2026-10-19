@@ -21,9 +21,15 @@ class ServiceHistoryScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Tambahkan motor terlebih dahulu', style: TextStyle(color: context.muted)),
+              Text(
+                'Tambahkan motor terlebih dahulu',
+                style: TextStyle(color: context.muted),
+              ),
               const SizedBox(height: 16),
-              ElevatedButton(onPressed: () => context.push('/add-motor'), child: const Text('Tambah Motor')),
+              ElevatedButton(
+                onPressed: () => context.push('/add-motor'),
+                child: const Text('Tambah Motor'),
+              ),
             ],
           ),
         ),
@@ -34,7 +40,10 @@ class ServiceHistoryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/home')),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/home'),
+        ),
         title: const Text('Riwayat Servis'),
         actions: [
           IconButton(
@@ -52,11 +61,20 @@ class ServiceHistoryScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('🗂️', style: TextStyle(fontSize: 48, color: context.muted)),
+                  Text(
+                    '🗂️',
+                    style: TextStyle(fontSize: 48, color: context.muted),
+                  ),
                   const SizedBox(height: 12),
-                  Text('Belum ada riwayat servis', style: TextStyle(color: context.muted)),
+                  Text(
+                    'Belum ada riwayat servis',
+                    style: TextStyle(color: context.muted),
+                  ),
                   const SizedBox(height: 4),
-                  Text('Catat servis untuk melacak perawatan motor.', style: TextStyle(color: context.muted, fontSize: 11)),
+                  Text(
+                    'Catat servis untuk melacak perawatan motor.',
+                    style: TextStyle(color: context.muted, fontSize: 11),
+                  ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () => context.push('/history/add'),
@@ -73,7 +91,10 @@ class ServiceHistoryScreen extends ConsumerWidget {
             itemCount: records.length,
             itemBuilder: (context, i) {
               final r = records[i];
-              return _ServiceRecordCard(record: r, motorcycleId: activeMotor.id);
+              return _ServiceRecordCard(
+                record: r,
+                motorcycleId: activeMotor.id,
+              );
             },
           );
         },
@@ -118,34 +139,55 @@ class _ServiceRecordCard extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     record.workshopName ?? 'Servis',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.ink),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: context.ink,
+                    ),
                   ),
                 ),
                 if (record.totalCost > 0)
                   Text(
                     Formatters.currency(record.totalCost),
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.ink),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: context.ink,
+                    ),
                   ),
               ],
             ),
             const SizedBox(height: 6),
             Row(
               children: [
-                Text(Formatters.date(record.servicedAt), style: TextStyle(color: context.muted, fontSize: 10)),
+                Text(
+                  Formatters.date(record.servicedAt),
+                  style: TextStyle(color: context.muted, fontSize: 10),
+                ),
                 if (record.odometerKm != null) ...[
                   const SizedBox(width: 8),
-                  Text('· ${record.odometerKm!.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} km',
-                    style: TextStyle(color: context.muted, fontSize: 10)),
+                  Text(
+                    '· ${record.odometerKm!.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} km',
+                    style: TextStyle(color: context.muted, fontSize: 10),
+                  ),
                 ],
                 if (record.workshopName != null) ...[
                   const SizedBox(width: 8),
-                  Text('· ${record.workshopName}', style: TextStyle(color: context.muted, fontSize: 10)),
+                  Text(
+                    '· ${record.workshopName}',
+                    style: TextStyle(color: context.muted, fontSize: 10),
+                  ),
                 ],
               ],
             ),
             if (record.notes != null && record.notes!.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text(record.notes!, style: TextStyle(color: context.muted, fontSize: 10), maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(
+                record.notes!,
+                style: TextStyle(color: context.muted, fontSize: 10),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ],
         ),
@@ -168,47 +210,68 @@ class _ServiceRecordCard extends ConsumerWidget {
         maxChildSize: 0.8,
         minChildSize: 0.3,
         expand: false,
-        builder: (context, scrollController) => FutureBuilder<List<ServiceItem>>(
-          future: db.getServiceItems(record.id),
-          builder: (context, snap) {
-            final items = snap.data ?? [];
-            return ListView(
-              controller: scrollController,
-              padding: const EdgeInsets.all(16),
-              children: [
-                Row(
+        builder: (context, scrollController) =>
+            FutureBuilder<List<ServiceItem>>(
+              future: db.getServiceItems(record.id),
+              builder: (context, snap) {
+                final items = snap.data ?? [];
+                return ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(16),
                   children: [
-                    Text('Detail Servis', style: Theme.of(context).textTheme.titleMedium),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () async {
-                        await db.deleteServiceRecord(record.id);
-                        ref.invalidate(serviceRecordsProvider(motorcycleId));
-                        if (context.mounted) Navigator.pop(context);
-                      },
+                    Row(
+                      children: [
+                        Text(
+                          'Detail Servis',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () async {
+                            await db.deleteServiceRecord(record.id);
+                            ref.invalidate(
+                              serviceRecordsProvider(motorcycleId),
+                            );
+                            if (context.mounted) Navigator.pop(context);
+                          },
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 8),
+                    _DetailRow(
+                      'Tanggal',
+                      Formatters.dateTime(record.servicedAt),
+                    ),
+                    if (record.odometerKm != null)
+                      _DetailRow(
+                        'Odometer',
+                        '${record.odometerKm!.toStringAsFixed(0)} km',
+                      ),
+                    if (record.workshopName != null)
+                      _DetailRow('Bengkel', record.workshopName!),
+                    if (record.notes != null && record.notes!.isNotEmpty)
+                      _DetailRow('Catatan', record.notes!),
+                    _DetailRow(
+                      'Total Biaya',
+                      Formatters.currency(record.totalCost),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Item Servis',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    if (items.isEmpty)
+                      Text(
+                        'Tidak ada detail item.',
+                        style: TextStyle(color: context.muted, fontSize: 12),
+                      ),
+                    ...items.map((item) => _ServiceItemRow(item: item)),
                   ],
-                ),
-                const SizedBox(height: 8),
-                _DetailRow('Tanggal', Formatters.dateTime(record.servicedAt)),
-                if (record.odometerKm != null)
-                  _DetailRow('Odometer', '${record.odometerKm!.toStringAsFixed(0)} km'),
-                if (record.workshopName != null)
-                  _DetailRow('Bengkel', record.workshopName!),
-                if (record.notes != null && record.notes!.isNotEmpty)
-                  _DetailRow('Catatan', record.notes!),
-                _DetailRow('Total Biaya', Formatters.currency(record.totalCost)),
-                const SizedBox(height: 16),
-                Text('Item Servis', style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
-                if (items.isEmpty)
-                  Text('Tidak ada detail item.', style: TextStyle(color: context.muted, fontSize: 12)),
-                ...items.map((item) => _ServiceItemRow(item: item)),
-              ],
-            );
-          },
-        ),
+                );
+              },
+            ),
       ),
     );
   }
@@ -228,10 +291,16 @@ class _DetailRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 100,
-            child: Text(label, style: TextStyle(color: context.muted, fontSize: 11)),
+            child: Text(
+              label,
+              style: TextStyle(color: context.muted, fontSize: 11),
+            ),
           ),
           Expanded(
-            child: Text(value, style: TextStyle(color: context.ink, fontSize: 12)),
+            child: Text(
+              value,
+              style: TextStyle(color: context.ink, fontSize: 12),
+            ),
           ),
         ],
       ),
@@ -260,14 +329,31 @@ class _ServiceItemRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.action.toUpperCase(), style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: context.muted)),
+                Text(
+                  item.action.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: context.muted,
+                  ),
+                ),
                 if (item.notes != null)
-                  Text(item.notes!, style: TextStyle(fontSize: 11, color: context.ink)),
+                  Text(
+                    item.notes!,
+                    style: TextStyle(fontSize: 11, color: context.ink),
+                  ),
               ],
             ),
           ),
           if (item.totalCost > 0)
-            Text(Formatters.currency(item.totalCost), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: context.ink)),
+            Text(
+              Formatters.currency(item.totalCost),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
+                color: context.ink,
+              ),
+            ),
         ],
       ),
     );
@@ -275,11 +361,16 @@ class _ServiceItemRow extends StatelessWidget {
 
   String _actionIcon(String action) {
     switch (action) {
-      case 'replace': return '🔄';
-      case 'inspect': return '🔍';
-      case 'clean': return '🧹';
-      case 'repair': return '🔧';
-      default: return '•';
+      case 'replace':
+        return '🔄';
+      case 'inspect':
+        return '🔍';
+      case 'clean':
+        return '🧹';
+      case 'repair':
+        return '🔧';
+      default:
+        return '•';
     }
   }
 }
