@@ -51,11 +51,15 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
         await _seedComponentTypes();
         await _seedDefaultSettings();
+        await _seedMotorcycleModels();
+        await _seedMaintenanceRules();
         await _seedSpareparts();
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        // Seed spareparts on first upgrade to schema v2+
+        // Schema v2: seed motorcycle models and maintenance rules
         if (from < 2) {
+          await _seedMotorcycleModels();
+          await _seedMaintenanceRules();
           await _seedSpareparts();
         }
       },
@@ -208,6 +212,217 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
+  /// Seed motorcycle_models table from JSON catalog.
+  /// Idempotent: uses insertOrIgnore so re-runs are safe.
+  Future<void> _seedMotorcycleModels() async {
+    // Honda models
+    final hondaModels = [
+      ('Vario 160', 'CBS-ISS SP', '2022-sekarang', 2022),
+      ('Vario 125', 'CBS-ISS', '2020-2023', 2020),
+      ('Beat Street', 'Pop', '2020-sekarang', 2020),
+      ('Supra X 125 FI', 'Helm In', '2019-sekarang', 2019),
+      ('CBR150R', 'ABS', '2020-sekarang', 2020),
+      ('PCX 160', 'ABS', '2021-sekarang', 2021),
+      ('ADV 160', 'CBS-ISS', '2022-sekarang', 2022),
+    ];
+    for (final (model, variant, gen, year) in hondaModels) {
+      await into(motorcycleModels).insert(
+        MotorcycleModelsCompanion.insert(
+          brand: 'Honda',
+          model: model,
+          variant: Value(variant),
+          generation: Value(gen),
+          yearStart: year,
+          yearEnd: const Value(null),
+          sourceUrl: const Value('https://www.astra-honda.com'),
+          verifiedAt: Value(DateTime.now()),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+    }
+
+    // Yamaha models
+    final yamahaModels = [
+      ('NMAX', 'Connected', '2020-sekarang', 2020),
+      ('Aerox', 'Connected', '2020-sekarang', 2020),
+      ('Mio M3', 'CW', '2021-sekarang', 2021),
+      ('FreeGo', 'S', '2020-sekarang', 2020),
+      ('X-Ride', '125', '2023-sekarang', 2023),
+    ];
+    for (final (model, variant, gen, year) in yamahaModels) {
+      await into(motorcycleModels).insert(
+        MotorcycleModelsCompanion.insert(
+          brand: 'Yamaha',
+          model: model,
+          variant: Value(variant),
+          generation: Value(gen),
+          yearStart: year,
+          yearEnd: const Value(null),
+          sourceUrl: const Value('https://www.yamaha-motor.co.id'),
+          verifiedAt: Value(DateTime.now()),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+    }
+
+    // Suzuki models
+    final suzukiModels = [
+      ('Address 110', 'FI', '2021-sekarang', 2021),
+      ('Nex II', 'FI', '2019-2022', 2019),
+      ('Smash FI', 'R', '2020-sekarang', 2020),
+    ];
+    for (final (model, variant, gen, year) in suzukiModels) {
+      await into(motorcycleModels).insert(
+        MotorcycleModelsCompanion.insert(
+          brand: 'Suzuki',
+          model: model,
+          variant: Value(variant),
+          generation: Value(gen),
+          yearStart: year,
+          yearEnd: const Value(null),
+          sourceUrl: const Value('https://www.suzuki.co.id'),
+          verifiedAt: Value(DateTime.now()),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+    }
+
+    // Kawasaki models
+    final kawasakiModels = [
+      ('Ninja 250SL', 'ABS', '2020-sekarang', 2020),
+      ('W175', 'SE', '2019-sekarang', 2019),
+      ('Z125', 'Pro', '2020-sekarang', 2020),
+    ];
+    for (final (model, variant, gen, year) in kawasakiModels) {
+      await into(motorcycleModels).insert(
+        MotorcycleModelsCompanion.insert(
+          brand: 'Kawasaki',
+          model: model,
+          variant: Value(variant),
+          generation: Value(gen),
+          yearStart: year,
+          yearEnd: const Value(null),
+          sourceUrl: const Value('https://www.kawasaki-motor.co.id'),
+          verifiedAt: Value(DateTime.now()),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+    }
+  }
+
+  /// Seed maintenance_rules from built-in default rules.
+  /// Idempotent: safe to re-run.
+  Future<void> _seedMaintenanceRules() async {
+    // Get all seeded motorcycle models and component types
+    final models = await select(motorcycleModels).get();
+    final components = await select(componentTypes).get();
+    final compByName = {for (var c in components) c.name: c};
+    final modelByBrandModel = <String, int>{};
+    for (var m in models) {
+      modelByBrandModel['${m.brand}|${m.model}'] = m.id;
+    }
+
+    // Generic rules (modelId = null)
+    final genericRules = [
+      ('Oli mesin', 3000.0, 90, 2000.0),
+      ('Kampas rem', 8000.0, 365, null),
+      ('Aki', null, 730, null),
+      ('Ban', 12000.0, 1095, null),
+      ('Filter udara', 12000.0, 365, null),
+      ('Busi', 16000.0, 730, null),
+    ];
+
+    for (final (name, km, days, severeKm) in genericRules) {
+      final ct = compByName[name];
+      if (ct == null) continue;
+      await into(maintenanceRules).insert(
+        MaintenanceRulesCompanion.insert(
+          modelId: const Value(null),
+          componentTypeId: ct.id,
+          intervalKm: Value(km),
+          intervalDays: Value(days),
+          severeUseRule: severeKm != null
+              ? Value('Pemakaian berat: ganti tiap $severeKm km')
+              : const Value(null),
+          sourceUrl: const Value('Panduan umum perawatan motor'),
+          ruleVersion: const Value('v1'),
+          verifiedAt: Value(DateTime.now()),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+    }
+
+    // Model-specific rules for Honda Vario 160
+    final vario160Id = modelByBrandModel['Honda|Vario 160'];
+    final oliCt = compByName['Oli mesin'];
+    if (vario160Id != null && oliCt != null) {
+      await into(maintenanceRules).insert(
+        MaintenanceRulesCompanion.insert(
+          modelId: Value(vario160Id),
+          componentTypeId: oliCt.id,
+          intervalKm: const Value(3000),
+          intervalDays: const Value(90),
+          severeUseRule: const Value('Pemakaian berat: ganti tiap 2000 km'),
+          sourceUrl: const Value('Buku manual Honda Vario 160 CBS-ISS SP'),
+          ruleVersion: const Value('v1'),
+          verifiedAt: Value(DateTime.now()),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+    }
+
+    // CVT rule for Vario 160
+    final cvtCt = compByName['CVT'];
+    if (vario160Id != null && cvtCt != null) {
+      await into(maintenanceRules).insert(
+        MaintenanceRulesCompanion.insert(
+          modelId: Value(vario160Id),
+          componentTypeId: cvtCt.id,
+          intervalKm: const Value(12000),
+          intervalDays: const Value(365),
+          sourceUrl: const Value('Buku manual Honda Vario 160 CBS-ISS SP'),
+          ruleVersion: const Value('v1'),
+          verifiedAt: Value(DateTime.now()),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+    }
+
+    // Model-specific rules for Yamaha NMAX
+    final nmaxId = modelByBrandModel['Yamaha|NMAX'];
+    if (nmaxId != null && oliCt != null) {
+      await into(maintenanceRules).insert(
+        MaintenanceRulesCompanion.insert(
+          modelId: Value(nmaxId),
+          componentTypeId: oliCt.id,
+          intervalKm: const Value(3000),
+          intervalDays: const Value(90),
+          severeUseRule: const Value('Pemakaian berat: ganti tiap 2000 km'),
+          sourceUrl: const Value('Buku manual Yamaha NMAX'),
+          ruleVersion: const Value('v1'),
+          verifiedAt: Value(DateTime.now()),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+    }
+
+    // CVT rule for NMAX
+    if (nmaxId != null && cvtCt != null) {
+      await into(maintenanceRules).insert(
+        MaintenanceRulesCompanion.insert(
+          modelId: Value(nmaxId),
+          componentTypeId: cvtCt.id,
+          intervalKm: const Value(12000),
+          intervalDays: const Value(365),
+          sourceUrl: const Value('Buku manual Yamaha NMAX'),
+          ruleVersion: const Value('v1'),
+          verifiedAt: Value(DateTime.now()),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+    }
+  }
+
   // ============================================================
   // MOTORCYCLES
   // ============================================================
@@ -323,11 +538,57 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteServiceItem(int id) =>
       (delete(serviceItems)..where((t) => t.id.equals(id))).go();
 
-  Future<List<ServiceItem>> getLastServiceForComponent(int motorcycleId, int componentTypeId) =>
-      (select(serviceItems)
-        ..where((t) => t.componentTypeId.equals(componentTypeId))
-        ..orderBy([(t) => OrderingTerm.desc(t.id)]))
+  /// Get all service items for a specific motorcycle (joined with service records).
+  /// Returns items sorted by service date descending.
+  Future<List<ServiceItemWithRecord>> getAllServiceItemsForMotorcycle(int motorcycleId) async {
+    final records = await (select(serviceRecords)
+      ..where((t) => t.motorcycleId.equals(motorcycleId))
+      ..orderBy([(t) => OrderingTerm.desc(t.servicedAt)]))
       .get();
+
+    if (records.isEmpty) return [];
+
+    final recordIds = records.map((r) => r.id).toList();
+    final items = await (select(serviceItems)
+      ..where((t) => t.serviceRecordId.isIn(recordIds)))
+      .get();
+
+    final itemsWithRecords = <ServiceItemWithRecord>[];
+    for (final item in items) {
+      final record = records.firstWhere((r) => r.id == item.serviceRecordId);
+      itemsWithRecords.add(ServiceItemWithRecord(item: item, record: record));
+    }
+    itemsWithRecords.sort((a, b) => b.record.servicedAt.compareTo(a.record.servicedAt));
+    return itemsWithRecords;
+  }
+
+  /// Get last service item for a specific motorcycle and component type.
+  /// Returns the most recent service action for this component.
+  Future<ServiceItemWithRecord?> getLastServiceForComponent(
+    int motorcycleId,
+    int componentTypeId,
+  ) async {
+    final itemsWithRecords = await getAllServiceItemsForMotorcycle(motorcycleId);
+    final matching = itemsWithRecords
+        .where((iwr) => iwr.item.componentTypeId == componentTypeId)
+        .toList();
+    return matching.isNotEmpty ? matching.first : null;
+  }
+
+  /// Get last service action for a component (replace/inspect/clean).
+  /// Used by health engine to determine if component cycle was reset.
+  Future<ServiceAction?> getLastActionForComponent(
+    int motorcycleId,
+    int componentTypeId,
+  ) async {
+    final last = await getLastServiceForComponent(motorcycleId, componentTypeId);
+    if (last == null) return null;
+    return ServiceAction(
+      action: last.item.action,
+      servicedAt: last.record.servicedAt,
+      odometerKm: last.record.odometerKm,
+    );
+  }
 
   // ============================================================
   // SELF INSPECTIONS
@@ -535,6 +796,31 @@ class AppDatabase extends _$AppDatabase {
   Future<MotorcycleModel?> getMotorcycleModelById(int id) =>
       (select(motorcycleModels)..where((t) => t.id.equals(id))).getSingleOrNull();
 
+  /// Look up a motorcycle model ID by brand and model name.
+  /// Falls back to first matching brand if model name not found.
+  Future<int?> getMotorcycleModelId(String brand, String model) async {
+    final results = await (select(motorcycleModels)
+      ..where((t) => t.brand.equals(brand) & t.model.equals(model)))
+      .get();
+    if (results.isNotEmpty) return results.first.id;
+
+    // Fallback: match by brand only
+    final brandOnly = await (select(motorcycleModels)
+      ..where((t) => t.brand.equals(brand)))
+      .get();
+    return brandOnly.isNotEmpty ? brandOnly.first.id : null;
+  }
+
+  /// Get all models grouped by brand for dropdown selection.
+  Future<Map<String, List<MotorcycleModel>>> getMotorcycleModelsGrouped() async {
+    final models = await select(motorcycleModels).get();
+    final grouped = <String, List<MotorcycleModel>>{};
+    for (var m in models) {
+      grouped.putIfAbsent(m.brand, () => []).add(m);
+    }
+    return grouped;
+  }
+
   // ============================================================
   // CATALOG & SPAREPARTS
   // ============================================================
@@ -655,6 +941,172 @@ class AppDatabase extends _$AppDatabase {
     final types = await getAllComponentTypes();
     return types.map((t) => t.name).toList();
   }
+
+  /// Recalculate and persist all component statuses for a motorcycle.
+  /// This should be called after service records are added/updated.
+  Future<void> recalculateComponentStatuses(int motorcycleId) async {
+    final m = await getMotorcycle(motorcycleId);
+    if (m == null) return;
+
+    // Load all rules once (model-specific + generic)
+    final allRules = await select(maintenanceRules).get();
+    final allServiceItems = await getAllServiceItemsForMotorcycle(motorcycleId);
+    final latestOdo = await getLatestOdometer(motorcycleId);
+    final currentOdo = latestOdo?.odometerKm;
+    final allComponentTypes = await getApplicableComponents(m.usageProfile);
+
+    for (final ct in allComponentTypes) {
+      // Find last replace/inspect action for this component
+      ServiceAction? lastAction;
+      for (final iwr in allServiceItems) {
+        if (iwr.item.componentTypeId == ct.id &&
+            (iwr.item.action == 'replace' || iwr.item.action == 'inspect')) {
+          lastAction = ServiceAction(
+            action: iwr.item.action,
+            servicedAt: iwr.record.servicedAt,
+            odometerKm: iwr.record.odometerKm,
+          );
+          break;
+        }
+      }
+
+      // Find applicable rule (model-specific preferred over generic)
+      final componentRules = allRules.where((r) => r.componentTypeId == ct.id).toList();
+      MaintenanceRule? rule;
+      if (componentRules.isNotEmpty) {
+        rule = componentRules.cast<MaintenanceRule?>().firstWhere(
+          (r) => r!.modelId != null,
+          orElse: () => componentRules.first,
+        );
+      }
+
+      String status;
+      int? score;
+      String explanation;
+      double? kmSinceService;
+      int? daysSinceService;
+      final confidence = allServiceItems.length >= 3 ? 'high' : 'medium';
+
+      if (lastAction == null) {
+        // No replace/inspect action found
+        bool hasOdometerRecord = allServiceItems.any((iwr) => iwr.record.odometerKm != null);
+        if (!hasOdometerRecord) {
+          status = 'unknown';
+          score = null;
+          explanation = 'Belum ada data servis. Catat servis untuk memulai pemantauan.';
+        } else {
+          final mostRecent = allServiceItems.isNotEmpty ? allServiceItems.first.record : null;
+          if (mostRecent?.odometerKm != null) {
+            kmSinceService = (currentOdo ?? mostRecent!.odometerKm!) - mostRecent.odometerKm!;
+            daysSinceService = DateTime.now().difference(mostRecent.servicedAt).inDays;
+            final intervalKm = rule?.intervalKm;
+            if (intervalKm != null) {
+              final ratio = kmSinceService / intervalKm;
+              if (ratio >= 1.0) {
+                status = 'inspect';
+                score = 45;
+                explanation = 'Sudah ${kmSinceService.toStringAsFixed(0)} km. Periksa ${ct.name}.';
+              } else if (ratio >= 0.7) {
+                status = 'inspect';
+                score = 65;
+                explanation = '${kmSinceService.toStringAsFixed(0)} km dari ${intervalKm.toStringAsFixed(0)} km.';
+              } else {
+                status = 'good';
+                score = 80;
+                explanation = 'Dalam kondisi baik.';
+              }
+            } else {
+              status = 'good';
+              score = 75;
+              explanation = 'Dalam kondisi baik.';
+            }
+          } else {
+            status = 'unknown';
+            score = null;
+            explanation = 'Belum ada data servis. Catat servis untuk memulai pemantauan.';
+          }
+        }
+      } else {
+        kmSinceService = (currentOdo ?? lastAction.odometerKm ?? 0) - (lastAction.odometerKm ?? 0);
+        daysSinceService = DateTime.now().difference(lastAction.servicedAt).inDays;
+
+        if (lastAction.action == 'replace') {
+          final intervalKm = rule?.intervalKm;
+          if (intervalKm != null) {
+            final ratio = kmSinceService / intervalKm;
+            if (ratio >= 1.0) {
+              status = 'replace';
+              score = 40;
+              explanation = 'Sudah ${kmSinceService.toStringAsFixed(0)} km sejak ganti ${ct.name}.';
+            } else if (ratio >= 0.7) {
+              status = 'inspect';
+              score = 65;
+              explanation = '${kmSinceService.toStringAsFixed(0)} km dari ${intervalKm.toStringAsFixed(0)} km.';
+            } else {
+              status = 'good';
+              score = ((1 - ratio) * 40 + 60).round().clamp(0, 100);
+              explanation = 'Baru diganti. ${kmSinceService.toStringAsFixed(0)} km dari ${intervalKm.toStringAsFixed(0)} km.';
+            }
+          } else if (rule?.intervalDays != null && daysSinceService >= rule!.intervalDays!) {
+            status = 'inspect';
+            score = 60;
+            explanation = 'Perlu diperiksa setelah ${daysSinceService} hari.';
+          } else {
+            status = 'good';
+            score = 85;
+            explanation = 'Baru diganti ${ct.name}.';
+          }
+        } else {
+          status = 'inspect';
+          score = 55;
+          explanation = 'Terakhir diperiksa ${daysSinceService} hari lalu.';
+        }
+
+        if (ct.safetyCritical && score != null && score < 50) {
+          status = 'replace';
+          score = 35;
+          explanation = '⚠️ KESELAMATAN. $explanation';
+        }
+      }
+
+      if (score != null) score = score.clamp(0, 100);
+
+      // Always check for existing status
+      final existing = await (select(componentStatuses)
+        ..where((t) => t.motorcycleId.equals(motorcycleId) & t.componentTypeId.equals(ct.id)))
+        .getSingleOrNull();
+
+      await upsertComponentStatus(ComponentStatusesCompanion(
+        id: Value(existing?.id ?? 0),
+        motorcycleId: Value(motorcycleId),
+        componentTypeId: Value(ct.id),
+        estimatedStatus: Value(status),
+        score: Value(score),
+        explanation: Value(explanation),
+        confidence: Value(confidence),
+        calculatedAt: Value(DateTime.now()),
+        ruleVersion: Value(rule?.ruleVersion ?? 'unknown'),
+      ));
+    }
+  }
+}
+
+/// Helper class: service item joined with its service record
+class ServiceItemWithRecord {
+  final ServiceItem item;
+  final ServiceRecord record;
+  ServiceItemWithRecord({required this.item, required this.record});
+}
+
+/// Helper class: last action for a component
+class ServiceAction {
+  final String action; // inspect, replace, clean, repair
+  final DateTime servicedAt;
+  final double? odometerKm;
+  ServiceAction({required this.action, required this.servicedAt, this.odometerKm});
+
+  bool get isReplacement => action == 'replace';
+  bool get isInspection => action == 'inspect';
 }
 
 /// Helper class for component status with joined name

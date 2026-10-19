@@ -7,6 +7,12 @@ import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 
+// Provider for motorcycle models grouped by brand
+final motorcycleModelsGroupedProvider = FutureProvider<Map<String, List<MotorcycleModel>>>((ref) async {
+  final db = ref.watch(databaseProvider);
+  return db.getMotorcycleModelsGrouped();
+});
+
 class AddMotorcycleScreen extends ConsumerStatefulWidget {
   const AddMotorcycleScreen({super.key});
 
@@ -21,23 +27,15 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
   final _emojiController = TextEditingController(text: '🏍️');
   final _odometerController = TextEditingController();
 
-  String _selectedBrand = 'Honda';
-  String _selectedModel = 'Vario 160';
+  String? _selectedBrand;
+  MotorcycleModel? _selectedModel;
   int _selectedYear = DateTime.now().year;
   String _selectedUsage = 'campuran';
   bool _saving = false;
 
-  final _brands = ['Honda', 'Yamaha', 'Suzuki', 'Kawasaki'];
   final _years = List.generate(15, (i) => DateTime.now().year - i);
   final _usageProfiles = ['harian_dalam_kota', 'jarak_jauh', 'campuran'];
   final _usageLabels = {'harian_dalam_kota': 'Harian dalam kota', 'jarak_jauh': 'Jarak jauh', 'campuran': 'Campuran'};
-
-  final _modelByBrand = {
-    'Honda': ['Vario 160', 'Vario 125', 'Beat Street', 'Supra X 125 FI', 'PCX 160', 'ADV 160', 'CBR150R'],
-    'Yamaha': ['NMAX', 'Aerox', 'Mio M3', 'FreeGo', 'X-Ride'],
-    'Suzuki': ['Address 110', 'Nex II', 'Smash FI'],
-    'Kawasaki': ['Ninja 250SL', 'W175', 'Z125'],
-  };
 
   @override
   void dispose() {
@@ -50,141 +48,183 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final modelsAsync = ref.watch(motorcycleModelsGroupedProvider);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
         title: const Text('Tambah Motor'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Motor baru', style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 4),
-              Text('Catat motor lain yang kamu punya.', style: TextStyle(color: context.muted, fontSize: 12)),
-              const SizedBox(height: 24),
-
-              // Emoji
-              _buildLabel('Emoji'),
-              TextFormField(
-                controller: _emojiController,
-                decoration: const InputDecoration(hintText: 'Contoh: 🏍️'),
-                maxLength: 2,
-                style: const TextStyle(fontSize: 20),
-              ),
-              const SizedBox(height: 8),
-
-              // Nickname
-              _buildLabel('Nama / Plat nomor'),
-              TextFormField(
-                controller: _nicknameController,
-                decoration: const InputDecoration(hintText: 'Contoh: Honda Beat B 1234 XYZ'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
-              ),
-              const SizedBox(height: 8),
-
-              // Brand
-              _buildLabel('Merek'),
-              DropdownButtonFormField<String>(
-                value: _selectedBrand,
-                decoration: const InputDecoration(),
-                items: _brands.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
-                onChanged: (v) => setState(() { _selectedBrand = v!; _selectedModel = _modelByBrand[v]!.first; }),
-              ),
-              const SizedBox(height: 8),
-
-              // Model
-              _buildLabel('Model'),
-              DropdownButtonFormField<String>(
-                value: _selectedModel,
-                decoration: const InputDecoration(),
-                items: _modelByBrand[_selectedBrand]!.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
-                onChanged: (v) => setState(() => _selectedModel = v!),
-              ),
-              const SizedBox(height: 8),
-
-              // Year
-              _buildLabel('Tahun'),
-              DropdownButtonFormField<int>(
-                value: _selectedYear,
-                decoration: const InputDecoration(),
-                items: _years.map((y) => DropdownMenuItem(value: y, child: Text('$y'))).toList(),
-                onChanged: (v) => setState(() => _selectedYear = v!),
-              ),
-              const SizedBox(height: 8),
-
-              // Plate
-              _buildLabel('Plat nomor (opsional)'),
-              TextFormField(
-                controller: _plateController,
-                decoration: const InputDecoration(hintText: 'Contoh: B 1234 XYZ'),
-              ),
-              const SizedBox(height: 8),
-
-              // Odometer
-              _buildLabel('Odometer saat ini (km)'),
-              TextFormField(
-                controller: _odometerController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(hintText: 'Contoh: 8500'),
-                validator: (v) {
-                  if (v != null && v.isNotEmpty) {
-                    final n = double.tryParse(v);
-                    if (n == null || n < 0) return 'Masukkan angka yang valid';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 8),
-
-              // Usage
-              _buildLabel('Jenis pemakaian'),
-              DropdownButtonFormField<String>(
-                value: _selectedUsage,
-                decoration: const InputDecoration(),
-                items: _usageProfiles.map((u) => DropdownMenuItem(
-                  value: u,
-                  child: Text(_usageLabels[u]!),
-                )).toList(),
-                onChanged: (v) => setState(() => _selectedUsage = v!),
-              ),
-
-              const SizedBox(height: 24),
-
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: context.soft,
-                  borderRadius: BorderRadius.circular(9),
+      body: modelsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error loading models: $e')),
+        data: (modelsByBrand) {
+          final brands = modelsByBrand.keys.toList()..sort();
+          if (brands.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Data model motor belum tersedia. Pastikan database sudah diinisialisasi.',
+                  style: TextStyle(color: context.muted),
+                  textAlign: TextAlign.center,
                 ),
-                child: Row(
-                  children: [
-                    Text('ℹ️', style: TextStyle(fontSize: 14)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Motor pertama yang ditambahkan otomatis menjadi motor utama.',
-                        style: TextStyle(color: context.muted, fontSize: 11),
-                      ),
+              ),
+            );
+          }
+
+          // Initialize defaults if not set
+          _selectedBrand ??= brands.first;
+          final brandModels = modelsByBrand[_selectedBrand] ?? [];
+          if (_selectedModel == null && brandModels.isNotEmpty) {
+            _selectedModel = brandModels.first;
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Motor baru', style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 4),
+                  Text('Catat motor lain yang kamu punya.', style: TextStyle(color: context.muted, fontSize: 12)),
+                  const SizedBox(height: 24),
+
+                  // Emoji
+                  _buildLabel('Emoji'),
+                  TextFormField(
+                    controller: _emojiController,
+                    decoration: const InputDecoration(hintText: 'Contoh: 🏍️'),
+                    maxLength: 2,
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Nickname
+                  _buildLabel('Nama / Plat nomor'),
+                  TextFormField(
+                    controller: _nicknameController,
+                    decoration: const InputDecoration(hintText: 'Contoh: Honda Beat B 1234 XYZ'),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Brand
+                  _buildLabel('Merek'),
+                  DropdownButtonFormField<String>(
+                    value: _selectedBrand,
+                    decoration: const InputDecoration(),
+                    items: brands.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+                    onChanged: (v) {
+                      if (v == null) return;
+                      final newModels = modelsByBrand[v] ?? [];
+                      setState(() {
+                        _selectedBrand = v;
+                        _selectedModel = newModels.isNotEmpty ? newModels.first : null;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Model
+                  _buildLabel('Model'),
+                  DropdownButtonFormField<MotorcycleModel>(
+                    value: _selectedModel,
+                    decoration: const InputDecoration(),
+                    items: brandModels.map((m) {
+                      final label = m.variant != null
+                          ? '${m.model} (${m.variant})'
+                          : m.model;
+                      return DropdownMenuItem(value: m, child: Text(label));
+                    }).toList(),
+                    onChanged: (v) => setState(() => _selectedModel = v),
+                    validator: (v) => v == null ? 'Pilih model' : null,
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Year
+                  _buildLabel('Tahun'),
+                  DropdownButtonFormField<int>(
+                    value: _selectedYear,
+                    decoration: const InputDecoration(),
+                    items: _years.map((y) => DropdownMenuItem(value: y, child: Text('$y'))).toList(),
+                    onChanged: (v) => setState(() => _selectedYear = v!),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Plate
+                  _buildLabel('Plat nomor (opsional)'),
+                  TextFormField(
+                    controller: _plateController,
+                    decoration: const InputDecoration(hintText: 'Contoh: B 1234 XYZ'),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Odometer
+                  _buildLabel('Odometer saat ini (km)'),
+                  TextFormField(
+                    controller: _odometerController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(hintText: 'Contoh: 8500'),
+                    validator: (v) {
+                      if (v != null && v.isNotEmpty) {
+                        final n = double.tryParse(v);
+                        if (n == null || n < 0) return 'Masukkan angka yang valid';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Usage
+                  _buildLabel('Jenis pemakaian'),
+                  DropdownButtonFormField<String>(
+                    value: _selectedUsage,
+                    decoration: const InputDecoration(),
+                    items: _usageProfiles.map((u) => DropdownMenuItem(
+                      value: u,
+                      child: Text(_usageLabels[u]!),
+                    )).toList(),
+                    onChanged: (v) => setState(() => _selectedUsage = v!),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: context.soft,
+                      borderRadius: BorderRadius.circular(9),
                     ),
-                  ],
-                ),
-              ),
+                    child: Row(
+                      children: [
+                        const Text('ℹ️', style: TextStyle(fontSize: 14)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Motor pertama yang ditambahkan otomatis menjadi motor utama.',
+                            style: TextStyle(color: context.muted, fontSize: 11),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
-              const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-              ElevatedButton(
-                onPressed: _saving ? null : _save,
-                child: _saving
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Simpan Motor'),
+                  ElevatedButton(
+                    onPressed: _saving ? null : () => _save(modelsByBrand),
+                    child: _saving
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Text('Simpan Motor'),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -196,7 +236,7 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
     );
   }
 
-  Future<void> _save() async {
+  Future<void> _save(Map<String, List<MotorcycleModel>> modelsByBrand) async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
 
@@ -207,11 +247,18 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
       final existing = await db.getAllMotorcycles();
       final isFirst = existing.isEmpty;
 
-      // Insert motorcycle
+      // Resolve modelId: use selected model, or fallback to brand lookup
+      int? modelId = _selectedModel?.id;
+      if (modelId == null && _selectedBrand != null) {
+        modelId = await db.getMotorcycleModelId(_selectedBrand!, _selectedModel?.model ?? '');
+      }
+
+      // Insert motorcycle with modelId
       final motorId = await db.insertMotorcycle(MotorcyclesCompanion(
+        modelId: Value(modelId),
         nickname: Value(_nicknameController.text.trim().isEmpty
-          ? '$_selectedBrand $_selectedModel'
-          : _nicknameController.text.trim()),
+            ? '${_selectedBrand ?? ''} ${_selectedModel?.model ?? ''}'.trim()
+            : _nicknameController.text.trim()),
         manufactureYear: Value(_selectedYear),
         plateNumber: Value(_plateController.text.trim().isEmpty ? null : _plateController.text.trim()),
         emoji: Value(_emojiController.text.isEmpty ? '🏍️' : _emojiController.text),
@@ -241,6 +288,7 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
       // Refresh providers
       ref.invalidate(motorcyclesProvider);
       ref.invalidate(activeMotorcycleProvider);
+      ref.invalidate(motorcycleModelsGroupedProvider);
       final newMotor = await db.getMotorcycle(motorId);
       if (newMotor != null) {
         await ref.read(activeMotorcycleProvider.notifier).setActiveMotorcycle(newMotor);

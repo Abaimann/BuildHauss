@@ -117,7 +117,8 @@ void main() {
       final predictedDate = predictor.predictDateForOdometer(10100, 9000);
 
       expect(predictedDate, isNotNull);
-      expect(predictedDate!.isBefore(DateTime.now()) || predictedDate.isAtSameMomentAs(DateTime.now()), isTrue);
+      // When target already passed, should return now or very recent (within 2 seconds)
+      expect(DateTime.now().difference(predictedDate!).inSeconds.abs() <= 2, isTrue);
     });
   });
 }

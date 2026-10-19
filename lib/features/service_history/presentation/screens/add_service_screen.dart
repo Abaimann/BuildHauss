@@ -25,6 +25,19 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   DateTime _servicedAt = DateTime.now();
   final List<_ServiceItemEntry> _items = [];
   bool _saving = false;
+  List<ComponentType> _componentTypes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadComponentTypes();
+  }
+
+  Future<void> _loadComponentTypes() async {
+    final db = ref.read(databaseProvider);
+    final types = await db.getAllComponentTypes();
+    if (mounted) setState(() => _componentTypes = types);
+  }
 
   @override
   void dispose() {
@@ -159,8 +172,8 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
             ElevatedButton(
               onPressed: _saving ? null : _save,
               child: _saving
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Simpan Servis'),
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Text('Simpan Servis'),
             ),
           ],
         ),
@@ -183,6 +196,37 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
           Row(
             children: [
               Expanded(
+                child: DropdownButtonFormField<int?>(
+                  value: item.componentTypeId,
+                  decoration: const InputDecoration(
+                    labelText: 'Komponen',
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  items: _componentTypes.map((ct) {
+                    return DropdownMenuItem<int?>(
+                      value: ct.id,
+                      child: Text(ct.name),
+                    );
+                  }).toList(),
+                  onChanged: (v) {
+                    final ct = _componentTypes.firstWhere((c) => c.id == v, orElse: () => _componentTypes.first);
+                    setState(() {
+                      _items[index].componentTypeId = v;
+                      _items[index].componentName = ct.name;
+                    });
+                  },
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.close, size: 18, color: context.muted),
+                onPressed: () => setState(() => _items.removeAt(index)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
                 child: DropdownButtonFormField<String>(
                   value: item.action,
                   decoration: const InputDecoration(
@@ -198,27 +242,11 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                   onChanged: (v) => setState(() => _items[index].action = v!),
                 ),
               ),
-              IconButton(
-                icon: Icon(Icons.close, size: 18, color: context.muted),
-                onPressed: () => setState(() => _items.removeAt(index)),
-              ),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(
-                child: TextFormField(
-                  initialValue: item.componentName,
-                  decoration: const InputDecoration(
-                    labelText: 'Komponen',
-                    hintText: 'Contoh: Oli mesin',
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                  onChanged: (v) => _items[index].componentName = v,
-                ),
-              ),
-              const SizedBox(width: 8),
               Expanded(
                 child: TextFormField(
                   initialValue: item.partsCost > 0 ? item.partsCost.toString() : '',
@@ -252,10 +280,12 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   }
 
   void _addItem() {
+    if (_componentTypes.isEmpty) return;
     setState(() {
       _items.add(_ServiceItemEntry(
-        action: 'inspect',
-        componentName: '',
+        action: 'replace',
+        componentTypeId: _componentTypes.first.id,
+        componentName: _componentTypes.first.name,
         partsCost: 0,
         laborCost: 0,
       ));
@@ -300,9 +330,9 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       ));
 
       for (final item in _items) {
-        if (item.componentName.isEmpty) continue;
         await db.insertServiceItem(ServiceItemsCompanion(
           serviceRecordId: Value(recordId),
+          componentTypeId: Value(item.componentTypeId),
           action: Value(item.action),
           partsCost: Value(item.partsCost),
           laborCost: Value(item.laborCost),
@@ -311,7 +341,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
         ));
       }
 
-      // Also update odometer if provided
+      // Update odometer if provided
       if (odo != null) {
         final latest = await db.getLatestOdometer(motorId);
         if (latest == null || odo > latest.odometerKm) {
@@ -324,8 +354,12 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
         }
       }
 
+      // Recalculate component statuses after service
+      await db.recalculateComponentStatuses(motorId);
+
       ref.invalidate(serviceRecordsProvider(motorId));
       ref.invalidate(latestOdometerProvider(motorId));
+      ref.invalidate(componentStatusesProvider(motorId));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -347,12 +381,14 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
 
 class _ServiceItemEntry {
   String action;
+  int? componentTypeId;
   String componentName;
   int partsCost;
   int laborCost;
 
   _ServiceItemEntry({
     required this.action,
+    this.componentTypeId,
     required this.componentName,
     required this.partsCost,
     required this.laborCost,
