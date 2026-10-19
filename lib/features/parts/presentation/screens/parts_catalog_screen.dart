@@ -264,7 +264,7 @@ class _PartCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(12),
               child: SizedBox(
-                height: 88,
+                height: 92,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,

@@ -35,7 +35,13 @@ class AppDatabase extends _$AppDatabase {
   int get schemaVersion => 2;
 
   static QueryExecutor _openConnection() {
-    return driftDatabase(name: 'buildhaus_db');
+    return driftDatabase(
+      name: 'buildhaus_db',
+      web: DriftWebOptions(
+        sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+        driftWorker: Uri.parse('worker.js'),
+      ),
+    );
   }
 
   @override

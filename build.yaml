@@ -1,0 +1,12 @@
+targets:
+  $default:
+    sources:
+      include:
+        - lib/**
+        - web/worker.dart
+    builders:
+      build_web_compilers:entrypoint:
+        generate_for:
+          - web/worker.dart
+        options:
+          compiler: dart2js

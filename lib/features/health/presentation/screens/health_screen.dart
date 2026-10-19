@@ -84,7 +84,7 @@ class HealthScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(color: context.soft, borderRadius: BorderRadius.circular(99)),
-                      child: Text(activeMotor.emoji, style: const TextStyle(fontSize: 20)),
+                      child: _HealthBrandLabel(modelId: activeMotor.modelId),
                     ),
                   ],
                 ),
@@ -122,6 +122,28 @@ class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.title);
   @override
   Widget build(BuildContext context) => Text(title, style: Theme.of(context).textTheme.titleMedium);
+}
+
+class _HealthBrandLabel extends ConsumerWidget {
+  final int? modelId;
+  const _HealthBrandLabel({required this.modelId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (modelId == null) return const SizedBox.shrink();
+    final db = ref.watch(databaseProvider);
+    return FutureBuilder<MotorcycleModel?>(
+      future: db.getMotorcycleModelById(modelId!),
+      builder: (context, snap) {
+        final model = snap.data;
+        if (model == null) return const SizedBox.shrink();
+        return Text(
+          model.brand,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        );
+      },
+    );
+  }
 }
 
 class _HealthScoreCard extends ConsumerWidget {

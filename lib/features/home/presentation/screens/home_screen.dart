@@ -4,8 +4,45 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/database/app_database.dart' show Motorcycle, OdometerLog, ComponentStatusWithName;
+import '../../../../core/database/app_database.dart' show Motorcycle, OdometerLog, ComponentStatusWithName, MotorcycleModel;
 import '../../../../shared/widgets/buildhaus_logo.dart';
+
+// Helper widget to show brand name instead of emoji
+class _BrandBadge extends ConsumerWidget {
+  final int? modelId;
+  final double fontSize;
+  final Color? color;
+
+  const _BrandBadge({required this.modelId, this.fontSize = 20, this.color});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (modelId == null) return const SizedBox.shrink();
+    final db = ref.watch(databaseProvider);
+    return FutureBuilder<MotorcycleModel?>(
+      future: db.getMotorcycleModelById(modelId!),
+      builder: (context, snap) {
+        final model = snap.data;
+        if (model == null) return const SizedBox.shrink();
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: context.ink.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            model.brand,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              color: color ?? context.ink,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -286,7 +323,7 @@ class _MotorSelector extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(m.emoji, style: const TextStyle(fontSize: 24)),
+                    _BrandBadge(modelId: m.modelId, fontSize: 10, color: isActive ? context.bg : context.ink),
                     const SizedBox(height: 2),
                     Text(
                       m.nickname.split(' ').first,
@@ -381,7 +418,7 @@ class _BikeCard extends ConsumerWidget {
                     ),
                     const Spacer(),
                     Flexible(
-                      child: Text(motorcycle.emoji, style: const TextStyle(fontSize: 32)),
+                      child: _BrandBadge(modelId: motorcycle.modelId, fontSize: 16, color: Colors.white),
                     ),
                   ],
                 ),

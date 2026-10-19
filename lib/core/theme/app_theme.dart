@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class BuildHausTheme {
   // Dark mode colors
@@ -60,7 +61,7 @@ class BuildHausTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: GoogleFonts.plusJakartaSans(
           color: darkInk,
           fontSize: 18,
           fontWeight: FontWeight.bold,
@@ -84,8 +85,8 @@ class BuildHausTheme {
         unselectedItemColor: darkMuted,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
-        selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
+        selectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 11),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: darkSurface,
@@ -94,9 +95,9 @@ class BuildHausTheme {
         elevation: 0,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: darkInk);
+            return GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: darkInk);
           }
-          return TextStyle(fontSize: 11, color: darkMuted);
+          return GoogleFonts.plusJakartaSans(fontSize: 11, color: darkMuted);
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -126,8 +127,8 @@ class BuildHausTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: danger),
         ),
-        labelStyle: TextStyle(color: darkMuted, fontSize: 13),
-        hintStyle: TextStyle(color: darkMuted.withValues(alpha: 0.7), fontSize: 13),
+        labelStyle: GoogleFonts.plusJakartaSans(color: darkMuted, fontSize: 13),
+        hintStyle: GoogleFonts.plusJakartaSans(color: darkMuted.withValues(alpha: 0.7), fontSize: 13),
       ),
       // Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -137,7 +138,7 @@ class BuildHausTheme {
           elevation: 0,
           minimumSize: const Size(double.infinity, 52),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: 0.3),
+          textStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: 0.3),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         ),
       ),
@@ -167,7 +168,7 @@ class BuildHausTheme {
       // SnackBars
       snackBarTheme: SnackBarThemeData(
         backgroundColor: darkInk,
-        contentTextStyle: TextStyle(color: darkBg, fontSize: 13, fontWeight: FontWeight.w500),
+        contentTextStyle: GoogleFonts.plusJakartaSans(color: darkBg, fontSize: 13, fontWeight: FontWeight.w500),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
       ),
@@ -189,19 +190,19 @@ class BuildHausTheme {
         linearTrackColor: darkSoft,
       ),
       // Text
-      textTheme: const TextTheme(
-        headlineLarge: TextStyle(color: darkInk, fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -1),
-        headlineMedium: TextStyle(color: darkInk, fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.5),
-        headlineSmall: TextStyle(color: darkInk, fontSize: 20, fontWeight: FontWeight.w700),
-        titleLarge: TextStyle(color: darkInk, fontSize: 17, fontWeight: FontWeight.w600),
-        titleMedium: TextStyle(color: darkInk, fontSize: 15, fontWeight: FontWeight.w600),
-        titleSmall: TextStyle(color: darkInk2, fontSize: 13, fontWeight: FontWeight.w500),
-        bodyLarge: TextStyle(color: darkInk, fontSize: 15, height: 1.5),
-        bodyMedium: TextStyle(color: darkInk2, fontSize: 13, height: 1.5),
-        bodySmall: TextStyle(color: darkMuted, fontSize: 11, height: 1.4),
-        labelLarge: TextStyle(color: darkInk, fontSize: 13, fontWeight: FontWeight.w600),
-        labelMedium: TextStyle(color: darkMuted, fontSize: 11),
-        labelSmall: TextStyle(color: darkMuted, fontSize: 10),
+      textTheme: TextTheme(
+        headlineLarge: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -1),
+        headlineMedium: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.5),
+        headlineSmall: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 20, fontWeight: FontWeight.w700),
+        titleLarge: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 17, fontWeight: FontWeight.w600),
+        titleMedium: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 15, fontWeight: FontWeight.w600),
+        titleSmall: GoogleFonts.plusJakartaSans(color: darkInk2, fontSize: 13, fontWeight: FontWeight.w500),
+        bodyLarge: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 15, height: 1.5),
+        bodyMedium: GoogleFonts.plusJakartaSans(color: darkInk2, fontSize: 13, height: 1.5),
+        bodySmall: GoogleFonts.plusJakartaSans(color: darkMuted, fontSize: 11, height: 1.4),
+        labelLarge: GoogleFonts.plusJakartaSans(color: darkInk, fontSize: 13, fontWeight: FontWeight.w600),
+        labelMedium: GoogleFonts.plusJakartaSans(color: darkMuted, fontSize: 11),
+        labelSmall: GoogleFonts.plusJakartaSans(color: darkMuted, fontSize: 10),
       ),
     );
   }
@@ -223,13 +224,13 @@ class BuildHausTheme {
         outline: lightLine,
         outlineVariant: lightSoft,
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: lightBg,
         foregroundColor: lightInk,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: TextStyle(color: lightInk, fontSize: 18, fontWeight: FontWeight.bold),
+        titleTextStyle: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 18, fontWeight: FontWeight.bold),
       ),
       cardTheme: CardThemeData(
         color: lightSurface,
@@ -254,9 +255,9 @@ class BuildHausTheme {
         elevation: 0,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: lightInk);
+            return GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: lightInk);
           }
-          return TextStyle(fontSize: 11, color: lightMuted);
+          return GoogleFonts.plusJakartaSans(fontSize: 11, color: lightMuted);
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -281,8 +282,8 @@ class BuildHausTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: lightInk2, width: 1.5),
         ),
-        labelStyle: TextStyle(color: lightMuted, fontSize: 13),
-        hintStyle: TextStyle(color: lightMuted.withValues(alpha: 0.7), fontSize: 13),
+        labelStyle: GoogleFonts.plusJakartaSans(color: lightMuted, fontSize: 13),
+        hintStyle: GoogleFonts.plusJakartaSans(color: lightMuted.withValues(alpha: 0.7), fontSize: 13),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -291,7 +292,7 @@ class BuildHausTheme {
           elevation: 0,
           minimumSize: const Size(double.infinity, 52),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+          textStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14),
         ),
       ),
       listTileTheme: ListTileThemeData(
@@ -300,18 +301,18 @@ class BuildHausTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       ),
       dividerTheme: DividerThemeData(color: lightLine, thickness: 1, space: 1),
-      textTheme: const TextTheme(
-        headlineLarge: TextStyle(color: lightInk, fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -1),
-        headlineMedium: TextStyle(color: lightInk, fontSize: 24, fontWeight: FontWeight.w700),
-        headlineSmall: TextStyle(color: lightInk, fontSize: 20, fontWeight: FontWeight.w700),
-        titleLarge: TextStyle(color: lightInk, fontSize: 17, fontWeight: FontWeight.w600),
-        titleMedium: TextStyle(color: lightInk, fontSize: 15, fontWeight: FontWeight.w600),
-        bodyLarge: TextStyle(color: lightInk, fontSize: 15, height: 1.5),
-        bodyMedium: TextStyle(color: lightInk2, fontSize: 13, height: 1.5),
-        bodySmall: TextStyle(color: lightMuted, fontSize: 11, height: 1.4),
-        labelLarge: TextStyle(color: lightInk, fontSize: 13, fontWeight: FontWeight.w600),
-        labelMedium: TextStyle(color: lightMuted, fontSize: 11),
-        labelSmall: TextStyle(color: lightMuted, fontSize: 10),
+      textTheme: TextTheme(
+        headlineLarge: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -1),
+        headlineMedium: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 24, fontWeight: FontWeight.w700),
+        headlineSmall: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 20, fontWeight: FontWeight.w700),
+        titleLarge: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 17, fontWeight: FontWeight.w600),
+        titleMedium: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 15, fontWeight: FontWeight.w600),
+        bodyLarge: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 15, height: 1.5),
+        bodyMedium: GoogleFonts.plusJakartaSans(color: lightInk2, fontSize: 13, height: 1.5),
+        bodySmall: GoogleFonts.plusJakartaSans(color: lightMuted, fontSize: 11, height: 1.4),
+        labelLarge: GoogleFonts.plusJakartaSans(color: lightInk, fontSize: 13, fontWeight: FontWeight.w600),
+        labelMedium: GoogleFonts.plusJakartaSans(color: lightMuted, fontSize: 11),
+        labelSmall: GoogleFonts.plusJakartaSans(color: lightMuted, fontSize: 10),
       ),
     );
   }

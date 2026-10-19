@@ -261,6 +261,39 @@ class _EmptyMotorsCard extends StatelessWidget {
   }
 }
 
+class _MotorBrandLabel extends ConsumerWidget {
+  final int? modelId;
+  const _MotorBrandLabel({required this.modelId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (modelId == null) return const SizedBox.shrink();
+    final db = ref.watch(databaseProvider);
+    return FutureBuilder<MotorcycleModel?>(
+      future: db.getMotorcycleModelById(modelId!),
+      builder: (context, snap) {
+        final model = snap.data;
+        if (model == null) return const SizedBox.shrink();
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: context.ink.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            model.brand,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: context.ink,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _MotorListTile extends ConsumerWidget {
   final Motorcycle motorcycle;
   const _MotorListTile({required this.motorcycle});
@@ -283,7 +316,7 @@ class _MotorListTile extends ConsumerWidget {
         ),
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          leading: Text(motorcycle.emoji, style: const TextStyle(fontSize: 28)),
+          leading: _MotorBrandLabel(modelId: motorcycle.modelId),
           title: Text(motorcycle.nickname, style: TextStyle(fontWeight: FontWeight.w600, color: context.ink)),
           subtitle: Text('Tahun ${motorcycle.manufactureYear}', style: TextStyle(fontSize: 11, color: context.muted)),
           trailing: Row(
