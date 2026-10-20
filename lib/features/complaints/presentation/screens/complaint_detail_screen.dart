@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../../../../core/database/app_database.dart';
 import '../../../../core/providers/database_provider.dart';
-import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/formatters.dart';
 

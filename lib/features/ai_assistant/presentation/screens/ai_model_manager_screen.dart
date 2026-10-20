@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:drift/drift.dart' hide Column;
-import '../../../../core/database/app_database.dart';
-import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -16,7 +13,6 @@ class AiModelManagerScreen extends ConsumerStatefulWidget {
 }
 
 class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
-  String _downloadStatus = 'not_downloaded';
   double _downloadProgress = 0.0;
   bool _downloading = false;
   String? _lastError;
@@ -553,7 +549,7 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
       ),
     );
 
-    if (confirm == true && mounted) {
+    if (confirm == true && context.mounted) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Model AI dihapus.')));

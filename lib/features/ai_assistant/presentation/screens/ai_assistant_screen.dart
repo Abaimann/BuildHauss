@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:drift/drift.dart' hide Column;
-import '../../../../core/database/app_database.dart';
-import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/formatters.dart';
@@ -192,11 +189,10 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                 ),
               ),
               const Spacer(),
-              if (m.timestamp != null)
-                Text(
-                  Formatters.shortDate(m.timestamp),
-                  style: TextStyle(fontSize: 9, color: context.muted),
-                ),
+              Text(
+                Formatters.shortDate(m.timestamp),
+                style: TextStyle(fontSize: 9, color: context.muted),
+              ),
             ],
           ),
           const SizedBox(height: 6),
@@ -367,7 +363,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 class _ChatMessage {
   final String role;
   final String content;
-  final DateTime? timestamp;
+  final DateTime timestamp;
 
-  _ChatMessage({required this.role, required this.content, this.timestamp});
+  _ChatMessage({required this.role, required this.content})
+    : timestamp = DateTime.now();
 }

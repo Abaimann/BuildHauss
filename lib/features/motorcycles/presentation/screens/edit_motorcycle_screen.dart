@@ -141,7 +141,7 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
 
               _buildLabel('Merek'),
               DropdownButtonFormField<String>(
-                value: _selectedBrand,
+                initialValue: _selectedBrand,
                 items:
                     (_availableModels.map((m) => m.brand).toSet().toList()
                           ..sort())
@@ -155,7 +155,8 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
               ),
               _buildLabel('Model / Varian'),
               DropdownButtonFormField<int>(
-                value: _selectedModelId,
+                key: ValueKey(_selectedBrand),
+                initialValue: _selectedModelId,
                 items: _availableModels
                     .where((m) => m.brand == _selectedBrand)
                     .map(
@@ -183,7 +184,7 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
               ),
               _buildLabel('Tahun motor'),
               DropdownButtonFormField<int>(
-                value: _selectedYear,
+                initialValue: _selectedYear,
                 items: List.generate(30, (i) => DateTime.now().year - i)
                     .map(
                       (year) =>
@@ -195,8 +196,9 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
                   final matches = _availableModels.where(
                     (m) => m.id == _selectedModelId,
                   );
-                  if (matches.isEmpty || v == null)
+                  if (matches.isEmpty || v == null) {
                     return 'Pilih model dan tahun';
+                  }
                   final model = matches.first;
                   return v < model.yearStart ||
                           (model.yearEnd != null && v > model.yearEnd!)
@@ -207,7 +209,7 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
 
               _buildLabel('Jenis pemakaian'),
               DropdownButtonFormField<String>(
-                value: _selectedUsage,
+                initialValue: _selectedUsage,
                 decoration: const InputDecoration(),
                 items: _usageProfiles
                     .map(
@@ -351,7 +353,7 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
       ref.invalidate(motorcyclesProvider);
       ref.invalidate(activeMotorcycleProvider);
       await ref.read(activeMotorcycleProvider.notifier).refresh();
-      if (mounted) {
+      if (context.mounted) {
         context.go('/home');
       }
     }

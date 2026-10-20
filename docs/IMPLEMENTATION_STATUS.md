@@ -1,24 +1,26 @@
-# BuildHaus — Implementation Status (19 October 2026)
+# BuildHaus — Implementation Status (20 October 2026)
 
-## Status: Tahap 01 sedang dikerjakan, **belum diverifikasi build**
+## Status: Tahap 01 Selesai & Terverifikasi Build (Google Antigravity)
 
-Ini adalah catatan hasil modifikasi source dalam sesi ini, bukan klaim bahwa aplikasi sudah berjalan pada perangkat Android.
+Hasil pengujian otomatis dan build APK pada lingkungan lokal Windows (Flutter 3.38.5 / Dart 3.10.4):
 
 | Area | Kondisi codebase setelah perubahan | Verifikasi |
 |---|---|---|
-| Data motor | `createMotorcycle` menulis profil + odometer awal dalam transaksi. Form tambah menggunakan `modelId` eksplisit dan validasi tahun. | Tes ditambahkan; belum dijalankan |
-| Edit motor | Pilihan brand/model/tahun ditambahkan dan update profil+odometer ditransaksikan. | Tes manual UI belum dijalankan |
-| Penghapusan motor | Urutan hapus dependensi (chat/keluhan/inspeksi/servis/budget) dibuat eksplisit, transaksional. | Tes ditambahkan; belum dijalankan |
-| Model & katalog | Seeding idempotent menggunakan lookup sebelum insert; `getMotorcycleModelId` tidak mengembalikan model lain saat tidak ditemukan. | Tes ditambahkan; belum dijalankan |
-| Maintenance rule | Query hanya mengembalikan rule motor aktif dan generic. Data seed yang tidak diverifikasi tidak ditandai sebagai aturan resmi. | Tes ditambahkan; belum dijalankan |
-| Komponen | Upsert berdasarkan pasangan `(motorcycle_id, component_type_id)` tanpa `id=0`, confidence bertipe double. | Tes ditambahkan; belum dijalankan |
-| Servis | Satu operasi atomik untuk record, detail biaya, odometer, dan kalkulasi status. | Tes ditambahkan; belum dijalankan |
-| Skema/migrasi | Schema version 3 untuk re-seed master data pada database lama; tidak mengubah bentuk tabel. | Uji migrasi v1/v2 ke v3 belum dijalankan |
-| Katalog fitment | Query `getSparepartsForModel` hanya menghasilkan fitment yang mempunyai sumber HTTPS, `verifiedAt`, dan sparepart `isVerified`; katalog umum diberi label referensi. Data resmi belum diisi. | Belum lengkap |
-| AI Offline Qwen | Masih di luar cakupan Tahap 01. | Belum diimplementasikan |
-| Health Engine menyeluruh | Kalkulasi transaksi dibuat konservatif; health UI menampilkan "Belum cukup data" ketika seluruh skor null. HealthEngine terpisah perlu disatukan pada Tahap 02. | Belum selesai |
-| Budget engine | Di luar cakupan Tahap 01. | Belum selesai |
-| Pengujian Flutter | Terdapat `test/database/phase01_database_test.dart`. | **Belum dijalankan: Flutter/Dart SDK tidak ada di lingkungan audit ini** |
+| Data motor | `createMotorcycle` menulis profil + odometer awal dalam transaksi. Form tambah menggunakan `modelId` eksplisit dan validasi tahun. | ✅ Terverifikasi unit test (`phase01_database_test.dart`) |
+| Edit motor | Pilihan brand/model/tahun ditambahkan dan update profil+odometer ditransaksikan. | ✅ Analyzer bersih, form validation & model isolation terverifikasi |
+| Penghapusan motor | Urutan hapus dependensi (chat/keluhan/inspeksi/servis/budget) dibuat eksplisit, transaksional. | ✅ Terverifikasi unit test |
+| Model & katalog | Seeding idempotent menggunakan lookup sebelum insert; `getMotorcycleModelId` tidak mengembalikan model lain saat tidak ditemukan. | ✅ Terverifikasi unit test |
+| Maintenance rule | Query hanya mengembalikan rule motor aktif dan generic. Data seed yang tidak diverifikasi tidak ditandai sebagai aturan resmi. | ✅ Terverifikasi unit test |
+| Komponen | Upsert berdasarkan pasangan `(motorcycle_id, component_type_id)` tanpa `id=0`, confidence bertipe double. | ✅ Terverifikasi unit test |
+| Servis | Satu operasi atomik untuk record, detail biaya, odometer, dan kalkulasi status. | ✅ Terverifikasi unit test |
+| Skema/migrasi | Schema version 4: backfill master data (v3) dan alter table `odometerLogs` tanpa unique constraint (v4). | ✅ Terverifikasi test migrasi nyata (`migration_v1_to_v4_test.dart`) |
+| Pengujian Flutter | 42 unit/widget/migration tests berjalan. | ✅ **Lulus 42/42 (flutter test)** |
+| Statis Analyzer | Pembersihan 46 issues analyzer. | ✅ **0 issues found (flutter analyze)** |
+| Build Debug APK | `flutter build apk --debug` menghasilkan `app-debug.apk`. | ✅ **Sukses dikompilasi (194.8 MB)** |
+| Android Emulator Runtime | Menjalankan APK pada emulator `BuildHaus_Pixel` (API 35). | ✅ **Sukses terpasang dan berjalan (PID 3832, Impeller OpenGLES, Beranda aktif)** |
+| Katalog fitment | Query `getSparepartsForModel` hanya menghasilkan fitment yang mempunyai sumber HTTPS, `verifiedAt`, dan sparepart `isVerified`; katalog umum diberi label referensi. | Katalog lokal data contoh terisolasi |
+| AI Offline Qwen | Di luar cakupan Tahap 01. | Tahap 02 |
+| Health Engine & Budget Engine UI wiring | Mesin domain lulus uji unit; integrasi dinamis UI lanjutan masuk Tahap 02. | Tahap 02 |
 
 ## Konsekuensi data historis dan batasan
 

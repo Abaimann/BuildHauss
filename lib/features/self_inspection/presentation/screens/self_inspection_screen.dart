@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../../../../core/database/app_database.dart';
 import '../../../../core/providers/database_provider.dart';
-import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class SelfInspectionScreen extends ConsumerStatefulWidget {
@@ -247,9 +246,9 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
                       const SizedBox(height: 4),
                       Text(
                         riskLevel == 'high'
-                            ? 'Ditemukan ${riskCount} masalah. Sebaiknya segera periksakan ke mekanik.'
+                            ? 'Ditemukan $riskCount masalah. Sebaiknya segera periksakan ke mekanik.'
                             : riskLevel == 'medium'
-                            ? 'Ditemukan ${riskCount} hal yang perlu diperhatikan.'
+                            ? 'Ditemukan $riskCount hal yang perlu diperhatikan.'
                             : 'Tidak ada masalah serius yang terdeteksi.',
                         style: TextStyle(
                           color: context.ink,

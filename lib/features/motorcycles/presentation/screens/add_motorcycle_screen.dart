@@ -129,7 +129,7 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   // Brand
                   _buildLabel('Merek'),
                   DropdownButtonFormField<String>(
-                    value: _selectedBrand,
+                    initialValue: _selectedBrand,
                     decoration: const InputDecoration(),
                     items: brands
                         .map((b) => DropdownMenuItem(value: b, child: Text(b)))
@@ -147,7 +147,8 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   // Model
                   _buildLabel('Model'),
                   DropdownButtonFormField<MotorcycleModel>(
-                    value: _selectedModel,
+                    key: ValueKey(_selectedBrand),
+                    initialValue: _selectedModel,
                     decoration: const InputDecoration(),
                     items: brandModels.map((m) {
                       final label = m.variant != null
@@ -171,7 +172,7 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   // Year
                   _buildLabel('Tahun'),
                   DropdownButtonFormField<int>(
-                    value: _selectedYear,
+                    initialValue: _selectedYear,
                     decoration: const InputDecoration(),
                     items: _years
                         .map(
@@ -181,8 +182,9 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                     onChanged: (v) => setState(() => _selectedYear = v!),
                     validator: (v) {
                       final model = _selectedModel;
-                      if (model == null || v == null)
+                      if (model == null || v == null) {
                         return 'Pilih model dan tahun';
+                      }
                       if (v < model.yearStart ||
                           (model.yearEnd != null && v > model.yearEnd!)) {
                         return 'Tahun tidak sesuai model';
@@ -211,8 +213,9 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                     validator: (v) {
                       if (v != null && v.isNotEmpty) {
                         final n = double.tryParse(v);
-                        if (n == null || n < 0)
+                        if (n == null || n < 0) {
                           return 'Masukkan angka yang valid';
+                        }
                       }
                       return null;
                     },
@@ -222,7 +225,7 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   // Usage
                   _buildLabel('Jenis pemakaian'),
                   DropdownButtonFormField<String>(
-                    value: _selectedUsage,
+                    initialValue: _selectedUsage,
                     decoration: const InputDecoration(),
                     items: _usageProfiles
                         .map(

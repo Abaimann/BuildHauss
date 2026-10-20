@@ -1,12 +1,6 @@
 targets:
   $default:
-    sources:
-      include:
-        - lib/**
-        - web/worker.dart
     builders:
-      build_web_compilers:entrypoint:
-        generate_for:
-          - web/worker.dart
+      drift_dev:
         options:
-          compiler: dart2js
+          apply_converters_on_variables: true

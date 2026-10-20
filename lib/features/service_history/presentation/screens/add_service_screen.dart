@@ -254,7 +254,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<int?>(
-                  value: item.componentTypeId,
+                  initialValue: item.componentTypeId,
                   decoration: const InputDecoration(
                     labelText: 'Komponen',
                     contentPadding: EdgeInsets.symmetric(
@@ -289,7 +289,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: item.action,
+                  initialValue: item.action,
                   decoration: const InputDecoration(
                     labelText: 'Aksi',
                     contentPadding: EdgeInsets.symmetric(

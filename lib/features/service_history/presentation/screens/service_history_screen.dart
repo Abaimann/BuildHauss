@@ -117,8 +117,6 @@ class _ServiceRecordCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final db = ref.watch(databaseProvider);
-
     return GestureDetector(
       onTap: () => _showDetail(context, ref),
       child: Container(

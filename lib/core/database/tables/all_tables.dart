@@ -20,12 +20,14 @@ class MotorcycleModels extends Table {
 // Tabel 2: motorcycles
 class Motorcycles extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get modelId => integer().nullable().references(MotorcycleModels, #id)();
+  IntColumn get modelId =>
+      integer().nullable().references(MotorcycleModels, #id)();
   TextColumn get nickname => text().withLength(min: 1, max: 100)();
   IntColumn get manufactureYear => integer()();
   TextColumn get plateNumber => text().nullable()();
   TextColumn get emoji => text().withDefault(const Constant('🏍️'))();
-  TextColumn get usageProfile => text().withDefault(const Constant('campuran'))();
+  TextColumn get usageProfile =>
+      text().withDefault(const Constant('campuran'))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isPrimary => boolean().withDefault(const Constant(false))();
@@ -50,19 +52,20 @@ class ComponentTypes extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().withLength(min: 1, max: 100)();
   TextColumn get category => text()();
-  BoolColumn get safetyCritical => boolean().withDefault(const Constant(false))();
-  TextColumn get appliesTo => text().nullable()(); // e.g. "cvt" for CVT-specific
+  BoolColumn get safetyCritical =>
+      boolean().withDefault(const Constant(false))();
+  TextColumn get appliesTo =>
+      text().nullable()(); // e.g. "cvt" for CVT-specific
 
   @override
-  List<String> get customConstraints => [
-    'UNIQUE(name)',
-  ];
+  List<String> get customConstraints => ['UNIQUE(name)'];
 }
 
 // Tabel 5: maintenance_rules
 class MaintenanceRules extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get modelId => integer().nullable().references(MotorcycleModels, #id)();
+  IntColumn get modelId =>
+      integer().nullable().references(MotorcycleModels, #id)();
   IntColumn get componentTypeId => integer().references(ComponentTypes, #id)();
   RealColumn get intervalKm => real().nullable()();
   IntColumn get intervalDays => integer().nullable()();
@@ -107,7 +110,8 @@ class ServiceRecords extends Table {
 class ServiceItems extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get serviceRecordId => integer().references(ServiceRecords, #id)();
-  IntColumn get componentTypeId => integer().nullable().references(ComponentTypes, #id)();
+  IntColumn get componentTypeId =>
+      integer().nullable().references(ComponentTypes, #id)();
   IntColumn get sparepartId => integer().nullable()();
   TextColumn get action => text()(); // inspect, replace, repair, clean
   IntColumn get partsCost => integer().withDefault(const Constant(0))();
@@ -120,7 +124,8 @@ class ServiceItems extends Table {
 class SelfInspections extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get motorcycleId => integer().references(Motorcycles, #id)();
-  DateTimeColumn get inspectedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get inspectedAt =>
+      dateTime().withDefault(currentDateAndTime)();
   TextColumn get notes => text().nullable()();
   TextColumn get riskLevel => text().nullable()(); // low, medium, high
   TextColumn get status => text().withDefault(const Constant('draft'))();
@@ -140,11 +145,15 @@ class InspectionAnswers extends Table {
 class Complaints extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get motorcycleId => integer().references(Motorcycles, #id)();
-  IntColumn get inspectionId => integer().nullable().references(SelfInspections, #id)();
-  IntColumn get resolvedByServiceId => integer().nullable().references(ServiceRecords, #id)();
+  IntColumn get inspectionId =>
+      integer().nullable().references(SelfInspections, #id)();
+  IntColumn get resolvedByServiceId =>
+      integer().nullable().references(ServiceRecords, #id)();
   TextColumn get title => text()();
   TextColumn get description => text()();
-  TextColumn get status => text().withDefault(const Constant(' baru'))(); // baru, dianalisis, perlu_pemeriksaan, ditangani, selesai, dibuka_kembali
+  TextColumn get status => text().withDefault(
+    const Constant(' baru'),
+  )(); // baru, dianalisis, perlu_pemeriksaan, ditangani, selesai, dibuka_kembali
   DateTimeColumn get openedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get closedAt => dateTime().nullable()();
   RealColumn get odometerKm => real().nullable()();
@@ -194,7 +203,8 @@ class CatalogSources extends Table {
 // Tabel 15: spareparts
 class Spareparts extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get sourceId => integer().nullable().references(CatalogSources, #id)();
+  IntColumn get sourceId =>
+      integer().nullable().references(CatalogSources, #id)();
   TextColumn get partNumber => text().nullable()();
   TextColumn get name => text()();
   TextColumn get brand => text().nullable()();
@@ -210,7 +220,8 @@ class Spareparts extends Table {
 class SparepartFitments extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get sparepartId => integer().references(Spareparts, #id)();
-  IntColumn get modelId => integer().nullable().references(MotorcycleModels, #id)();
+  IntColumn get modelId =>
+      integer().nullable().references(MotorcycleModels, #id)();
   IntColumn get yearStart => integer()();
   IntColumn get yearEnd => integer().nullable()();
   TextColumn get notes => text().nullable()();
@@ -234,7 +245,8 @@ class ServiceRecommendations extends Table {
   IntColumn get budgetPlanId => integer().references(BudgetPlans, #id)();
   IntColumn get estimatedTotal => integer()();
   TextColumn get ruleVersion => text()();
-  DateTimeColumn get generatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get generatedAt =>
+      dateTime().withDefault(currentDateAndTime)();
   TextColumn get dataFreshness => text().nullable()();
   TextColumn get explanation => text().nullable()();
 }
@@ -242,24 +254,29 @@ class ServiceRecommendations extends Table {
 // Tabel 19: recommendation_items
 class RecommendationItems extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get recommendationId => integer().references(ServiceRecommendations, #id)();
+  IntColumn get recommendationId =>
+      integer().references(ServiceRecommendations, #id)();
   IntColumn get componentTypeId => integer().references(ComponentTypes, #id)();
   IntColumn get sparepartId => integer().nullable()();
   TextColumn get priority => text()(); // safety, high, medium, low
-  TextColumn get decision => text()(); // selected, deferred, safety_alert, inspect
+  TextColumn get decision =>
+      text()(); // selected, deferred, safety_alert, inspect
   IntColumn get estimatedCost => integer().nullable()();
   IntColumn get estimatedLaborCost => integer().nullable()();
   TextColumn get reason => text()();
   TextColumn get consequenceIfDelayed => text().nullable()();
-  BoolColumn get requiresInspection => boolean().withDefault(const Constant(false))();
+  BoolColumn get requiresInspection =>
+      boolean().withDefault(const Constant(false))();
 }
 
 // Tabel 20: local_reminders
 class LocalReminders extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get motorcycleId => integer().references(Motorcycles, #id)();
-  IntColumn get componentTypeId => integer().nullable().references(ComponentTypes, #id)();
-  TextColumn get reminderType => text()(); // odometer, date, inspection, complaint
+  IntColumn get componentTypeId =>
+      integer().nullable().references(ComponentTypes, #id)();
+  TextColumn get reminderType =>
+      text()(); // odometer, date, inspection, complaint
   RealColumn get dueOdometerKm => real().nullable()();
   DateTimeColumn get dueDate => dateTime().nullable()();
   BoolColumn get enabled => boolean().withDefault(const Constant(true))();
@@ -279,7 +296,9 @@ class AiModelInstalls extends Table {
   TextColumn get filePath => text()();
   TextColumn get sha256 => text()();
   IntColumn get fileSizeBytes => integer().nullable()();
-  TextColumn get downloadStatus => text().withDefault(const Constant('pending'))(); // pending, downloading, paused, completed, failed
+  TextColumn get downloadStatus => text().withDefault(
+    const Constant('pending'),
+  )(); // pending, downloading, paused, completed, failed
   DateTimeColumn get installedAt => dateTime().nullable()();
   TextColumn get sourceUrl => text().nullable()();
   TextColumn get lastError => text().nullable()();

@@ -52,7 +52,6 @@ class MileagePredictor {
   /// Estimated next service odometer based on interval km
   double? predictNextServiceOdometer(double lastOdometer, double intervalKm) {
     if (kmPerDay == null || kmPerDay! <= 0) return null;
-    final daysToService = intervalKm / kmPerDay!;
     final nextOdo = lastOdometer + intervalKm;
     return nextOdo;
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/database/app_database.dart';
@@ -30,8 +29,6 @@ class _SparepartsScreenState extends ConsumerState<SparepartsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final activeMotor = ref.watch(activeMotorcycleProvider);
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -132,7 +129,6 @@ class _SparepartsScreenState extends ConsumerState<SparepartsScreen> {
 
   Widget _buildPartsList(BuildContext context, WidgetRef ref) {
     final db = ref.watch(databaseProvider);
-    final activeMotor = ref.watch(activeMotorcycleProvider);
 
     return Container(
       constraints: const BoxConstraints(maxHeight: 300),

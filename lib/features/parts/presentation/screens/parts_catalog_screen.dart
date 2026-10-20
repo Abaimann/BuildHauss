@@ -385,8 +385,9 @@ class _PartCard extends StatelessWidget {
   String _getPartEmoji(String name, String category) {
     final n = name.toLowerCase();
     if (n.contains('oli') || n.contains('oil')) return '🛢️';
-    if (n.contains('rem') || n.contains('brake') || n.contains('kampas'))
+    if (n.contains('rem') || n.contains('brake') || n.contains('kampas')) {
       return '🛑';
+    }
     if (n.contains('rantai') || n.contains('chain')) return '⛓️';
     if (n.contains('busi') || n.contains('spark')) return '⚡';
     if (n.contains('filter')) return '🔧';

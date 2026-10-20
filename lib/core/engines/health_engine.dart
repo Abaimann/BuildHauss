@@ -9,25 +9,23 @@ import '../database/app_database.dart';
 /// Returns estimated status, score (0-100), and explanation.
 /// Status can be: 'good', 'inspect', 'replace', 'unknown'
 class HealthEngine {
-  final List<ComponentStatus> _statuses;
+  final List<ComponentStatus> statuses;
   final List<ServiceRecord> _serviceRecords;
-  final List<OdometerLog> _odometerLogs;
+  final List<OdometerLog> odometerLogs;
   final List<MaintenanceRule> _rules;
   final List<ComponentType> _componentTypes;
   final double? _currentOdometer;
   final String _usageProfile;
 
   HealthEngine({
-    required List<ComponentStatus> statuses,
+    required this.statuses,
     required List<ServiceRecord> serviceRecords,
-    required List<OdometerLog> odometerLogs,
+    required this.odometerLogs,
     required List<MaintenanceRule> rules,
     required List<ComponentType> componentTypes,
     double? currentOdometer,
     String usageProfile = 'campuran',
-  }) : _statuses = statuses,
-       _serviceRecords = serviceRecords,
-       _odometerLogs = odometerLogs,
+  }) : _serviceRecords = serviceRecords,
        _rules = rules,
        _componentTypes = componentTypes,
        _currentOdometer = currentOdometer,
@@ -46,13 +44,6 @@ class HealthEngine {
         explanation: 'Belum ada data aturan untuk komponen ini.',
         confidence: null,
       );
-    }
-
-    // Find last service action for this component
-    ServiceRecord? lastService;
-    String? lastAction;
-    for (final record in _serviceRecords) {
-      lastService = record;
     }
 
     // Find last replacement/inspection for this component
@@ -131,7 +122,7 @@ class HealthEngine {
         status = 'inspect';
         score = 55;
         explanation =
-            'Perlu diperiksa. Sudah ${daysSinceService} hari sejak servis terakhir.';
+            'Perlu diperiksa. Sudah $daysSinceService hari sejak servis terakhir.';
       } else {
         status = 'good';
         score = 75;

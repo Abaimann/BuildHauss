@@ -18,7 +18,6 @@ class BudgetScreen extends ConsumerStatefulWidget {
 class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   final _budgetController = TextEditingController();
   int _budgetAmount = 200000;
-  bool _saving = false;
 
   @override
   void initState() {
