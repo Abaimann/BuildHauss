@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/ai/ai_safety_guard.dart';
 import '../../../../core/providers/app_providers.dart';
+import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/formatters.dart';
 
 class AiAssistantScreen extends ConsumerStatefulWidget {
-  const AiAssistantScreen({super.key});
+  final int? complaintId;
+
+  const AiAssistantScreen({super.key, this.complaintId});
 
   @override
   ConsumerState<AiAssistantScreen> createState() => _AiAssistantScreenState();
@@ -17,10 +21,41 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   final _scrollController = ScrollController();
   final List<_ChatMessage> _messages = [];
   bool _sending = false;
+  int? _activeComplaintId;
+  SafetyEvaluationResult? _lastSafetyAlert;
 
   @override
   void initState() {
     super.initState();
+    _activeComplaintId = widget.complaintId;
+    _initializeChat();
+  }
+
+  Future<void> _initializeChat() async {
+    final db = ref.read(databaseProvider);
+
+    if (_activeComplaintId != null && _activeComplaintId! > 0) {
+      // Load existing messages from SQLite
+      final existing = await db.getComplaintMessages(_activeComplaintId!);
+      if (existing.isNotEmpty) {
+        setState(() {
+          _messages.clear();
+          for (final m in existing) {
+            _messages.add(
+              _ChatMessage(
+                role: m.role,
+                content: m.content,
+                timestamp: m.createdAt,
+                analysisMode: m.analysisMode,
+              ),
+            );
+          }
+        });
+        _scrollToBottom();
+        return;
+      }
+    }
+
     _addSystemMessage();
   }
 
@@ -29,11 +64,11 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       _ChatMessage(
         role: 'system',
         content:
-            'Halo! Saya asisten AI BuildHaus. '
-            'Ceritakan keluhan atau pertanyaan tentang motor kamu. '
-            'Saya akan membantu menganalisis berdasarkan data yang ada.\n\n'
-            '⚠️ Ingat: analisis ini bersifat bantuan, bukan diagnosis pasti. '
-            'Untuk masalah keselamatan, segera periksakan ke mekanik profesional.',
+            'Halo! Saya asisten konsultasi AI BuildHaus.\n\n'
+            'Ceritakan keluhan, bunyi aneh, atau gejala yang Anda rasakan pada motor. '
+            'Saya akan menganalisis data riwayat motor Anda untuk memperkirakan kemungkinan penyebabnya.\n\n'
+            '⚠️ PENTING: Analisis ini bersifat bantuan awal dan BUKAN diagnosis pasti mekanik. '
+            'Untuk indikasi bahaya pada rem, bahan bakar, dan ban, utamakan keselamatan jiwa.',
       ),
     );
   }
@@ -48,6 +83,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   @override
   Widget build(BuildContext context) {
     final aiStatus = ref.watch(aiModelStatusProvider);
+    final activeMotor = ref.watch(activeMotorcycleProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -55,25 +91,50 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: const Text('AI Health Assistant'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('AI Health Assistant', style: TextStyle(fontSize: 16)),
+            if (activeMotor != null)
+              Text(
+                activeMotor.nickname,
+                style: TextStyle(fontSize: 11, color: context.muted),
+              ),
+          ],
+        ),
         actions: [
           aiStatus.when(
             data: (status) => status == 'ready'
-                ? Chip(
-                    label: Text(
-                      '🤖 LLM',
-                      style: TextStyle(fontSize: 10, color: BuildHausTheme.ok),
+                ? GestureDetector(
+                    onTap: () => context.push('/ai-model'),
+                    child: Chip(
+                      label: Text(
+                        '🤖 LLM Offline',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: BuildHausTheme.ok,
+                        ),
+                      ),
+                      backgroundColor: BuildHausTheme.okBg,
+                      side: BorderSide.none,
                     ),
-                    backgroundColor: BuildHausTheme.okBg,
-                    side: BorderSide.none,
                   )
-                : Chip(
-                    label: Text(
-                      '📋 Rule-based',
-                      style: TextStyle(fontSize: 10, color: context.muted),
+                : GestureDetector(
+                    onTap: () => context.push('/ai-model'),
+                    child: Chip(
+                      avatar: const Icon(Icons.download, size: 12),
+                      label: Text(
+                        'Unduh AI',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: context.ink,
+                        ),
+                      ),
+                      backgroundColor: context.soft,
+                      side: BorderSide(color: context.line),
                     ),
-                    backgroundColor: context.soft,
-                    side: BorderSide.none,
                   ),
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
@@ -87,6 +148,98 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       ),
       body: Column(
         children: [
+          // Informative banner when AI model is not yet downloaded
+          if (aiStatus.valueOrNull != 'ready')
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: context.surface2,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: context.line),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.smart_toy_outlined,
+                    size: 18,
+                    color: Colors.amber.shade700,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'AI offline belum diunduh (Mode Analisis Dasar aktif).',
+                      style: TextStyle(fontSize: 11, color: context.muted),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => context.push('/ai-model'),
+                    icon: const Icon(Icons.download, size: 14),
+                    label: const Text(
+                      'Unduh (378 MB)',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          // Safety alert banner if critical red flag detected
+          if (_lastSafetyAlert != null && _lastSafetyAlert!.hasRedFlag)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: BuildHausTheme.dangerBg,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: BuildHausTheme.danger.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('🚨', style: TextStyle(fontSize: 20)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _lastSafetyAlert!.warningTitle ??
+                              'Peringatan Keselamatan',
+                          style: TextStyle(
+                            color: BuildHausTheme.danger,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _lastSafetyAlert!.warningMessage ?? '',
+                          style: TextStyle(
+                            color: BuildHausTheme.danger,
+                            fontSize: 11,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -112,7 +265,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                         child: TextField(
                           controller: _messageController,
                           decoration: InputDecoration(
-                            hintText: 'Tanyakan tentang keluhan motor...',
+                            hintText: 'Tanyakan keluhan motor...',
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 10,
@@ -148,7 +301,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Analisis tanpa AI online. Model lokal diperlukan untuk analisis lanjutan.',
+                    '100% Offline • Privasi Terjaga • Data Tersimpan di HP Anda',
                     style: TextStyle(color: context.muted, fontSize: 9),
                   ),
                 ],
@@ -162,18 +315,34 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 
   Widget _buildMessage(_ChatMessage m) {
     final isUser = m.role == 'user';
+    final isSystem = m.role == 'system';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isUser ? context.surface2 : context.soft,
+        color: isUser
+            ? context.surface2
+            : isSystem
+            ? context.soft.withValues(alpha: 0.5)
+            : context.soft,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-          bottomLeft: isUser ? Radius.circular(16) : Radius.circular(4),
-          bottomRight: isUser ? Radius.circular(4) : Radius.circular(16),
+          topLeft: const Radius.circular(16),
+          topRight: const Radius.circular(16),
+          bottomLeft: isUser
+              ? const Radius.circular(16)
+              : const Radius.circular(4),
+          bottomRight: isUser
+              ? const Radius.circular(4)
+              : const Radius.circular(16),
         ),
-        border: Border.all(color: isUser ? context.line : Colors.transparent),
+        border: Border.all(
+          color: isUser
+              ? context.line
+              : isSystem
+              ? context.line.withValues(alpha: 0.5)
+              : Colors.transparent,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,13 +350,42 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           Row(
             children: [
               Text(
-                isUser ? 'Anda' : 'BuildHaus AI',
+                isUser
+                    ? 'Anda'
+                    : isSystem
+                    ? 'Sistem BuildHaus'
+                    : 'BuildHaus AI',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
-                  color: context.muted,
+                  color: isUser ? context.ink : BuildHausTheme.ok,
                 ),
               ),
+              if (m.analysisMode != null) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: m.analysisMode == 'llm'
+                        ? BuildHausTheme.okBg
+                        : context.surface2,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    m.analysisMode == 'llm' ? 'LLM' : 'Aturan Dasar',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: m.analysisMode == 'llm'
+                          ? BuildHausTheme.ok
+                          : context.muted,
+                    ),
+                  ),
+                ),
+              ],
               const Spacer(),
               Text(
                 Formatters.shortDate(m.timestamp),
@@ -209,25 +407,79 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     final text = _messageController.text.trim();
     if (text.isEmpty || _sending) return;
 
+    final activeMotor = ref.read(activeMotorcycleProvider);
+    if (activeMotor == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pilih atau tambahkan sepeda motor terlebih dahulu.'),
+        ),
+      );
+      return;
+    }
+
     _messageController.clear();
+
+    // Check safety immediately for UI alert
+    final immediateSafety = AiSafetyGuard.evaluate(text);
+    if (immediateSafety.hasRedFlag) {
+      setState(() => _lastSafetyAlert = immediateSafety);
+    }
+
+    // Add user message
     setState(() {
       _messages.add(_ChatMessage(role: 'user', content: text));
       _sending = true;
     });
-
     _scrollToBottom();
 
-    // Simulate AI response (rule-based analysis)
-    await Future.delayed(const Duration(milliseconds: 800));
+    // Placeholder for streaming assistant response
+    final assistantMsg = _ChatMessage(
+      role: 'assistant',
+      content: '',
+      analysisMode: '...',
+    );
+    setState(() {
+      _messages.add(assistantMsg);
+    });
 
-    final response = _generateRuleBasedResponse(text);
+    final chatService = ref.read(aiChatServiceProvider);
 
-    if (mounted) {
-      setState(() {
-        _messages.add(_ChatMessage(role: 'assistant', content: response));
-        _sending = false;
-      });
-      _scrollToBottom();
+    try {
+      final tokenStream = chatService.sendMessage(
+        motorcycleId: activeMotor.id,
+        complaintId: _activeComplaintId,
+        userText: text,
+        onAnalysisComplete: (analysis) {
+          if (mounted) {
+            setState(() {
+              assistantMsg.analysisMode = analysis.mode;
+            });
+          }
+        },
+      );
+
+      final fullBuffer = StringBuffer();
+      await for (final token in tokenStream) {
+        fullBuffer.write(token);
+        if (mounted) {
+          setState(() {
+            assistantMsg.content = fullBuffer.toString();
+          });
+          _scrollToBottom();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          assistantMsg.content =
+              'Maaf, terjadi kesalahan saat memproses respons: $e';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _sending = false);
+        _scrollToBottom();
+      }
     }
   }
 
@@ -243,82 +495,6 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     });
   }
 
-  String _generateRuleBasedResponse(String input) {
-    final lower = input.toLowerCase();
-
-    // Safety keywords
-    if (lower.contains('rem tidak') ||
-        lower.contains('rem blong') ||
-        lower.contains('ban pecah') ||
-        lower.contains('bahan bakar bocor')) {
-      return '⚠️ PERHATIAN: Keluhan yang Anda sebutkan menyangkut keselamatan.\n\n'
-          '🚨 JANGAN menggunakan motor dalam kondisi rem tidak berfungsi, ban bermasalah, '
-          'atau ada kebocoran bahan bakar.\n\n'
-          '✅ Segera bawa ke mekanik profesional untuk diperiksa. '
-          'Ini bukan sesuatu yang bisa ditunda.';
-    }
-
-    // Oil related
-    if (lower.contains('oli') ||
-        lower.contains('mesin') && lower.contains('panas')) {
-      return '🛢️ Mengenai oli mesin:\n\n'
-          '• Periksa level oli dengan dipstick saat mesin dingin dan datar\n'
-          '• Oli yang tepat untuk motor kamu bisa dilihat di menu Sparepart\n'
-          '• Ganti oli sesuai interval yang direkomendasikan buku manual\n'
-          '• Jika oli terasa sangat gelap/hitam早点, sebaiknya segera diganti\n\n'
-          '💡 Tips: Catat penggantian oli di menu Riwayat Servis.';
-    }
-
-    // Starter issues
-    if (lower.contains('starter') ||
-        lower.contains('suara klik') ||
-        lower.contains('tidak mau')) {
-      return '🔋 Kemungkinan masalah starter:\n\n'
-          '1. **Aki lemah** - Coba nyalakan lampu, jika redup kemungkinan aki lemah\n'
-          '2. **Kontak kotor** - Periksa terminal aki, bersihkan jika berkarat\n'
-          '3. **Starter motor** - Jika berbunyi klik tapi mesin tidak jalan,可能是starter bermasalah\n\n'
-          '📏 Untuk diagnosis lebih akurat, coba catat:\n'
-          '- Kapan masalah terjadi? (pagi/siang/malam)\n'
-          '- Sudah berapa lama?\n'
-          '- Apakah terjadi tiba-tiba atau gradually?';
-    }
-
-    // Brake related
-    if (lower.contains('rem') || lower.contains('pengereman')) {
-      return '🛑 Mengenai rem:\n\n'
-          '• Rem adalah komponen KESELAMATAN paling utama\n'
-          '• Jika rem terasa lembut/lemah, segera periksakan\n'
-          '• Suara gesekan/berisik bisa menandakan kampas aus\n'
-          '• Rem depan biasanya aus lebih cepat dari rem belakang\n\n'
-          '⚠️ Jangan tunda perbaikan rem jika Anda merasakan:\n'
-          '- Rem butuh tekanan lebih dalam\n'
-          '- Rem berbunyi lebih keras dari biasanya\n'
-          '- Motor menarik ke satu sisi saat direm';
-    }
-
-    // CVT related
-    if (lower.contains('cvt') ||
-        lower.contains('mati') && lower.contains('jalan')) {
-      return '⚙️ Mengenai CVT (transmisi otomatis):\n\n'
-          '• Gejala CVT bermasalah: motor mati saat jalan, tarikan tidak smooth\n'
-          '• Periksa belt CVT apakah pecah atau aus\n'
-          '• Roller CVT perlu diganti secara berkala\n'
-          '• Jangan menggunakan oli mesin biasa untuk CVT\n\n'
-          '📋 Servis CVT sebaiknya dilakukan oleh mekanik yang berpengalaman.';
-    }
-
-    // General response
-    return 'Terima kasih sudah bertanya. 📝\n\n'
-        'Berdasarkan keluhan Anda, saya sudah mencatat informasi ini.\n\n'
-        '💡 **Saran umum:**\n'
-        '- Selalu catat kapan masalah mulai terjadi\n'
-        '- Perhatikan apakah masalahnya konsisten atau hilang-timbul\n'
-        '- Bawa ke mekanik jika ragu\n\n'
-        '🤖 *Untuk analisis lebih detail dengan AI lokal, pastikan model AI sudah diunduh '
-        'di menu Akun > AI Model.*\n\n'
-        'Apakah ada detail lain tentang keluhan motor Anda?';
-  }
-
   void _showAiInfo(BuildContext context) {
     showDialog(
       context: context,
@@ -329,22 +505,22 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'BuildHaus AI Assistant bekerja secara offline di HP Anda.',
+              'BuildHaus AI Assistant bekerja secara 100% offline di smartphone Anda.',
               style: TextStyle(fontSize: 13),
             ),
             SizedBox(height: 12),
             Text(
-              '🔒 Privasi: Semua data keluhan dan analisis TIDAK dikirim ke server manapun.',
+              '🔒 Privasi Mutlak: Semua percakapan dan analisis keluhan disimpan lokal di database SQLite HP Anda, tidak ada yang dikirim ke cloud.',
               style: TextStyle(fontSize: 12),
             ),
             SizedBox(height: 8),
             Text(
-              '📋 Analisis dasar (rule-based) tersedia tanpa model AI.',
+              '📋 Analisis Dasar: Tersedia otomatis tanpa unduh model sebagai panduan awal.',
               style: TextStyle(fontSize: 12),
             ),
             SizedBox(height: 8),
             Text(
-              '🤖 Untuk analisis LLM yang lebih canggih, unduh model AI di menu Akun > AI Model.',
+              '🤖 Model Offline Qwen3: Dapat diunduh di Akun > AI Model untuk pemahaman bahasa alami yang lebih mendalam.',
               style: TextStyle(fontSize: 12),
             ),
           ],
@@ -354,6 +530,14 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Tutup'),
           ),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              context.push('/ai-model');
+            },
+            icon: const Icon(Icons.download, size: 16),
+            label: const Text('Kelola Model AI'),
+          ),
         ],
       ),
     );
@@ -362,9 +546,14 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 
 class _ChatMessage {
   final String role;
-  final String content;
+  String content;
   final DateTime timestamp;
+  String? analysisMode;
 
-  _ChatMessage({required this.role, required this.content})
-    : timestamp = DateTime.now();
+  _ChatMessage({
+    required this.role,
+    required this.content,
+    DateTime? timestamp,
+    this.analysisMode,
+  }) : timestamp = timestamp ?? DateTime.now();
 }

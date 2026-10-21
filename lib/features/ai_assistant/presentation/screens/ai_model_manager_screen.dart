@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/ai/model_download_service.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -13,27 +14,33 @@ class AiModelManagerScreen extends ConsumerStatefulWidget {
 }
 
 class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
-  double _downloadProgress = 0.0;
-  bool _downloading = false;
-  String? _lastError;
-
-  // Model manifest - in production, this would come from a trusted source
-  static const _modelManifest = {
-    'name': 'Qwen3-0.6B-GGUF',
-    'version': '1.0',
-    'description':
-        'Model bahasa kecil untuk analisis keluhan motor (6 parameter).',
-    'size_mb': 350,
-    'license': 'Apache 2.0',
-    'source_note':
-        'Model harus diunduh dari sumber resmi. URL akan dikonfirmasi.',
-    'requirements': {'min_ram_gb': 2, 'min_storage_mb': 500, 'android_min': 24},
-  };
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(modelDownloadServiceProvider).checkCurrentStatus().then((_) {
+        if (mounted) setState(() {});
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final aiStatus = ref.watch(aiModelStatusProvider);
+    final manifest = ref.watch(modelManifestProvider);
+    final downloadService = ref.watch(modelDownloadServiceProvider);
+    final state = downloadService.currentState;
     final modelInfo = ref.watch(aiModelInfoProvider);
+
+    // Also listen to stream for reactive UI updates
+    ref.listen(modelDownloadStateProvider, (_, next) {
+      if (mounted) setState(() {});
+    });
+
+    final isDownloading = state.status == DownloadStatus.downloading;
+    final isVerifying = state.status == DownloadStatus.verifying;
+    final isPaused = state.status == DownloadStatus.paused;
+    final isCompleted = state.status == DownloadStatus.completed;
+    final isFailed = state.status == DownloadStatus.failed;
 
     return Scaffold(
       appBar: AppBar(
@@ -77,8 +84,8 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                         color: context.soft,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Center(
-                        child: Text('🤖', style: const TextStyle(fontSize: 24)),
+                      child: const Center(
+                        child: Text('🤖', style: TextStyle(fontSize: 24)),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -87,7 +94,7 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _modelManifest['name'] as String,
+                            manifest.name,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -95,7 +102,7 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                             ),
                           ),
                           Text(
-                            'Versi ${_modelManifest['version']}',
+                            'Versi ${manifest.version} • ${manifest.quantization}',
                             style: TextStyle(
                               color: context.muted,
                               fontSize: 11,
@@ -104,20 +111,16 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                         ],
                       ),
                     ),
-                    aiStatus.when(
-                      data: (status) => _buildStatusChip(status),
-                      loading: () =>
-                          const CircularProgressIndicator(strokeWidth: 2),
-                      error: (_, __) => const Chip(label: Text('Error')),
-                    ),
+                    _buildStatusChip(state.status),
                   ],
                 ),
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 12),
-                _InfoRow('Ukuran', '~${_modelManifest['size_mb']} MB'),
-                _InfoRow('License', _modelManifest['license'] as String),
-                _InfoRow('Deskripsi', _modelManifest['description'] as String),
+                _InfoRow('Ukuran', manifest.formattedSize),
+                _InfoRow('Lisensi', manifest.license),
+                _InfoRow('Repositori', manifest.repository),
+                _InfoRow('Deskripsi', manifest.description),
                 const SizedBox(height: 12),
                 const Divider(),
                 const SizedBox(height: 12),
@@ -130,26 +133,17 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                _InfoRow(
-                  'RAM minimum',
-                  '${(_modelManifest['requirements'] as Map)['min_ram_gb']} GB',
-                ),
-                _InfoRow(
-                  'Penyimpanan',
-                  '~${(_modelManifest['requirements'] as Map)['min_storage_mb']} MB bebas',
-                ),
-                _InfoRow(
-                  'Android minimum',
-                  'API ${(_modelManifest['requirements'] as Map)['android_min']}',
-                ),
+                _InfoRow('RAM minimum', '${manifest.minRamGb} GB'),
+                _InfoRow('Penyimpanan', '~${manifest.minStorageMb} MB bebas'),
+                _InfoRow('Android minimum', 'API ${manifest.minAndroidApi}'),
               ],
             ),
           ),
 
           const SizedBox(height: 16),
 
-          // Download progress
-          if (_downloading || _downloadProgress > 0) ...[
+          // Download / Verification progress
+          if (isDownloading || isVerifying || isPaused) ...[
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -162,14 +156,23 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                 children: [
                   Row(
                     children: [
-                      Text('📥', style: const TextStyle(fontSize: 20)),
-                      const SizedBox(width: 8),
                       Text(
-                        'Mengunduh model...',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: context.ink,
+                        isVerifying ? '🔍' : '📥',
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          isVerifying
+                              ? 'Memverifikasi integritas SHA-256...'
+                              : isPaused
+                              ? 'Download dijeda'
+                              : 'Mengunduh model dari sumber resmi...',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: context.ink,
+                          ),
                         ),
                       ),
                     ],
@@ -177,28 +180,62 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                   const SizedBox(height: 12),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(6),
-                    child: LinearProgressIndicator(
-                      value: _downloadProgress,
-                      backgroundColor: context.soft,
-                      color: BuildHausTheme.ok,
-                      minHeight: 8,
-                    ),
+                    child: isVerifying
+                        ? const LinearProgressIndicator(minHeight: 8)
+                        : LinearProgressIndicator(
+                            value: state.progressRatio,
+                            backgroundColor: context.soft,
+                            color: BuildHausTheme.ok,
+                            minHeight: 8,
+                          ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    '${(_downloadProgress * 100).toStringAsFixed(1)}%',
-                    style: TextStyle(color: context.muted, fontSize: 11),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${(state.bytesDownloaded / (1024 * 1024)).toStringAsFixed(1)} MB / ${manifest.formattedSize}',
+                        style: TextStyle(color: context.muted, fontSize: 11),
+                      ),
+                      Text(
+                        '${(state.progressRatio * 100).toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          color: context.ink,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      OutlinedButton(
-                        onPressed: _pauseDownload,
-                        child: const Text('Jeda'),
-                      ),
+                      if (isDownloading)
+                        OutlinedButton(
+                          onPressed: () {
+                            downloadService.pauseDownload();
+                            setState(() {});
+                          },
+                          child: const Text('Jeda'),
+                        )
+                      else if (isPaused)
+                        ElevatedButton(
+                          onPressed: () {
+                            downloadService.startDownload();
+                            setState(() {});
+                          },
+                          child: const Text('Lanjutkan'),
+                        ),
                       const SizedBox(width: 8),
                       TextButton(
-                        onPressed: _cancelDownload,
+                        onPressed: isVerifying
+                            ? null
+                            : () async {
+                                await downloadService.cancelDownload();
+                                ref.invalidate(aiModelStatusProvider);
+                                ref.invalidate(aiModelInfoProvider);
+                                setState(() {});
+                              },
                         child: Text(
                           'Batal',
                           style: TextStyle(color: BuildHausTheme.danger),
@@ -213,7 +250,7 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
           ],
 
           // Error display
-          if (_lastError != null) ...[
+          if (isFailed && state.errorMessage != null) ...[
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -222,11 +259,11 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
               ),
               child: Row(
                 children: [
-                  Text('❌', style: const TextStyle(fontSize: 16)),
+                  const Text('❌', style: TextStyle(fontSize: 16)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _lastError!,
+                      state.errorMessage!,
                       style: TextStyle(
                         color: BuildHausTheme.danger,
                         fontSize: 12,
@@ -242,7 +279,7 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
           // Installed model info
           modelInfo.when(
             data: (model) {
-              if (model == null) return const SizedBox.shrink();
+              if (model == null && !isCompleted) return const SizedBox.shrink();
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -264,7 +301,7 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Model Terpasang',
+                          'Model Terpasang & Terverifikasi',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
@@ -275,16 +312,20 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Model: ${model.modelName}',
+                      'Model: ${model?.modelName ?? manifest.name}',
                       style: TextStyle(fontSize: 11, color: context.ink),
                     ),
                     Text(
-                      'Versi: ${model.version}',
+                      'Versi: ${model?.version ?? manifest.version}',
                       style: TextStyle(fontSize: 11, color: context.muted),
                     ),
-                    if (model.installedAt != null)
+                    Text(
+                      'Checksum: SHA-256 Valid',
+                      style: TextStyle(fontSize: 11, color: BuildHausTheme.ok),
+                    ),
+                    if (model?.installedAt != null)
                       Text(
-                        'Dipasang: ${model.installedAt.toString().substring(0, 16)}',
+                        'Dipasang: ${model!.installedAt.toString().substring(0, 16)}',
                         style: TextStyle(fontSize: 11, color: context.muted),
                       ),
                   ],
@@ -298,64 +339,56 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
           const SizedBox(height: 16),
 
           // Action buttons
-          aiStatus.when(
-            data: (status) {
-              if (status == 'ready') {
-                return Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.soft,
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      child: Row(
-                        children: [
-                          Text('ℹ️', style: TextStyle(fontSize: 14)),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Model AI sudah terpasang dan siap digunakan untuk analisis keluhan.',
-                              style: TextStyle(
-                                color: context.muted,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+          if (isCompleted) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: context.soft,
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Row(
+                children: [
+                  const Text('ℹ️', style: TextStyle(fontSize: 14)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Model AI sudah terpasang dan siap digunakan untuk analisis keluhan secara offline.',
+                      style: TextStyle(color: context.muted, fontSize: 11),
                     ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: () => _deleteModel(context),
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: BuildHausTheme.danger,
-                      ),
-                      label: Text(
-                        'Hapus Model',
-                        style: TextStyle(color: BuildHausTheme.danger),
-                      ),
-                    ),
-                  ],
-                );
-              }
-              return ElevatedButton.icon(
-                onPressed: _downloading ? null : _startDownload,
-                icon: const Icon(Icons.cloud_download),
-                label: Text(_downloading ? 'Mengunduh...' : 'Unduh Model AI'),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => ElevatedButton.icon(
-              onPressed: _startDownload,
-              icon: const Icon(Icons.cloud_download),
-              label: const Text('Unduh Model AI'),
+                  ),
+                ],
+              ),
             ),
-          ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => _deleteModel(context, downloadService),
+              icon: Icon(Icons.delete_outline, color: BuildHausTheme.danger),
+              label: Text(
+                'Hapus Model',
+                style: TextStyle(color: BuildHausTheme.danger),
+              ),
+            ),
+          ] else if (!isDownloading && !isVerifying && !isPaused) ...[
+            ElevatedButton.icon(
+              onPressed: () async {
+                try {
+                  await downloadService.startDownload();
+                  ref.invalidate(aiModelStatusProvider);
+                  ref.invalidate(aiModelInfoProvider);
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error download: $e')),
+                    );
+                  }
+                }
+              },
+              icon: const Icon(Icons.cloud_download),
+              label: Text(
+                isFailed ? 'Coba Unduh Ulang' : 'Unduh Model AI Offline',
+              ),
+            ),
+          ],
 
           const SizedBox(height: 24),
 
@@ -371,10 +404,10 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
               children: [
                 Row(
                   children: [
-                    Text('🔒', style: TextStyle(fontSize: 14)),
+                    const Text('🔒', style: TextStyle(fontSize: 14)),
                     const SizedBox(width: 8),
                     Text(
-                      'Privasi',
+                      'Privasi & Keamanan',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 11,
@@ -385,10 +418,10 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '• Model AI disimpan secara lokal di HP Anda\n'
-                  '• Tidak ada data yang dikirim ke server manapun\n'
-                  '• Analisis keluhan dilakukan 100% offline\n'
-                  '• SHA-256 checksum diverifikasi saat download',
+                  '• Model AI disimpan di penyimpanan privat aplikasi\n'
+                  '• Tidak ada keluhan atau data yang dikirim ke server cloud\n'
+                  '• Inferensi berjalan 100% lokal pada CPU/GPU perangkat Anda\n'
+                  '• Checksum SHA-256 diverifikasi ketat sebelum model diaktifkan',
                   style: TextStyle(
                     color: context.muted,
                     fontSize: 10,
@@ -411,14 +444,14 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
             ),
             child: Row(
               children: [
-                Text('📋', style: TextStyle(fontSize: 18)),
+                const Text('📋', style: TextStyle(fontSize: 18)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Tanpa model AI',
+                        'Tanpa model AI (Fallback)',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
@@ -426,7 +459,7 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                         ),
                       ),
                       Text(
-                        'Analisis rule-based tetap tersedia untuk membantu memahami keluhan motor.',
+                        'Analisis dasar berbasis aturan tetap aktif otomatis saat model belum diunduh.',
                         style: TextStyle(color: context.muted, fontSize: 10),
                       ),
                     ],
@@ -445,9 +478,9 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
     );
   }
 
-  Widget _buildStatusChip(String status) {
+  Widget _buildStatusChip(DownloadStatus status) {
     switch (status) {
-      case 'ready':
+      case DownloadStatus.completed:
         return Chip(
           label: Text(
             '✓ Siap',
@@ -456,16 +489,43 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
           backgroundColor: BuildHausTheme.okBg,
           side: BorderSide.none,
         );
-      case 'downloading':
+      case DownloadStatus.downloading:
         return Chip(
           label: Text(
-            '↓ Unduh',
+            '↓ Mengunduh',
             style: TextStyle(fontSize: 10, color: BuildHausTheme.warn),
           ),
           backgroundColor: BuildHausTheme.warnBg,
           side: BorderSide.none,
         );
-      default:
+      case DownloadStatus.verifying:
+        return Chip(
+          label: Text(
+            '🔍 Verifikasi',
+            style: TextStyle(fontSize: 10, color: BuildHausTheme.warn),
+          ),
+          backgroundColor: BuildHausTheme.warnBg,
+          side: BorderSide.none,
+        );
+      case DownloadStatus.paused:
+        return Chip(
+          label: Text(
+            '⏸ Dijeda',
+            style: TextStyle(fontSize: 10, color: context.muted),
+          ),
+          backgroundColor: context.soft,
+          side: BorderSide.none,
+        );
+      case DownloadStatus.failed:
+        return Chip(
+          label: Text(
+            '❌ Gagal',
+            style: TextStyle(fontSize: 10, color: BuildHausTheme.danger),
+          ),
+          backgroundColor: BuildHausTheme.dangerBg,
+          side: BorderSide.none,
+        );
+      case DownloadStatus.idle:
         return Chip(
           label: Text(
             '⏳ Belum',
@@ -477,61 +537,17 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
     }
   }
 
-  Future<void> _startDownload() async {
-    setState(() {
-      _downloading = true;
-      _downloadProgress = 0.0;
-      _lastError = null;
-    });
-
-    // Simulate download progress
-    // In production, this would use dio to download from a real URL
-    for (int i = 0; i <= 100; i++) {
-      if (!_downloading) break;
-      await Future.delayed(const Duration(milliseconds: 100));
-      if (mounted) {
-        setState(() => _downloadProgress = i / 100);
-      }
-    }
-
-    // For now, simulate completion
-    if (mounted) {
-      setState(() {
-        _downloading = false;
-        // In production, we'd save the model info to database here
-        // For demo, we show the UI flow works
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Fitur download memerlukan konfigurasi URL model resmi. '
-              'Analisis rule-based tetap tersedia.',
-            ),
-          ),
-        );
-      });
-      ref.invalidate(aiModelStatusProvider);
-    }
-  }
-
-  void _pauseDownload() {
-    setState(() => _downloading = false);
-  }
-
-  void _cancelDownload() {
-    setState(() {
-      _downloading = false;
-      _downloadProgress = 0.0;
-    });
-  }
-
-  Future<void> _deleteModel(BuildContext context) async {
+  Future<void> _deleteModel(
+    BuildContext context,
+    ModelDownloadService service,
+  ) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Hapus Model AI?'),
         content: const Text(
-          'Model AI akan dihapus dari perangkat. '
-          'Anda masih bisa menggunakan analisis rule-based tanpa AI.',
+          'File model offline akan dihapus dari penyimpanan perangkat. '
+          'Aplikasi akan kembali menggunakan analisis dasar berbasis aturan.',
         ),
         actions: [
           TextButton(
@@ -550,10 +566,15 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
     );
 
     if (confirm == true && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Model AI dihapus.')));
+      await service.deleteModel();
       ref.invalidate(aiModelStatusProvider);
+      ref.invalidate(aiModelInfoProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Model AI berhasil dihapus.')),
+        );
+      }
+      setState(() {});
     }
   }
 }

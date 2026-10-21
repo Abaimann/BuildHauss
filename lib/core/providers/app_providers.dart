@@ -4,6 +4,11 @@ import '../../core/database/app_database.dart';
 import '../../core/engines/mileage_predictor.dart';
 import '../../core/engines/budget_engine.dart';
 import '../../core/engines/self_inspection_engine.dart';
+import '../ai/ai_chat_service.dart';
+import '../ai/ai_context_retriever.dart';
+import '../ai/model_download_service.dart';
+import '../ai/model_manifest.dart';
+import '../ai/offline_ai_runtime.dart';
 import 'database_provider.dart';
 
 // Theme provider
@@ -176,6 +181,53 @@ final componentStatusesWithNamesProvider =
 final settingsProvider = FutureProvider<Map<String, String>>((ref) {
   final db = ref.watch(databaseProvider);
   return db.getAllSettings();
+});
+
+// AI model manifest provider
+final modelManifestProvider = Provider<ModelManifest>((ref) {
+  return ModelManifest.defaultManifest;
+});
+
+// AI model download service provider
+final modelDownloadServiceProvider = Provider<ModelDownloadService>((ref) {
+  final db = ref.watch(databaseProvider);
+  final manifest = ref.watch(modelManifestProvider);
+  final service = ModelDownloadService(db: db, manifest: manifest);
+  ref.onDispose(() => service.dispose());
+  return service;
+});
+
+// AI download state stream provider
+final modelDownloadStateProvider = StreamProvider<ModelDownloadState>((ref) {
+  final service = ref.watch(modelDownloadServiceProvider);
+  return service.stateStream;
+});
+
+// Offline AI runtime provider
+final offlineAiRuntimeProvider = Provider<OfflineAiRuntime>((ref) {
+  final runtime = AndroidOfflineAiRuntime();
+  ref.onDispose(() => runtime.dispose());
+  return runtime;
+});
+
+// AI context retriever provider
+final aiContextRetrieverProvider = Provider<AiContextRetriever>((ref) {
+  final db = ref.watch(databaseProvider);
+  return AiContextRetriever(db: db);
+});
+
+// AI chat service provider
+final aiChatServiceProvider = Provider<AiChatService>((ref) {
+  final db = ref.watch(databaseProvider);
+  final runtime = ref.watch(offlineAiRuntimeProvider);
+  final downloadService = ref.watch(modelDownloadServiceProvider);
+  final contextRetriever = ref.watch(aiContextRetrieverProvider);
+  return AiChatService(
+    db: db,
+    runtime: runtime,
+    downloadService: downloadService,
+    contextRetriever: contextRetriever,
+  );
 });
 
 // AI model status

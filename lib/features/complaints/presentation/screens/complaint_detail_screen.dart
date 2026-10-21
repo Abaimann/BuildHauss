@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../../../../core/database/app_database.dart';
+import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/formatters.dart';
@@ -366,37 +367,25 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
 
   Future<void> _sendMessage() async {
     final text = _chatController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || _complaint == null) return;
 
     _chatController.clear();
-    final db = ref.read(databaseProvider);
+    final chatService = ref.read(aiChatServiceProvider);
 
-    // Add user message
-    await db.insertComplaintMessage(
-      ComplaintMessagesCompanion(
-        complaintId: Value(widget.complaintId),
-        role: const Value('user'),
-        content: Value(text),
-      ),
-    );
-
-    // Add system response (rule-based analysis)
-    final response =
-        'Terima kasih telah menjelaskan. Keluhan "$text" telah dicatat. '
-        'Untuk analisis lebih lanjut, pastikan model AI sudah diunduh di menu Akun > AI Model. '
-        'Sementara itu, jika keluhan menyangkut keselamatan (rem, ban, kebocoran bahan bakar), '
-        'segeralah periksakan ke mekanik profesional.';
-
-    await db.insertComplaintMessage(
-      ComplaintMessagesCompanion(
-        complaintId: Value(widget.complaintId),
-        role: const Value('assistant'),
-        content: Value(response),
-        analysisMode: const Value('rule_based'),
-      ),
-    );
-
-    await _load();
+    try {
+      final tokenStream = chatService.sendMessage(
+        motorcycleId: _complaint!.motorcycleId,
+        complaintId: widget.complaintId,
+        userText: text,
+        onAnalysisComplete: (_) async {
+          await _load();
+        },
+      );
+      await tokenStream.drain();
+      await _load();
+    } catch (_) {
+      await _load();
+    }
   }
 
   Future<void> _handleAction(String action) async {

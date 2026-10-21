@@ -6,6 +6,8 @@
 - **Flutter**: 3.38.5
 - **Dart**: 3.10.4
 - **Android SDK**: 36
+- **Android NDK**: 28.2.13676358
+- **CMake**: 3.22.1
 - **JDK**: Temurin 17
 - **Gradle**: 8.x (bundled with Flutter)
 
@@ -28,7 +30,7 @@ dart run build_runner build --delete-conflicting-outputs
 ```powershell
 flutter test
 ```
-✅ **SUCCESS** - **90/90 passed** (100% pass rate, 0 failed, 0 skipped).
+✅ **SUCCESS** - **113/113 passed** (100% pass rate, 0 failed, 0 skipped).
 
 #### Breakdown of Test Suites:
 - `test/widget_test.dart` (2 tests): Logo branding & tagline smoke tests.
@@ -41,9 +43,14 @@ flutter test
 - `test/engines/mileage_predictor_test.dart` (19 tests): 3-monthly learning phase, predictions, recalibration, duplicate timestamps, low usage, decreasing odometers.
 - `test/engines/health_engine_test.dart` (17 tests): Model-specific rules, component isolation, inspect vs replace actions, safety overrides, ratio thresholds.
 - `test/engines/self_inspection_engine_test.dart` (5 tests): Semantic meaning evaluations, safety critical alerts (brakes, fuel leak, tyres, steering), component mapping.
+- `test/ai/model_manifest_test.dart` (5 tests): Default model parameters, ChatML formatting, valid download URLs, checksum structure validation, illegal candidate rejection.
+- `test/ai/ai_safety_guard_test.dart` (7 tests): Critical safety detection for brakes, fuel leaks, tire damage, and steering wobble; non-overridable directive verification; safe query passing.
+- `test/ai/ai_context_retriever_test.dart` (3 tests): Active motorcycle profile retrieval, component wear ratio aggregation, strict multi-motor data isolation.
+- `test/ai/model_download_service_test.dart` (4 tests): Initial state reporting, streaming chunked SHA-256 integrity verification, corrupted file rejection and cleanup, model deletion from disk and SQLite.
+- `test/ai/ai_chat_service_test.dart` (4 tests): Transparent fallback when model is not downloaded, immediate safety alert trigger on critical symptoms, SQLite message and analysis persistence, multi-turn history loading.
 
 ### 4. Android Debug APK Build
 ```powershell
 flutter build apk --debug
 ```
-✅ **SUCCESS** - Built `build\app\outputs\flutter-apk\app-debug.apk` via Gradle `assembleDebug` in 37.0s.
+✅ **SUCCESS** - Built `build\app\outputs\flutter-apk\app-debug.apk` (165,163,972 bytes) via Gradle `assembleDebug` with Android NDK 28 & `llama_flutter_android` C++ native runtime.

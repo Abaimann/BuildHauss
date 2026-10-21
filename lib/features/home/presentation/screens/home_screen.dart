@@ -180,6 +180,20 @@ class _HomeContent extends ConsumerWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _QuickActionCard(
+                      icon: Icons.smart_toy_outlined,
+                      label: 'Konsultasi AI',
+                      subtitle: 'Analisis keluhan',
+                      color: Colors.purple,
+                      onTap: () => context.push('/ai-chat'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _QuickActionCard(
                       icon: Icons.account_balance_wallet_outlined,
                       label: 'Atur Budget',
                       subtitle: 'Prioritas servis',
@@ -187,19 +201,17 @@ class _HomeContent extends ConsumerWidget {
                       onTap: () => context.go('/budget'),
                     ),
                   ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _QuickActionCard(
+                      icon: Icons.build_outlined,
+                      label: 'Cari Sparepart',
+                      subtitle: 'Katalog resmi',
+                      color: Colors.blue,
+                      onTap: () => context.go('/parts'),
+                    ),
+                  ),
                 ],
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: _QuickActionCard(
-                  icon: Icons.build_outlined,
-                  label: 'Cari Sparepart',
-                  subtitle: 'Lihat katalog dan rekomendasi',
-                  color: Colors.blue,
-                  onTap: () => context.go('/parts'),
-                  horizontal: true,
-                ),
               ),
               const SizedBox(height: 24),
 
@@ -527,7 +539,6 @@ class _QuickActionCard extends StatelessWidget {
   final String subtitle;
   final Color color;
   final VoidCallback onTap;
-  final bool horizontal;
 
   const _QuickActionCard({
     required this.icon,
@@ -535,52 +546,10 @@ class _QuickActionCard extends StatelessWidget {
     required this.subtitle,
     required this.color,
     required this.onTap,
-    this.horizontal = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (horizontal) {
-      return _CardWrapper(
-        onTap: onTap,
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: context.ink,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(fontSize: 11, color: context.muted),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios, size: 14, color: context.muted),
-          ],
-        ),
-      );
-    }
-
     return _CardWrapper(
       onTap: onTap,
       child: Column(

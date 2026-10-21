@@ -52,7 +52,70 @@ class AccountScreen extends ConsumerWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 _ProfileCard(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+                InkWell(
+                  onTap: () => context.push('/ai-model'),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: context.surface2,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.purple.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.purple.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.smart_toy_outlined,
+                            color: Colors.purple,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'AI Offline Qwen3 (378 MB)',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: context.ink,
+                                ),
+                              ),
+                              Text(
+                                'Kelola & unduh model AI untuk asisten offline',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: context.muted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right,
+                          color: Colors.purple,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 _QuickStatsSection(),
                 const SizedBox(height: 24),
                 _SectionTitle('Motor Saya'),
@@ -72,6 +135,10 @@ class AccountScreen extends ConsumerWidget {
                     );
                   },
                 ),
+                const SizedBox(height: 24),
+                _SectionTitle('Tampilan'),
+                const SizedBox(height: 10),
+                _ThemeSection(),
                 const SizedBox(height: 24),
                 _SectionTitle('Data'),
                 const SizedBox(height: 10),
@@ -548,11 +615,144 @@ class _AddMotorTile extends StatelessWidget {
   }
 }
 
+class _ThemeSection extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.surface2,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                themeMode == ThemeMode.dark
+                    ? Icons.dark_mode
+                    : Icons.light_mode,
+                size: 20,
+                color: themeMode == ThemeMode.dark
+                    ? Colors.indigo
+                    : Colors.amber.shade700,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Tema Aplikasi',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: context.ink,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _ThemeChoiceChip(
+                  label: 'Terang',
+                  icon: Icons.light_mode_outlined,
+                  isSelected: themeMode == ThemeMode.light,
+                  onTap: () => ref
+                      .read(themeModeProvider.notifier)
+                      .setTheme(ThemeMode.light),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _ThemeChoiceChip(
+                  label: 'Gelap',
+                  icon: Icons.dark_mode_outlined,
+                  isSelected: themeMode == ThemeMode.dark,
+                  onTap: () => ref
+                      .read(themeModeProvider.notifier)
+                      .setTheme(ThemeMode.dark),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _ThemeChoiceChip(
+                  label: 'Sistem',
+                  icon: Icons.phone_android_outlined,
+                  isSelected: themeMode == ThemeMode.system,
+                  onTap: () => ref
+                      .read(themeModeProvider.notifier)
+                      .setTheme(ThemeMode.system),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThemeChoiceChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ThemeChoiceChip({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? context.ink : context.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? context.ink : context.line),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 18, color: isSelected ? context.bg : context.ink),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? context.bg : context.ink,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _DataManagementSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        _SettingsTile(
+          icon: Icons.smart_toy_outlined,
+          iconColor: Colors.amber.shade700,
+          title: 'Model AI Offline',
+          subtitle: 'Unduh & kelola model Qwen3 0.6B (378 MB)',
+          onTap: () => context.push('/ai-model'),
+        ),
+        const SizedBox(height: 8),
         _SettingsTile(
           icon: Icons.backup_outlined,
           iconColor: Colors.blue,
@@ -716,61 +916,156 @@ class _SettingsSheet extends ConsumerWidget {
             Text('Pengaturan', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 20),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: context.surface2,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: context.line),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.indigo.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      themeMode == ThemeMode.dark
-                          ? Icons.dark_mode
-                          : Icons.light_mode,
-                      color: Colors.indigo,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dark Mode',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                            color: context.ink,
-                          ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.indigo.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        Text(
+                        child: Icon(
                           themeMode == ThemeMode.dark
-                              ? 'Saat ini: Gelap'
-                              : 'Saat ini: Terang',
-                          style: TextStyle(fontSize: 11, color: context.muted),
+                              ? Icons.dark_mode
+                              : Icons.light_mode,
+                          color: Colors.indigo,
+                          size: 20,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Tema Tampilan',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: context.ink,
+                              ),
+                            ),
+                            Text(
+                              themeMode == ThemeMode.dark
+                                  ? 'Mode Gelap aktif'
+                                  : (themeMode == ThemeMode.light
+                                        ? 'Mode Terang aktif'
+                                        : 'Mengikuti tema sistem HP'),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: context.muted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  Switch(
-                    value: themeMode == ThemeMode.dark,
-                    onChanged: (_) {
-                      final newMode = themeMode == ThemeMode.dark
-                          ? ThemeMode.light
-                          : ThemeMode.dark;
-                      ref.read(themeModeProvider.notifier).setTheme(newMode);
-                    },
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ThemeChoiceChip(
+                          label: 'Terang',
+                          icon: Icons.light_mode_outlined,
+                          isSelected: themeMode == ThemeMode.light,
+                          onTap: () => ref
+                              .read(themeModeProvider.notifier)
+                              .setTheme(ThemeMode.light),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _ThemeChoiceChip(
+                          label: 'Gelap',
+                          icon: Icons.dark_mode_outlined,
+                          isSelected: themeMode == ThemeMode.dark,
+                          onTap: () => ref
+                              .read(themeModeProvider.notifier)
+                              .setTheme(ThemeMode.dark),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _ThemeChoiceChip(
+                          label: 'Sistem',
+                          icon: Icons.phone_android_outlined,
+                          isSelected: themeMode == ThemeMode.system,
+                          onTap: () => ref
+                              .read(themeModeProvider.notifier)
+                              .setTheme(ThemeMode.system),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/ai-model');
+              },
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: context.surface2,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: context.line),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade700.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.smart_toy_outlined,
+                        color: Colors.amber.shade700,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Kelola Model AI Offline',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              color: context.ink,
+                            ),
+                          ),
+                          Text(
+                            'Unduh & kelola model Qwen3 0.6B',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: context.muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: context.muted, size: 20),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 20),
