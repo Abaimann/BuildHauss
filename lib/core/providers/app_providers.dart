@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/app_database.dart';
+import '../../core/engines/mileage_predictor.dart';
 import 'database_provider.dart';
 
 // Theme provider
@@ -141,6 +142,33 @@ final activeBudgetPlanProvider = FutureProvider.family<BudgetPlan?, int>((
   final db = ref.watch(databaseProvider);
   return db.getActiveBudgetPlan(motorcycleId);
 });
+
+// Mileage predictor provider
+final mileagePredictorProvider = FutureProvider.family<MileagePredictor, int>((
+  ref,
+  motorcycleId,
+) async {
+  final db = ref.watch(databaseProvider);
+  final logs = await db.getOdometerLogs(motorcycleId);
+  return MileagePredictor(logs);
+});
+
+// Self inspection provider
+final latestSelfInspectionProvider =
+    FutureProvider.family<SelfInspection?, int>((ref, motorcycleId) {
+      final db = ref.watch(databaseProvider);
+      return db.getLatestSelfInspection(motorcycleId);
+    });
+
+// Component statuses with names provider
+final componentStatusesWithNamesProvider =
+    FutureProvider.family<List<ComponentStatusWithName>, int>((
+      ref,
+      motorcycleId,
+    ) {
+      final db = ref.watch(databaseProvider);
+      return db.getComponentStatusesWithNames(motorcycleId);
+    });
 
 // Settings provider
 final settingsProvider = FutureProvider<Map<String, String>>((ref) {

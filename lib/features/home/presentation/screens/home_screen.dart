@@ -5,7 +5,7 @@ import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart'
-    show Motorcycle, OdometerLog, ComponentStatusWithName, MotorcycleModel;
+    show Motorcycle, MotorcycleModel;
 import '../../../../shared/widgets/buildhaus_logo.dart';
 
 // Helper widget to show brand name instead of emoji
@@ -376,22 +376,29 @@ class _BikeCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final db = ref.watch(databaseProvider);
+    final odoAsync = ref.watch(latestOdometerProvider(motorcycle.id));
 
-    return FutureBuilder<OdometerLog?>(
-      future: db.getLatestOdometer(motorcycle.id),
-      builder: (context, snap) {
-        final odo = snap.data;
+    return odoAsync.when(
+      loading: () => Container(
+        height: 140,
+        decoration: BoxDecoration(
+          color: context.surface2,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (odo) {
         final odoText = odo != null
             ? '${odo.odometerKm.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} km'
             : 'Belum ada data';
 
         return Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [const Color(0xFF1a2a1a), const Color(0xFF0f1a0f)],
+              colors: [Color(0xFF1a2a1a), Color(0xFF0f1a0f)],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: BuildHausTheme.ok.withValues(alpha: 0.2)),
@@ -641,13 +648,21 @@ class _HealthSummary extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (activeMotor == null) return const SizedBox.shrink();
 
-    final db = ref.watch(databaseProvider);
+    final statusesAsync = ref.watch(
+      componentStatusesWithNamesProvider(activeMotor!.id),
+    );
 
-    return FutureBuilder<List<ComponentStatusWithName>>(
-      future: db.getComponentStatusesWithNames(activeMotor!.id),
-      builder: (context, snap) {
-        final statuses = snap.data ?? [];
-
+    return statusesAsync.when(
+      loading: () => Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: context.surface2,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (statuses) {
         if (statuses.isEmpty) {
           return Container(
             padding: const EdgeInsets.all(16),

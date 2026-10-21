@@ -145,6 +145,113 @@ void main() {
         isTrue,
       );
     });
+
+    // ============================================================
+    // TAHAP 02: 3-MONTHLY PERIODS & RECALIBRATION TESTS
+    // ============================================================
+
+    test('1. Data belum mencapai tiga periode (learning phase active)', () {
+      // 3 readings on same week / 1 month span
+      final logs = [
+        _createOdometerLog(10000, DateTime(2026, 1, 1)),
+        _createOdometerLog(10050, DateTime(2026, 1, 8)),
+        _createOdometerLog(10100, DateTime(2026, 1, 15)),
+      ];
+      final predictor = MileagePredictor(logs);
+      expect(predictor.validMonthlyPeriodsCount, lessThan(3));
+      expect(predictor.isLearningPhase, isTrue);
+      expect(predictor.hasCompletedThreeMonthlyPeriods, isFalse);
+      expect(predictor.learningStatusMessage, contains('periode bulanan'));
+    });
+
+    test('2. Tepat tiga periode valid (learning phase complete)', () {
+      // Readings spanning across 3 distinct monthly checkpoints (~90 days)
+      final logs = [
+        _createOdometerLog(10000, DateTime(2026, 1, 1)),
+        _createOdometerLog(10300, DateTime(2026, 1, 31)), // +30 days (period 1)
+        _createOdometerLog(10650, DateTime(2026, 3, 2)), // +30 days (period 2)
+        _createOdometerLog(11000, DateTime(2026, 4, 1)), // +30 days (period 3)
+      ];
+      final predictor = MileagePredictor(logs);
+      expect(predictor.validMonthlyPeriodsCount, equals(3));
+      expect(predictor.hasCompletedThreeMonthlyPeriods, isTrue);
+      expect(predictor.isLearningPhase, isFalse);
+      expect(predictor.learningStatusMessage, contains('selesai'));
+      expect(predictor.kmPerDay, isNotNull);
+      expect(predictor.kmPerDay!, greaterThan(0));
+    });
+
+    test('3. Pembacaan pada tanggal dan detik yang sama', () {
+      final now = DateTime(2026, 1, 1, 10, 0, 0);
+      final logs = [
+        _createOdometerLog(10000, now),
+        _createOdometerLog(10020, now), // same second
+        _createOdometerLog(10100, now.add(const Duration(days: 7))),
+      ];
+      final predictor = MileagePredictor(logs);
+      expect(predictor.kmPerDay, isNotNull);
+      expect(predictor.kmPerDay!, closeTo(11.42, 0.5));
+    });
+
+    test('4. Data kilometer menurun (rollback/typo handled gracefully)', () {
+      final logs = [
+        _createOdometerLog(10000, DateTime(2026, 1, 1)),
+        _createOdometerLog(10100, DateTime(2026, 1, 10)),
+        _createOdometerLog(9500, DateTime(2026, 1, 20)), // decreased
+        _createOdometerLog(10200, DateTime(2026, 1, 30)),
+      ];
+      final predictor = MileagePredictor(logs);
+      expect(predictor.kmPerDay, isNotNull);
+      expect(predictor.kmPerDay!, greaterThanOrEqualTo(0));
+    });
+
+    test('5. Koreksi odometer aktual', () {
+      final logs = [
+        _createOdometerLog(10000, DateTime(2026, 1, 1)),
+        _createOdometerLog(10500, DateTime(2026, 2, 1)),
+      ];
+      final predictor = MileagePredictor(logs);
+      expect(predictor.latestActualOdometer, equals(10500.0));
+      expect(predictor.baselineReading?.odometerKm, equals(10000.0));
+    });
+
+    test('6. Motor dengan pemakaian rendah (low usage)', () {
+      // Driven only 20 km over 40 days (~0.5 km/day)
+      final logs = [
+        _createOdometerLog(5000, DateTime(2026, 1, 1)),
+        _createOdometerLog(5020, DateTime(2026, 2, 10)),
+      ];
+      final predictor = MileagePredictor(logs);
+      expect(predictor.kmPerDay, closeTo(0.5, 0.05));
+      expect(predictor.kmPerWeek, closeTo(3.5, 0.5));
+    });
+
+    test(
+      '7. Estimasi setelah pembacaan baru (recalibration with recency weight)',
+      () {
+        final logsInitial = [
+          _createOdometerLog(10000, DateTime(2026, 1, 1)),
+          _createOdometerLog(10070, DateTime(2026, 1, 8)), // 10 km/day
+        ];
+        final p1 = MileagePredictor(logsInitial);
+
+        // User suddenly rides 40 km/day in the latest interval
+        final logsUpdated = [
+          ...logsInitial,
+          _createOdometerLog(
+            10350,
+            DateTime(2026, 1, 15),
+          ), // 280 km in 7 days = 40 km/day
+        ];
+        final p2 = MileagePredictor(logsUpdated);
+
+        expect(p2.kmPerDay!, greaterThan(p1.kmPerDay!));
+        expect(
+          p2.estimateOdometerAt(DateTime(2026, 1, 22)),
+          greaterThan(10350),
+        );
+      },
+    );
   });
 }
 

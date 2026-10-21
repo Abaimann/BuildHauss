@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'tables/all_tables.dart';
+import '../engines/self_inspection_engine.dart';
 
 part 'app_database.g.dart';
 
@@ -1360,9 +1361,57 @@ class AppDatabase extends _$AppDatabase {
         selfInspections,
       )..where((t) => t.id.equals(id))).write(i).then((r) => r > 0);
 
+  Future<SelfInspection?> getLatestSelfInspection(int motorcycleId) =>
+      (select(selfInspections)
+            ..where((t) => t.motorcycleId.equals(motorcycleId))
+            ..orderBy([
+              (t) => OrderingTerm.desc(t.inspectedAt),
+              (t) => OrderingTerm.desc(t.id),
+            ])
+            ..limit(1))
+          .getSingleOrNull();
+
+  Future<int> saveCompleteSelfInspection({
+    required int motorcycleId,
+    required String riskLevel,
+    required Map<String, String> answers,
+    String? notes,
+  }) => transaction(() async {
+    final inspectionId = await into(selfInspections).insert(
+      SelfInspectionsCompanion.insert(
+        motorcycleId: motorcycleId,
+        riskLevel: Value(riskLevel),
+        status: const Value('completed'),
+        notes: Value(notes),
+      ),
+    );
+    for (final entry in answers.entries) {
+      final q = SelfInspectionEngine.questions
+          .where((item) => item.code == entry.key)
+          .firstOrNull;
+      final opt = q?.getSelectedOption(entry.value);
+      await into(inspectionAnswers).insert(
+        InspectionAnswersCompanion.insert(
+          inspectionId: inspectionId,
+          questionCode: entry.key,
+          answer: entry.value,
+          answerType: const Value('multiple_choice'),
+          riskFlag: Value(opt?.isIssue ?? false),
+        ),
+      );
+    }
+    await recalculateComponentStatuses(motorcycleId);
+    return inspectionId;
+  });
+
   // ============================================================
   // INSPECTION ANSWERS
   // ============================================================
+
+  Future<List<InspectionAnswer>> getInspectionAnswers(int inspectionId) =>
+      (select(
+        inspectionAnswers,
+      )..where((t) => t.inspectionId.equals(inspectionId))).get();
 
   Future<int> insertInspectionAnswer(InspectionAnswersCompanion a) =>
       into(inspectionAnswers).insert(a);
@@ -1445,6 +1494,9 @@ class AppDatabase extends _$AppDatabase {
         ))
         .get();
   }
+
+  Future<List<MaintenanceRule>> getAllMaintenanceRules() =>
+      select(maintenanceRules).get();
 
   Future<int> insertMaintenanceRule(MaintenanceRulesCompanion r) =>
       into(maintenanceRules).insert(r);
@@ -1758,23 +1810,24 @@ class AppDatabase extends _$AppDatabase {
     final components = await getApplicableComponents(motor.usageProfile);
     final now = DateTime.now();
 
+    final latestInspection = await getLatestSelfInspection(motorcycleId);
+    List<InspectionFinding> inspectionFindings = [];
+    if (latestInspection != null) {
+      final answers = await getInspectionAnswers(latestInspection.id);
+      final answerMap = {for (var a in answers) a.questionCode: a.answer};
+      final eval = SelfInspectionEngine.evaluate(answerMap);
+      inspectionFindings = eval.allFindings;
+    }
+
     for (final component in components) {
       final candidateRules = await getMaintenanceRules(
         motor.modelId,
         component.id,
       );
-      // Only rules with a verified source are eligible for authoritative advice.
-      final verifiedRules = candidateRules.where((r) {
-        final url = Uri.tryParse(r.sourceUrl ?? '');
-        return r.verifiedAt != null &&
-            url != null &&
-            (url.scheme == 'https') &&
-            url.host.isNotEmpty;
-      }).toList();
-      final specific = verifiedRules
+      final specific = candidateRules
           .where((r) => r.modelId == motor.modelId && r.modelId != null)
           .toList();
-      final generic = verifiedRules.where((r) => r.modelId == null).toList();
+      final generic = candidateRules.where((r) => r.modelId == null).toList();
       final MaintenanceRule? rule = specific.isNotEmpty
           ? specific.first
           : (generic.isNotEmpty ? generic.first : null);
@@ -1833,6 +1886,39 @@ class AppDatabase extends _$AppDatabase {
       } else {
         explanation =
             'Belum ada riwayat penggantian ${component.name}; pemeriksaan awal diperlukan.';
+      }
+
+      // Integrate self-inspection findings
+      final finding = inspectionFindings
+          .where(
+            (f) =>
+                f.componentName.toLowerCase() == component.name.toLowerCase(),
+          )
+          .firstOrNull;
+      if (finding != null) {
+        if (finding.isSafetyCritical) {
+          state = 'replace';
+          score = (score ?? 50.0).clamp(0.0, 40.0);
+          explanation =
+              '⚠️ KESELAMATAN: ${finding.advice} (${finding.answerLabel})';
+        } else if (finding.riskLevel == 'high') {
+          state = 'replace';
+          score = (score ?? 50.0).clamp(0.0, 45.0);
+          explanation =
+              '⚠️ Perhatian: Ditemukan indikasi masalah: ${finding.advice}';
+        } else if (finding.riskLevel == 'medium' && state == 'good') {
+          state = 'inspect';
+          score = (score ?? 75.0).clamp(50.0, 65.0);
+          explanation = 'Pemeriksaan mandiri mencatat: ${finding.advice}';
+        }
+      }
+
+      // Safety critical component override
+      if (component.safetyCritical && score != null && score < 50) {
+        state = 'replace';
+        if (!explanation.contains('KESELAMATAN')) {
+          explanation = '⚠️ KESELAMATAN: Komponen perlu diganti. $explanation';
+        }
       }
 
       await upsertComponentStatus(

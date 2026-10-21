@@ -30,7 +30,7 @@ class HealthScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Pilih motor untuk melihat kesehatan',
+                  'Pilih motor untuk melihat estimasi kesehatan',
                   style: TextStyle(color: context.muted),
                 ),
                 const SizedBox(height: 24),
@@ -113,7 +113,11 @@ class HealthScreen extends ConsumerWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 _HealthScoreCard(motorcycle: activeMotor),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+                _MileagePredictionHealthCard(motorcycle: activeMotor),
+                const SizedBox(height: 16),
+                _SelfInspectionBanner(motorcycle: activeMotor),
+                const SizedBox(height: 16),
                 _AIRecommendationCard(motorcycle: activeMotor),
                 const SizedBox(height: 24),
                 _SectionTitle('Status Komponen'),
@@ -169,12 +173,21 @@ class _HealthScoreCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final db = ref.watch(databaseProvider);
+    final statusesAsync = ref.watch(
+      componentStatusesWithNamesProvider(motorcycle.id),
+    );
 
-    return FutureBuilder<List<ComponentStatusWithName>>(
-      future: db.getComponentStatusesWithNames(motorcycle.id),
-      builder: (context, snap) {
-        final data = snap.data ?? [];
+    return statusesAsync.when(
+      loading: () => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: context.surface2,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (data) {
         final scores = data
             .where((d) => d.status.score != null)
             .map((d) => d.status.score!)
@@ -201,8 +214,8 @@ class _HealthScoreCard extends ConsumerWidget {
             : avgScore >= 50
             ? 'Cukup'
             : avgScore >= 30
-            ? 'Buruk'
-            : 'Sangat Buruk';
+            ? 'Perlu Perhatian'
+            : 'Perlu Penanganan';
 
         return Container(
           decoration: BoxDecoration(
@@ -291,10 +304,11 @@ class _HealthScoreCard extends ConsumerWidget {
                           Text(
                             !hasEvidence
                                 ? 'Status belum dapat dipastikan dari data tersedia'
-                                : 'Estimasi berdasarkan riwayat dan interval, bukan pemeriksaan fisik',
+                                : 'Estimasi berdasarkan riwayat dan interval, bukan pengukuran keausan fisik.',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               color: context.muted,
+                              height: 1.3,
                             ),
                           ),
                         ],
@@ -303,14 +317,294 @@ class _HealthScoreCard extends ConsumerWidget {
                   ],
                 ),
                 if (data.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    '${data.length} komponen dipantau',
-                    style: TextStyle(fontSize: 11, color: context.muted),
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${data.length} komponen dipantau',
+                        style: TextStyle(fontSize: 11, color: context.muted),
+                      ),
+                      Text(
+                        'Profil: ${motorcycle.usageProfile.replaceAll('_', ' ')}',
+                        style: TextStyle(fontSize: 11, color: context.muted),
+                      ),
+                    ],
                   ),
                 ],
               ],
             ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _MileagePredictionHealthCard extends ConsumerWidget {
+  final Motorcycle motorcycle;
+  const _MileagePredictionHealthCard({required this.motorcycle});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final predictorAsync = ref.watch(mileagePredictorProvider(motorcycle.id));
+
+    return predictorAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (predictor) {
+        final isLearning = predictor.isLearningPhase;
+        final periods = predictor.validMonthlyPeriodsCount;
+        final kmWeek = predictor.kmPerWeek;
+        final kmMonth = predictor.kmPerMonth;
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: context.surface2,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: context.line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: isLearning
+                          ? context.soft
+                          : BuildHausTheme.ok.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        isLearning ? '⏳' : '📈',
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isLearning
+                              ? 'Masa Pembelajaran Odometer'
+                              : 'Estimasi Penggunaan Terkalibrasi',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: context.ink,
+                          ),
+                        ),
+                        Text(
+                          isLearning
+                              ? 'Periode $periods/3 bulan terpantau'
+                              : 'Akurasi tinggi dari 3+ periode bulanan',
+                          style: TextStyle(fontSize: 10, color: context.muted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        context.push('/motor/${motorcycle.id}/odometer'),
+                    child: const Text('Update Odo'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              if (isLearning) ...[
+                Text(
+                  predictor.learningStatusMessage,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: context.muted,
+                    height: 1.4,
+                  ),
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: context.soft,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Rata-rata/minggu',
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: context.muted,
+                              ),
+                            ),
+                            Text(
+                              '${kmWeek.toStringAsFixed(0)} km',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: context.ink,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: context.soft,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Rata-rata/bulan',
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: context.muted,
+                              ),
+                            ),
+                            Text(
+                              '${kmMonth.toStringAsFixed(0)} km',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: context.ink,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SelfInspectionBanner extends ConsumerWidget {
+  final Motorcycle motorcycle;
+  const _SelfInspectionBanner({required this.motorcycle});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final inspectionAsync = ref.watch(
+      latestSelfInspectionProvider(motorcycle.id),
+    );
+
+    return inspectionAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (inspection) {
+        final hasInspection = inspection != null;
+        final isHighRisk = inspection?.riskLevel == 'high';
+        final isMediumRisk = inspection?.riskLevel == 'medium';
+
+        final cardColor = isHighRisk
+            ? BuildHausTheme.danger
+            : isMediumRisk
+            ? BuildHausTheme.warn
+            : context.line;
+
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isHighRisk ? BuildHausTheme.dangerBg : context.surface2,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isHighRisk
+                  ? BuildHausTheme.danger.withValues(alpha: 0.5)
+                  : cardColor,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    isHighRisk
+                        ? '🚨'
+                        : isMediumRisk
+                        ? '⚠️'
+                        : '📋',
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isHighRisk
+                              ? 'Peringatan Pemeriksaan Mandiri'
+                              : 'Pemeriksaan Mandiri Motor',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: isHighRisk
+                                ? BuildHausTheme.danger
+                                : context.ink,
+                          ),
+                        ),
+                        Text(
+                          hasInspection
+                              ? 'Terakhir: ${inspection.inspectedAt.toString().substring(0, 10)} (${inspection.riskLevel?.toUpperCase() ?? 'NORMAL'})'
+                              : 'Amati kondisi fisik rem, ban, oli, dan kemudi secara berkala',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: isHighRisk
+                                ? BuildHausTheme.danger
+                                : context.muted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () =>
+                        context.push('/motor/${motorcycle.id}/inspection'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      minimumSize: const Size(0, 36),
+                    ),
+                    child: Text(hasInspection ? 'Uji Ulang' : 'Mulai Cek'),
+                  ),
+                ],
+              ),
+              if (isHighRisk) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '⚠️ Terdapat indikasi masalah penting pada motor Anda. Utamakan keselamatan dan periksakan ke bengkel sebelum digunakan jarak jauh.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: BuildHausTheme.danger,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ],
           ),
         );
       },
@@ -441,13 +735,14 @@ class _ComponentStatusSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final db = ref.watch(databaseProvider);
+    final statusesAsync = ref.watch(
+      componentStatusesWithNamesProvider(motorcycle.id),
+    );
 
-    return FutureBuilder<List<ComponentStatusWithName>>(
-      future: db.getComponentStatusesWithNames(motorcycle.id),
-      builder: (context, snap) {
-        final data = snap.data ?? [];
-
+    return statusesAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Text('Error: $e'),
+      data: (data) {
         if (data.isEmpty) {
           return Container(
             padding: const EdgeInsets.all(20),
@@ -543,7 +838,23 @@ class _ComponentTile extends StatelessWidget {
         : score >= 50
         ? BuildHausTheme.warn
         : BuildHausTheme.danger;
-    final statusLabel = data.status.estimatedStatus;
+
+    String displayLabel;
+    switch (data.status.estimatedStatus) {
+      case 'good':
+        displayLabel = 'NORMAL';
+        break;
+      case 'inspect':
+        displayLabel = 'PERIKSA';
+        break;
+      case 'replace':
+        displayLabel = 'GANTI';
+        break;
+      default:
+        displayLabel = 'BELUM CUKUP DATA';
+    }
+
+    final isSafetyIssue = data.status.explanation.contains('KESELAMATAN');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -552,7 +863,11 @@ class _ComponentTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.surface2,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: context.line),
+          border: Border.all(
+            color: isSafetyIssue
+                ? BuildHausTheme.danger.withValues(alpha: 0.4)
+                : context.line,
+          ),
         ),
         child: Row(
           children: [
@@ -575,19 +890,44 @@ class _ComponentTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    data.componentName,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                      color: context.ink,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        data.componentName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: context.ink,
+                        ),
+                      ),
+                      if (isSafetyIssue) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: BuildHausTheme.dangerBg,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'SAFETY',
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                              color: BuildHausTheme.danger,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   if (data.status.explanation.isNotEmpty)
                     Text(
                       data.status.explanation,
                       style: TextStyle(fontSize: 10, color: context.muted),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                 ],
@@ -615,7 +955,7 @@ class _ComponentTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(99),
                   ),
                   child: Text(
-                    statusLabel,
+                    displayLabel,
                     style: TextStyle(
                       fontSize: 8,
                       fontWeight: FontWeight.bold,
@@ -677,7 +1017,7 @@ class _RemindersSection extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Tidak ada pengingat servis mendatang',
+                    'Tidak ada pengingat servis mendesak',
                     style: TextStyle(color: context.muted, fontSize: 12),
                   ),
                 ),

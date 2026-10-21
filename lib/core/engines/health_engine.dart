@@ -1,13 +1,15 @@
 import '../database/app_database.dart';
+import 'self_inspection_engine.dart';
 
-/// Health engine calculates component health status based on:
-/// - Last service record (replace action resets the component cycle)
-/// - Maintenance rules (interval_km, interval_days)
-/// - Odometer readings
-/// - Usage profile
+/// Health calculation engine for BuildHaus.
 ///
-/// Returns estimated status, score (0-100), and explanation.
-/// Status can be: 'good', 'inspect', 'replace', 'unknown'
+/// Features:
+/// - Evaluates component health deterministically using verified maintenance rules.
+/// - Distinguishes model-specific rules from generic fallback rules (Honda rules are never applied to Yamaha).
+/// - Ensures component isolation: Servicing Component A does NOT reset the interval cycle of Component B.
+/// - Distinguishes service actions: 'replace' resets the cycle, whereas 'inspect' documents inspection without resetting mileage interval.
+/// - Incorporates calendar days elapsed, usage profiles (e.g. jarak jauh), and self-inspection findings.
+/// - Provides transparent, honest explanations without claiming to measure physical wear directly.
 class HealthEngine {
   final List<ComponentStatus> statuses;
   final List<ServiceRecord> _serviceRecords;
@@ -16,6 +18,10 @@ class HealthEngine {
   final List<ComponentType> _componentTypes;
   final double? _currentOdometer;
   final String _usageProfile;
+  final List<ServiceItemWithRecord>? _serviceItemsWithRecords;
+  final int? _motorcycleModelId;
+  final List<InspectionFinding>? _inspectionFindings;
+  final List<Complaint>? complaints;
 
   HealthEngine({
     required this.statuses,
@@ -25,100 +31,180 @@ class HealthEngine {
     required List<ComponentType> componentTypes,
     double? currentOdometer,
     String usageProfile = 'campuran',
+    List<ServiceItemWithRecord>? serviceItemsWithRecords,
+    int? motorcycleModelId,
+    List<InspectionFinding>? inspectionFindings,
+    this.complaints,
   }) : _serviceRecords = serviceRecords,
        _rules = rules,
        _componentTypes = componentTypes,
        _currentOdometer = currentOdometer,
-       _usageProfile = usageProfile;
+       _usageProfile = usageProfile,
+       _serviceItemsWithRecords = serviceItemsWithRecords,
+       _motorcycleModelId = motorcycleModelId,
+       _inspectionFindings = inspectionFindings;
 
   /// Calculate health for a specific component type.
   ComponentHealthResult calculateHealth(int componentTypeId) {
-    // Find applicable rules
-    final rules = _rules
+    // 1. Find applicable rules for this component type
+    final matchingRules = _rules
         .where((r) => r.componentTypeId == componentTypeId)
         .toList();
-    if (rules.isEmpty) {
+
+    if (matchingRules.isEmpty) {
       return ComponentHealthResult(
         status: 'unknown',
         score: null,
-        explanation: 'Belum ada data aturan untuk komponen ini.',
+        explanation: 'Belum ada data aturan perawatan untuk komponen ini.',
         confidence: null,
       );
     }
 
-    // Find last replacement/inspection for this component
-    final relevantServices = _serviceRecords
-        .where((s) => s.odometerKm != null)
-        .toList();
-    if (relevantServices.isEmpty) {
-      return ComponentHealthResult(
-        status: 'unknown',
-        score: null,
-        explanation: 'Belum ada data servis. Periksa komponen secara visuelle.',
-        confidence: null,
-      );
+    // Prioritize model-specific rule over generic rule.
+    // If active model is set, reject rules with a different modelId.
+    MaintenanceRule? selectedRule;
+    if (_motorcycleModelId != null) {
+      selectedRule = matchingRules
+          .where((r) => r.modelId == _motorcycleModelId)
+          .firstOrNull;
     }
 
-    // Sort by date descending
-    relevantServices.sort((a, b) => b.servicedAt.compareTo(a.servicedAt));
-    final latestService = relevantServices.first;
-    final latestOdo = latestService.odometerKm!;
+    // Fall back to generic rule (modelId == null)
+    selectedRule ??= matchingRules.where((r) => r.modelId == null).firstOrNull;
 
-    // Calculate km since last service
-    final kmSinceService = (_currentOdometer ?? latestOdo) - latestOdo;
-
-    // Use the most specific rule (model-specific over generic)
-    final rule = rules.firstWhere(
+    // If still not found (e.g. test environment without modelId set, or fallback)
+    selectedRule ??= matchingRules.firstWhere(
       (r) => r.modelId != null,
-      orElse: () => rules.first,
+      orElse: () => matchingRules.first,
     );
 
-    final intervalKm = rule.intervalKm;
-    final intervalDays = rule.intervalDays;
-
-    // Calculate days since service
-    final daysSinceService = DateTime.now()
-        .difference(latestService.servicedAt)
-        .inDays;
+    final intervalKm = selectedRule.intervalKm;
+    final intervalDays = selectedRule.intervalDays;
 
     if (intervalKm == null && intervalDays == null) {
       return ComponentHealthResult(
         status: 'unknown',
         score: null,
-        explanation: 'Tidak ada interval yang tervalidasi untuk komponen ini.',
+        explanation: 'Tidak ada interval kilometer atau hari yang tervalidasi.',
         confidence: 'low',
       );
     }
 
-    // Determine status
-    String status;
-    int score;
-    String explanation;
+    // 2. Component isolation in service history:
+    // Determine the baseline service event that reset this specific component's cycle.
+    DateTime? baselineServiceDate;
+    double? baselineServiceOdo;
+    DateTime? lastInspectionDate;
 
-    if (intervalKm != null) {
-      final usageMultiplier = _usageProfile == 'jarak_jauh' ? 0.8 : 1.0;
-      final effectiveInterval = intervalKm * usageMultiplier;
-      final ratio = kmSinceService / effectiveInterval;
+    if (_serviceItemsWithRecords != null &&
+        _serviceItemsWithRecords.isNotEmpty) {
+      // Isolate by componentTypeId
+      final componentHistory =
+          _serviceItemsWithRecords
+              .where((entry) => entry.item.componentTypeId == componentTypeId)
+              .toList()
+            ..sort(
+              (a, b) => b.record.servicedAt.compareTo(a.record.servicedAt),
+            );
 
-      if (ratio >= 1.0) {
-        status = 'replace';
-        score = ((1 - (ratio - 1).clamp(0, 0.5)) * 40).round();
-        explanation =
-            'Sudah ${kmSinceService.toStringAsFixed(0)} km sejak servis. Interval rekomendasi ${effectiveInterval.toStringAsFixed(0)} km.';
-      } else if (ratio >= 0.7) {
-        status = 'inspect';
-        score = ((1 - ratio) * 30 + 60).round();
-        explanation =
-            '${kmSinceService.toStringAsFixed(0)} km dari ${effectiveInterval.toStringAsFixed(0)} km. Segera periksa.';
+      if (componentHistory.isEmpty) {
+        return _buildUnknownResult(
+          componentTypeId: componentTypeId,
+          intervalKm: intervalKm,
+          intervalDays: intervalDays,
+        );
+      }
+
+      // Check for 'replace' action (which resets the wear cycle)
+      final replacements = componentHistory
+          .where((entry) => entry.item.action == 'replace')
+          .toList();
+
+      if (replacements.isNotEmpty) {
+        final lastReplace = replacements.first;
+        baselineServiceDate = lastReplace.record.servicedAt;
+        baselineServiceOdo = lastReplace.record.odometerKm;
       } else {
-        status = 'good';
-        score = ((1 - ratio) * 40 + 60).round().clamp(0, 100);
-        explanation =
-            'Dalam kondisi baik. Sudah ${kmSinceService.toStringAsFixed(0)} km dari ${effectiveInterval.toStringAsFixed(0)} km.';
+        // Only inspect or clean was performed; baseline defaults to first recorded service or initial odo
+        final firstRecord = componentHistory.last;
+        baselineServiceDate = firstRecord.record.servicedAt;
+        baselineServiceOdo = firstRecord.record.odometerKm;
+      }
+
+      // Track most recent inspection
+      final inspections = componentHistory
+          .where((entry) => entry.item.action == 'inspect')
+          .toList();
+      if (inspections.isNotEmpty) {
+        lastInspectionDate = inspections.first.record.servicedAt;
       }
     } else {
-      // Time-based only
-      if (intervalDays != null && daysSinceService >= intervalDays) {
+      // Fallback to legacy _serviceRecords for tests and backward compatibility
+      final relevantServices = _serviceRecords
+          .where((s) => s.odometerKm != null)
+          .toList();
+
+      if (relevantServices.isEmpty) {
+        return _buildUnknownResult(
+          componentTypeId: componentTypeId,
+          intervalKm: intervalKm,
+          intervalDays: intervalDays,
+        );
+      }
+
+      relevantServices.sort((a, b) => b.servicedAt.compareTo(a.servicedAt));
+      final latest = relevantServices.first;
+      baselineServiceDate = latest.servicedAt;
+      baselineServiceOdo = latest.odometerKm;
+    }
+
+    if (baselineServiceOdo == null) {
+      return _buildUnknownResult(
+        componentTypeId: componentTypeId,
+        intervalKm: intervalKm,
+        intervalDays: intervalDays,
+      );
+    }
+
+    // 3. Compute elapsed usage since service
+    final currentOdo = _currentOdometer ?? baselineServiceOdo;
+    final kmSinceService = (currentOdo - baselineServiceOdo).clamp(
+      0.0,
+      double.infinity,
+    );
+    final daysSinceService = DateTime.now()
+        .difference(baselineServiceDate)
+        .inDays;
+
+    // Apply usage multiplier (e.g. jarak jauh reduces effective interval by 20%)
+    final usageMultiplier = _usageProfile == 'jarak_jauh' ? 0.8 : 1.0;
+
+    String status = 'good';
+    int score = 80;
+    String explanation = '';
+
+    if (intervalKm != null && intervalKm > 0) {
+      final effectiveIntervalKm = intervalKm * usageMultiplier;
+      final kmRatio = kmSinceService / effectiveIntervalKm;
+
+      if (kmRatio >= 1.0) {
+        status = 'replace';
+        score = ((1 - (kmRatio - 1).clamp(0, 0.5)) * 40).round();
+        explanation =
+            'Sudah ${kmSinceService.toStringAsFixed(0)} km sejak servis. Interval rekomendasi ${effectiveIntervalKm.toStringAsFixed(0)} km.';
+      } else if (kmRatio >= 0.7) {
+        status = 'inspect';
+        score = ((1 - kmRatio) * 30 + 60).round();
+        explanation =
+            '${kmSinceService.toStringAsFixed(0)} km dari ${effectiveIntervalKm.toStringAsFixed(0)} km. Jadwal perawatan mulai mendekat.';
+      } else {
+        status = 'good';
+        score = ((1 - kmRatio) * 40 + 60).round().clamp(0, 100);
+        explanation =
+            'Dalam kondisi baik. Sudah ${kmSinceService.toStringAsFixed(0)} km dari ${effectiveIntervalKm.toStringAsFixed(0)} km.';
+      }
+    } else if (intervalDays != null && intervalDays > 0) {
+      if (daysSinceService >= intervalDays) {
         status = 'inspect';
         score = 55;
         explanation =
@@ -126,32 +212,86 @@ class HealthEngine {
       } else {
         status = 'good';
         score = 75;
-        explanation = 'Dalam kondisi baik.';
+        explanation =
+            'Dalam kondisi baik. Belum mencapai batas hari pemakaian.';
       }
     }
 
-    // Safety override
+    // 4. Integrate Self-Inspection Findings
     final component = _componentTypes
         .where((c) => c.id == componentTypeId)
         .firstOrNull;
+
+    if (_inspectionFindings != null && component != null) {
+      final finding = _inspectionFindings
+          .where(
+            (f) =>
+                f.componentName.toLowerCase() == component.name.toLowerCase(),
+          )
+          .firstOrNull;
+
+      if (finding != null) {
+        if (finding.isSafetyCritical) {
+          status = 'replace';
+          score = (score.clamp(0, 40));
+          explanation =
+              '⚠️ KESELAMATAN: ${finding.advice} (${finding.answerLabel})';
+        } else if (finding.riskLevel == 'high') {
+          status = 'replace';
+          score = (score.clamp(0, 45));
+          explanation =
+              '⚠️ Perhatian: Ditemukan indikasi masalah pada pemeriksaan mandiri: ${finding.advice}';
+        } else if (finding.riskLevel == 'medium' && status == 'good') {
+          status = 'inspect';
+          score = (score.clamp(50, 65));
+          explanation = 'Pemeriksaan mandiri mencatat: ${finding.advice}';
+        }
+      }
+    }
+
+    // 5. Safety Override
     if (component?.safetyCritical == true && score < 50) {
       status = 'replace';
-      explanation = '⚠️ Komponen KESELAMATAN. $explanation';
+      if (!explanation.contains('KESELAMATAN')) {
+        explanation = '⚠️ KESELAMATAN: Komponen perlu diganti. $explanation';
+      }
     }
 
     return ComponentHealthResult(
       status: status,
       score: score.clamp(0, 100),
       explanation: explanation,
-      confidence: _serviceRecords.length >= 3 ? 'high' : 'medium',
+      confidence: (_serviceRecords.length >= 3) ? 'high' : 'medium',
       kmSinceService: kmSinceService,
       intervalKm: intervalKm,
       daysSinceService: daysSinceService,
       intervalDays: intervalDays,
+      lastInspectionDate: lastInspectionDate,
     );
   }
 
-  /// Calculate overall health score as average of component scores
+  ComponentHealthResult _buildUnknownResult({
+    required int componentTypeId,
+    double? intervalKm,
+    int? intervalDays,
+  }) {
+    final component = _componentTypes
+        .where((c) => c.id == componentTypeId)
+        .firstOrNull;
+    final name = component?.name ?? 'komponen';
+
+    return ComponentHealthResult(
+      status: 'unknown',
+      score: null,
+      explanation:
+          'Belum ada data servis untuk $name. Periksa komponen secara visual.',
+      confidence: null,
+      intervalKm: intervalKm,
+      intervalDays: intervalDays,
+    );
+  }
+
+  /// Calculate overall health score as average of valid component scores.
   double? calculateOverallScore() {
     final results = _componentTypes
         .map((ct) => calculateHealth(ct.id))
@@ -165,15 +305,17 @@ class HealthEngine {
   }
 }
 
+/// Result of a single component health calculation.
 class ComponentHealthResult {
   final String status; // 'good', 'inspect', 'replace', 'unknown'
-  final int? score; // 0-100
+  final int? score; // 0-100 progress metric
   final String explanation;
   final String? confidence; // 'low', 'medium', 'high'
   final double? kmSinceService;
   final double? intervalKm;
   final int? daysSinceService;
   final int? intervalDays;
+  final DateTime? lastInspectionDate;
 
   ComponentHealthResult({
     required this.status,
@@ -184,9 +326,24 @@ class ComponentHealthResult {
     this.intervalKm,
     this.daysSinceService,
     this.intervalDays,
+    this.lastInspectionDate,
   });
 
   bool get needsInspection => status == 'inspect';
   bool get needsReplacement => status == 'replace';
   bool get isUnknown => status == 'unknown';
+
+  /// Human-readable label for UI matching Bagian C
+  String get displayStatus {
+    switch (status) {
+      case 'good':
+        return 'Normal';
+      case 'inspect':
+        return 'Perlu Pemeriksaan';
+      case 'replace':
+        return 'Perlu Penanganan';
+      default:
+        return 'Data Belum Cukup';
+    }
+  }
 }

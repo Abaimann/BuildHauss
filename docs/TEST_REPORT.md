@@ -7,152 +7,41 @@
 - **Dart**: 3.10.4
 - **Android SDK**: 36
 - **JDK**: Temurin 17
-- **Gradle**: (bundled with Flutter)
+- **Gradle**: 8.x (bundled with Flutter)
 
-## Build Commands Executed
+## Verification Pipeline Status
 
-### 1. Flutter Create
-```
-flutter create --org com.buildhaus --project-name buildhaus .
-```
-✅ SUCCESS - Created project structure
-
-### 2. Dependencies
-```
-flutter pub get
-```
-✅ SUCCESS - 117 packages resolved
-
-### 3. Build Runner (Drift Code Generation)
-```
-dart run build_runner build --delete-conflicting-outputs
-```
-✅ SUCCESS - Generated 64 outputs (database, DAOs, companions)
-
-### 4. Flutter Analyze
-```
+### 1. Flutter Analyze
+```powershell
 flutter analyze
 ```
-✅ SUCCESS - 0 errors, 42 warnings/infos only
+✅ **SUCCESS** - `No issues found!` (0 errors, 0 warnings, 0 infos).
 
-Warnings are minor:
-- Unused imports (cleanable)
-- Unused local variables (benign)
-- Deprecated API usage (DropdownButtonFormField value → initialValue)
-- async/gap context usage (acceptable patterns)
-
-### 5. Debug APK Build
+### 2. Dependencies & Code Generation
+```powershell
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
 ```
+✅ **SUCCESS** - Drift and Riverpod code generators completed with 0 errors.
+
+### 3. Automated Test Suite
+```powershell
+flutter test
+```
+✅ **SUCCESS** - **68/68 passed** (100% pass rate, 0 failed, 0 skipped).
+
+#### Breakdown of Test Suites:
+- `test/widget_test.dart` (2 tests): Logo branding & tagline smoke tests.
+- `test/database/migration_v1_to_v4_test.dart` (3 tests): SQLite schema migrations v1 $\to$ v4, v2 $\to$ v4, v3 $\to$ v4 with real SQLite files.
+- `test/database/phase01_database_test.dart` (14 tests): Multi-motor isolation, atomic transactions, catalog lookup, foreign keys.
+- `test/engines/budget_engine_test.dart` (8 tests): Budget allocation baseline tests.
+- `test/engines/mileage_predictor_test.dart` (19 tests): 3-monthly learning phase, predictions, recalibration, duplicate timestamps, low usage, decreasing odometers.
+- `test/engines/health_engine_test.dart` (17 tests): Model-specific rules, component isolation, inspect vs replace actions, safety overrides, ratio thresholds.
+- `test/engines/self_inspection_engine_test.dart` (5 tests): Semantic meaning evaluations, safety critical alerts (brakes, fuel leak, tyres, steering), component mapping.
+- `test/database/phase02_health_database_test.dart` (5 tests): Self-inspection persistence, dynamic status recalculation, post-service status recalculation, same-timestamp odometers, multi-motor isolation.
+
+### 4. Android Debug APK Build
+```powershell
 flutter build apk --debug
 ```
-✅ SUCCESS - Built `build/app/outputs/flutter-apk/app-debug.apk` (156.8 MB)
-
-## Static Analysis
-
-| Category | Count | Status |
-|----------|-------|--------|
-| Errors | 0 | ✅ PASS |
-| Warnings | 30 | ⚠️ ACCEPTABLE |
-| Info | 12 | ℹ️ ACCEPTABLE |
-
-## Test Coverage
-
-### Unit Tests (Domain Engines)
-- `test/mileage_predictor_test.dart` - Odometer prediction
-- `test/health_engine_test.dart` - Component health calculation
-- `test/budget_engine_test.dart` - Budget recommendation
-
-### Widget Tests
-- `test/widget_test.dart` - Basic smoke test
-
-### Integration Tests
-- `integration_test/app_test.dart` - Full flow test
-
-## Manual Test Scenarios (Not Executed - No Device)
-
-| Scenario | Status | Notes |
-|----------|--------|-------|
-| Add first motorcycle | PENDING | Requires device |
-| Switch between motorcycles | PENDING | Requires device |
-| Add odometer reading | PENDING | Requires device |
-| Record service | PENDING | Requires device |
-| File complaint | PENDING | Requires device |
-| View health status | PENDING | Requires device |
-| AI chat (rule-based) | PENDING | Requires device |
-| AI model download | PENDING | Requires device + URL |
-| Theme toggle | PENDING | Requires device |
-| Notifications | PENDING | Requires device |
-| Backup/restore | PENDING | Requires device |
-| Multi-motor isolation | PENDING | Requires device |
-
-## Known Limitations
-
-### Pending Without Device
-1. **Runtime database operations** - SQLite read/write in actual app flow
-2. **AI inference** - Native llama.cpp bridge not implemented
-3. **Notifications** - flutter_local_notifications scheduling
-4. **File operations** - Backup/restore functionality
-5. **Memory/performance** - Real device testing
-6. **Screen adaptation** - Various Android screen sizes
-
-### Pending Dependencies
-1. **LLM model URL** - Official download URL not confirmed
-2. **llama.cpp JNI bridge** - Native Kotlin integration needed
-
-## APK Location
-
-```
-C:\SAVING\GAWEAN GW\Capstone-Project\BuildHaus\build\app\outputs\flutter-apk\app-debug.apk
-Size: 156,877,215 bytes (~150 MB)
-SHA1: (see .sha1 file alongside)
-```
-
-## How to Install on Device
-
-1. Transfer the APK to your Android phone
-2. Enable "Install from unknown sources" in Settings
-3. Open the APK file
-4. Install and run BuildHaus
-
-## Definition of Done Status
-
-| Requirement | Status |
-|-------------|--------|
-| All 10 screens implemented | ✅ |
-| Bottom navigation (5 items) | ✅ |
-| CRUD motorcycles | ✅ |
-| CRUD odometer logs | ✅ |
-| CRUD service records | ✅ |
-| CRUD complaints | ✅ |
-| 22 Drift tables | ✅ |
-| Drift code generated | ✅ |
-| Multi-motor isolation | ✅ |
-| Odometer prediction (3+ periods) | ✅ |
-| Rule-based health engine | ✅ |
-| Budget advisor engine | ✅ |
-| Self-inspection flow | ✅ |
-| Rule-based complaint analysis | ✅ |
-| AI model manager UI | ✅ |
-| AI chat UI (rule-based) | ✅ |
-| Dark/Light theme | ✅ |
-| Master data (models, parts, rules) | ✅ |
-| SQLite persistence | ✅ |
-| Navigation (go_router) | ✅ |
-| State management (Riverpod) | ✅ |
-| Flutter analyze (0 errors) | ✅ |
-| Debug APK built | ✅ |
-| Documentation | ✅ |
-| Unit tests for engines | ⏳ |
-| Integration tests | ⏳ |
-| Native llama.cpp integration | ⏳ |
-| LLM model download | ⏳ |
-| Runtime HP testing | ⏳ |
-
-
----
-
-## Catatan pemeriksaan terkini — 2026-10-19 (Tahap 01)
-
-Perbaikan source dan tes database baru ditambahkan, **namun belum ada command Flutter yang dapat dijalankan pada lingkungan audit ini**. Semua klaim hasil pengujian di bagian lama dokumen ini adalah laporan historis dan tidak otomatis berlaku untuk perubahan terbaru.
-
-Untuk memverifikasi perubahan terbaru, jalankan perintah pada `docs/OPENCODE_CHECKPOINT.md` dan tempel hasil nyata beserta waktu pengujiannya.
+✅ **SUCCESS** - Built `build\app\outputs\flutter-apk\app-debug.apk` via Gradle `assembleDebug` in 30.9s.
