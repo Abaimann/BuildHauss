@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/app_database.dart';
 import '../../core/engines/mileage_predictor.dart';
+import '../../core/engines/budget_engine.dart';
+import '../../core/engines/self_inspection_engine.dart';
 import 'database_provider.dart';
 
 // Theme provider
@@ -210,3 +212,74 @@ final sparepartsByCategoryProvider =
       final db = ref.watch(databaseProvider);
       return db.getSparepartsByCategory(category);
     });
+
+// Dynamic Smart Budget Plan Summary provider
+final budgetPlanSummaryProvider = FutureProvider.family<BudgetPlanSummary, int>(
+  (ref, budgetAmount) async {
+    final motor = ref.watch(activeMotorcycleProvider);
+    if (motor == null) {
+      return BudgetPlanSummary(
+        budgetAmount: budgetAmount,
+        totalEstimatedCost: 0,
+        totalFundedCost: 0,
+        remainingBudget: budgetAmount,
+        shortfall: 0,
+        totalItems: 0,
+        fundedItemsCount: 0,
+        deferredItemsCount: 0,
+        safetyAlertCount: 0,
+        recommendations: [],
+      );
+    }
+
+    final db = ref.watch(databaseProvider);
+    final statuses = await ref.watch(
+      componentStatusesWithNamesProvider(motor.id).future,
+    );
+    final latestOdo = await ref.watch(latestOdometerProvider(motor.id).future);
+    final latestInspection = await ref.watch(
+      latestSelfInspectionProvider(motor.id).future,
+    );
+    final complaints = await ref.watch(complaintsProvider(motor.id).future);
+    final serviceRecords = await ref.watch(
+      serviceRecordsProvider(motor.id).future,
+    );
+
+    List<InspectionFinding> findings = [];
+    if (latestInspection != null) {
+      final answers = await db.getInspectionAnswers(latestInspection.id);
+      final answerMap = {for (var a in answers) a.questionCode: a.answer};
+      final eval = SelfInspectionEngine.evaluate(answerMap);
+      findings = eval.allFindings;
+    }
+
+    final rules = await db.getAllMaintenanceRules();
+    final spareparts = await db.getAllSpareparts();
+    final fitments = await db.getAllSparepartFitments();
+
+    final engine = BudgetEngine(
+      componentHealths: [],
+      budgetAmount: budgetAmount,
+      activeMotorcycle: motor,
+      componentStatusesWithNames: statuses,
+      maintenanceRules: rules,
+      currentOdometer: latestOdo?.odometerKm,
+      serviceRecords: serviceRecords,
+      inspectionFindings: findings,
+      complaints: complaints,
+      spareparts: spareparts,
+      fitments: fitments,
+    );
+
+    return engine.calculateSummary();
+  },
+);
+
+// Budget plan history provider
+final budgetPlanHistoryProvider = FutureProvider.family<List<BudgetPlan>, int>((
+  ref,
+  motorcycleId,
+) {
+  final db = ref.watch(databaseProvider);
+  return db.getBudgetPlanHistory(motorcycleId);
+});

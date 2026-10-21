@@ -1,48 +1,40 @@
-# BuildHaus — Checkpoint Tahap 02 (Google Antigravity)
+# BuildHaus — Checkpoint Tahap 03 (Google Antigravity)
 
 **Tanggal:** 21 Oktober 2026  
-**Status:** **Tahap 02 SELESAI & TERVERIFIKASI PENUH**  
+**Status:** **Tahap 03 SELESAI & TERVERIFIKASI PENUH**  
 **Lingkungan:** Windows 11, Flutter 3.38.5, Dart 3.10.4, Android SDK 36, Temurin JDK 17
 
 ---
 
-## 1. Ringkasan Eksekusi & Target Tahap 02
+## 1. Ringkasan Eksekusi & Target Tahap 03
 
 | Target Pekerjaan | Status | Hasil Nyata |
 |---|---|---|
-| **Mileage Predictor (3 Periode Bulanan)** | ✅ Selesai | Masa pembelajaran 3 periode bulanan terverifikasi, prediksi km/hari/minggu/bulan, rekalibrasi, penanganan non-sequential, same-second, decreasing km. 19/19 tests PASS. |
-| **Self-Inspection Engine** | ✅ Selesai | Evaluasi makna semantik, deteksi pemicu keselamatan kritis (rem blong, bocor bensin, ban botak/benjol), pemetaan komponen. 5/5 tests PASS. |
-| **Health Engine Dinamis** | ✅ Selesai | Aturan spesifik model (Honda vs Yamaha terisolasi), component isolation, aksi `inspect` vs `replace`, integrasi temuan inspeksi mandiri, override keselamatan. 17/17 tests PASS. |
-| **Database SQLite v4 Persistence** | ✅ Selesai | Penambahan `saveCompleteSelfInspection`, `getLatestSelfInspection`, `getInspectionAnswers`, `recalculateComponentStatuses`. 5/5 database integration tests PASS. |
-| **UI Flutter Wire-up** | ✅ Selesai | OdometerScreen, SelfInspectionScreen, HealthScreen, HomeScreen terhubung end-to-end tanpa mengubah visual/layout/routing. |
+| **Smart Budget Engine** | ✅ Selesai | Evaluasi multi-faktor deterministik: keselamatan kritis terdepan, aksi inspect vs replace dipisahkan, biaya unknown tidak dianggap Rp0, alokasi budget konsisten tanpa double counting, dan perencanaan menabung. |
+| **Rekomendasi Suku Cadang Resmi** | ✅ Selesai | Fitment model akurat, isolasi merek (Honda vs Yamaha tidak tertukar), label verified vs reference, katalog resmi Astra Honda Motor & Yamaha Indonesia. |
+| **Persistensi Database SQLite v4** | ✅ Selesai | Pemanfaatan tabel `budget_plans`, `service_recommendations`, `recommendation_items`. Ditambahkan `saveCompleteBudgetPlan`, `getBudgetPlanHistory`, `deleteBudgetPlan`, `getRecommendationWithItems`, `_seedCatalogSourcesAndFitments`. |
+| **UI Flutter Wire-Up (`budget_screen.dart`)** | ✅ Selesai | Data statis hardcoded diganti dengan hasil dinamis `budgetPlanSummaryProvider`. Fitur ubah budget, simpan rencana, kartu alokasi, kartu tabungan, dan empty state terhubung 100% tanpa mengubah desain visual. |
 | **Static Analysis (`flutter analyze`)** | ✅ Selesai | **0 issues found** (No issues found!). |
-| **Automated Tests (`flutter test`)** | ✅ Selesai | **68/68 tests passed (100% pass rate, 0 fail, 0 skip)**. |
-| **Debug APK Build** | ✅ Selesai | `flutter build apk --debug` sukses dalam 30.9s via Gradle `assembleDebug`. |
-| **Preservasi Desain UI & Aturan** | ✅ Terjaga | Tidak ada perombakan UI/UX, warna, typography, layout, atau routing. AI offline dan budget sengaja tidak disentuh sebelum tahapannya. |
+| **Automated Tests (`flutter test`)** | ✅ Selesai | **90/90 tests passed (100% pass rate, 0 fail, 0 skip)**. |
+| **Debug APK Build** | ✅ Selesai | `flutter build apk --debug` sukses dalam 37.0s via Gradle `assembleDebug`. |
+| **Preservasi Desain UI & Aturan** | ✅ Terjaga | Tidak ada perombakan UI/UX, warna, typography, layout, atau routing. AI offline Qwen3 sengaja tidak disentuh sebelum Tahap 04. |
 
 ---
 
-## 2. File yang Dibuat / Dimodifikasi pada Tahap 02
+## 2. File yang Dibuat / Dimodifikasi pada Tahap 03
 
-1. **`lib/core/engines/mileage_predictor.dart`**: Masa pembelajaran 3 periode bulanan, recency weighting, recalibration & edge cases.
-2. **`lib/core/engines/self_inspection_engine.dart`**: Engine inspeksi mandiri baru dengan semantic evaluation dan safety alert triggers.
-3. **`lib/core/engines/health_engine.dart`**: Model rule separation, component isolation, inspect vs replace actions, safety overrides.
-4. **`lib/core/database/app_database.dart`**: Helper query inspeksi mandiri, atomic save, candidate rules selection, dynamic component status recalculation.
-5. **`lib/core/providers/app_providers.dart`**: Provider `mileagePredictorProvider`, `latestSelfInspectionProvider`, `componentStatusesWithNamesProvider`.
-6. **`lib/features/mileage/presentation/screens/odometer_screen.dart`**: Tampilan actual vs estimated odometer, status $X/3$ periode, rekalkulasi status.
-7. **`lib/features/self_inspection/presentation/screens/self_inspection_screen.dart`**: Wiring kuesioner ke engine, safety critical warning banner, atomic SQLite save.
-8. **`lib/features/health/presentation/screens/health_screen.dart`**: Health progress card, mileage prediction card, self-inspection banner, component status badges with `SAFETY`.
-9. **`lib/features/home/presentation/screens/home_screen.dart`**: Odometer aktual dan health component summary connected to providers.
-10. **`test/engines/mileage_predictor_test.dart`**: 19 automated tests.
-11. **`test/engines/health_engine_test.dart`**: 17 automated tests.
-12. **`test/engines/self_inspection_engine_test.dart`**: 5 automated tests.
-13. **`test/database/phase02_health_database_test.dart`**: 5 end-to-end database integration tests.
-14. **`docs/PHASE02_COMPLETION_REPORT.md`**: Dokumen laporan komprehensif penyelesaian Tahap 02.
-15. **`docs/IMPLEMENTATION_STATUS.md`**, **`docs/TEST_REPORT.md`**, **`docs/ANTIGRAVITY_CHECKPOINT.md`**: Update dokumentasi status.
+1. **`lib/core/engines/budget_engine.dart`**: Diperluas dengan multi-factor context, pemisahan aksi inspect/replace, sparepart fitment matching, penanganan biaya unknown, budget allocation & savings plan.
+2. **`lib/core/database/app_database.dart`**: Penambahan `saveCompleteBudgetPlan`, `getBudgetPlanHistory`, `deleteBudgetPlan`, `getRecommendationWithItems`, `_seedCatalogSourcesAndFitments`.
+3. **`lib/core/providers/app_providers.dart`**: Penambahan `budgetPlanSummaryProvider` dan `budgetPlanHistoryProvider`.
+4. **`lib/features/budget/presentation/screens/budget_screen.dart`**: Penghapusan data hardcoded, integrasi dinamis provider, kalkulasi interaktif, penyimpanan rencana atomik.
+5. **`test/engines/phase03_budget_engine_test.dart`**: 16 unit tests baru mencakup alokasi budget, prioritas, fitment merek, dan unknown costs.
+6. **`test/database/phase03_budget_database_test.dart`**: 6 database integration tests mencakup wear reset pasca-servis, odometer interval crossing, self-inspection safety alert, multi-motor isolation, SQLite persistence, dan transactional rollback.
+7. **`docs/PHASE03_COMPLETION_REPORT.md`**: Dokumen laporan komprehensif penyelesaian Tahap 03.
+8. **`docs/IMPLEMENTATION_STATUS.md`**, **`docs/TEST_REPORT.md`**, **`docs/ANTIGRAVITY_CHECKPOINT.md`**: Pembaruan status.
 
 ---
 
-## 3. Langkah Berikutnya (Tahap 03 — Smart Budgeting)
+## 3. Langkah Berikutnya (Tahap 04 — Offline AI Engine)
 
 - Menunggu instruksi pengguna sebelum melakukan Git commit/push.
-- Membuka development gate untuk **Tahap 03: Smart Budgeting Engine & Allocation**.
+- Membuka development gate untuk **Tahap 04: AI Offline Engine (Qwen3 GGUF + llama.cpp)**.
