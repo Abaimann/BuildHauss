@@ -168,12 +168,7 @@ class AiChatService {
 
         if (recentPast.isNotEmpty) {
           for (final m in recentPast) {
-            messages.add(
-              RuntimeChatMessage(
-                role: m.role,
-                content: m.content,
-              ),
-            );
+            messages.add(RuntimeChatMessage(role: m.role, content: m.content));
           }
         } else {
           messages.add(RuntimeChatMessage(role: 'user', content: userText));

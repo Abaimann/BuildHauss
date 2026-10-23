@@ -1,6 +1,6 @@
-# BuildHaus — Implementation Status (21 October 2026)
+# BuildHaus — Implementation Status (23 October 2026)
 
-## Status: Tahap 04 Selesai & Terverifikasi (Real Offline AI Engine)
+## Status: Tahap 05 Selesai & Terverifikasi (Local Notifications, Offline Backup & Restore, Settings & UI Finalization)
 
 Hasil pengujian otomatis dan build APK pada lingkungan lokal Windows (Flutter 3.38.5 / Dart 3.10.4):
 
@@ -25,9 +25,13 @@ Hasil pengujian otomatis dan build APK pada lingkungan lokal Windows (Flutter 3.
 | **Context Retrieval Lokal** | Ekstraksi context motor aktif, odometer, status komponen, riwayat servis, isolasi multi-motor, deteksi keluhan berulang. | ✅ Terverifikasi 3 unit test (`ai_context_retriever_test.dart`) |
 | **AI Assistant & Chat** | Alur interaksi user → LLM/fallback, streaming respons, persistensi pesan dan analisis ke SQLite, fallback transparan. | ✅ Terverifikasi 4 unit test (`ai_chat_service_test.dart`) |
 | **Native llama.cpp Runtime** | Kompilasi native C++ dengan Android NDK 28 & CMake 3.22.1, ARM64 NEON, Vulkan acceleration support, 16KB page size compliance. | ✅ Terverifikasi Android NDK build & assembleDebug |
-| **Pengujian Flutter** | 113 unit/widget/migration/database tests berjalan. | ✅ **Lulus 113/113 (flutter test)** |
+| **Local Notifications** | `NotificationService` Android 13+ runtime permissions, inexact battery-friendly scheduling, notification channels. | ✅ Terverifikasi unit test & service initialization |
+| **Reminder Engine** | Penjadwalan deterministik berbasis `HealthEngine` dan `MileagePredictor`, odometer staleness check, keluhan $>3$ hari, idempotency sinkronisasi. | ✅ Terverifikasi 6 unit test (`reminder_engine_test.dart`) |
+| **Offline Backup & Restore** | Format file `.bhb`, verifikasi checksum SHA-256, enkripsi terotentikasi PBKDF2 HMAC-SHA256 (10.000 iterasi) + HMAC tag, restorasi atomik transaksi SQLite. | ✅ Terverifikasi 7 unit test (`backup_restore_service_test.dart`) |
+| **Settings & UI Finalization** | Tema dinamis (Terang, Gelap, Sistem) persisten di SQLite, kontrol notifikasi, statistik database, penghapusan data pengguna aman. | ✅ Terverifikasi 3 unit test (`settings_test.dart`) |
+| **Pengujian Flutter** | 129 unit/widget/migration/database tests berjalan. | ✅ **Lulus 129/129 (flutter test)** |
 | **Statis Analyzer** | Codebase bersih tanpa error dan tanpa warning. | ✅ **0 issues found (flutter analyze)** |
-| **Build Debug APK** | `flutter build apk --debug` menghasilkan `app-debug.apk` dengan runtime native terpasang. | ✅ **Sukses dikompilasi (assembleDebug)** |
+| **Build Debug APK** | `flutter build apk --debug` menghasilkan `app-debug.apk` dengan runtime native dan notifikasi lokal. | ✅ **Sukses dikompilasi (assembleDebug)** |
 
 ---
 

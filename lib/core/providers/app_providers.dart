@@ -9,6 +9,9 @@ import '../ai/ai_context_retriever.dart';
 import '../ai/model_download_service.dart';
 import '../ai/model_manifest.dart';
 import '../ai/offline_ai_runtime.dart';
+import '../backup/backup_restore_service.dart';
+import '../engines/reminder_engine.dart';
+import '../notifications/notification_service.dart';
 import 'database_provider.dart';
 
 // Theme provider
@@ -334,4 +337,39 @@ final budgetPlanHistoryProvider = FutureProvider.family<List<BudgetPlan>, int>((
 ) {
   final db = ref.watch(databaseProvider);
   return db.getBudgetPlanHistory(motorcycleId);
+});
+
+// Notification service provider
+final notificationServiceProvider = Provider<NotificationService>((ref) {
+  final service = NotificationService();
+  service.initialize();
+  return service;
+});
+
+// Reminder engine provider
+final reminderEngineProvider = Provider<ReminderEngine>((ref) {
+  final db = ref.watch(databaseProvider);
+  final notif = ref.watch(notificationServiceProvider);
+  return ReminderEngine(db: db, notificationService: notif);
+});
+
+// Reminders for a motorcycle provider
+final remindersProvider = FutureProvider.family<List<LocalReminder>, int>((
+  ref,
+  motorcycleId,
+) {
+  final db = ref.watch(databaseProvider);
+  return db.getReminders(motorcycleId);
+});
+
+// Backup restore service provider
+final backupRestoreServiceProvider = Provider<BackupRestoreService>((ref) {
+  final db = ref.watch(databaseProvider);
+  return BackupRestoreService(db: db);
+});
+
+// Database stats provider
+final databaseStatsProvider = FutureProvider<Map<String, int>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.getDatabaseStats();
 });

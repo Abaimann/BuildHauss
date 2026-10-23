@@ -1862,6 +1862,61 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteReminder(int id) =>
       (delete(localReminders)..where((t) => t.id.equals(id))).go();
 
+  Future<List<LocalReminder>> getAllReminders() => select(localReminders).get();
+
+  Future<LocalReminder?> getReminderById(int id) =>
+      (select(localReminders)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<bool> setReminderEnabled(int id, bool enabled) =>
+      (update(localReminders)..where((t) => t.id.equals(id)))
+          .write(LocalRemindersCompanion(enabled: Value(enabled)))
+          .then((r) => r > 0);
+
+  /// Returns aggregated database statistics for settings and backup previews.
+  Future<Map<String, int>> getDatabaseStats() async {
+    final motors = await select(motorcycles).get();
+    final odos = await select(odometerLogs).get();
+    final services = await select(serviceRecords).get();
+    final complaintsCount = await select(complaints).get();
+    final inspectionsCount = await select(selfInspections).get();
+    final budgetCount = await select(budgetPlans).get();
+    final remindersCount = await select(localReminders).get();
+
+    return {
+      'motorcycles': motors.length,
+      'odometer_logs': odos.length,
+      'service_records': services.length,
+      'complaints': complaintsCount.length,
+      'self_inspections': inspectionsCount.length,
+      'budget_plans': budgetCount.length,
+      'local_reminders': remindersCount.length,
+    };
+  }
+
+  /// Wipes all user-generated data safely while preserving master catalog reference tables.
+  Future<void> clearAllUserData() async {
+    await transaction(() async {
+      await delete(recommendationItems).go();
+      await delete(serviceRecommendations).go();
+      await delete(budgetPlans).go();
+      await delete(complaintAnalyses).go();
+      await delete(complaintMessages).go();
+      await delete(complaints).go();
+      await delete(inspectionAnswers).go();
+      await delete(selfInspections).go();
+      await delete(serviceItems).go();
+      await delete(serviceRecords).go();
+      await delete(componentStatuses).go();
+      await delete(odometerLogs).go();
+      await delete(localReminders).go();
+      await delete(motorcycles).go();
+      await (delete(appSettings)..where(
+            (t) => t.key.isIn(['active_motorcycle_id', 'backup_last_at']),
+          ))
+          .go();
+    });
+  }
+
   // ============================================================
   // AI MODEL INSTALLS
   // ============================================================

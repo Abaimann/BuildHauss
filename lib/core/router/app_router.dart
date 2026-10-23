@@ -17,6 +17,11 @@ import '../../features/ai_assistant/presentation/screens/ai_assistant_screen.dar
 import '../../features/ai_assistant/presentation/screens/ai_model_manager_screen.dart';
 import '../../features/mileage/presentation/screens/odometer_screen.dart';
 import '../../features/mileage/presentation/screens/odometer_history_screen.dart';
+import '../../features/reminders/presentation/screens/reminders_screen.dart';
+import '../../features/settings/presentation/screens/backup_screen.dart';
+import '../../features/settings/presentation/screens/restore_screen.dart';
+import '../../features/settings/presentation/screens/licenses_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/coming_soon_screen.dart';
 import '../../shared/widgets/app_shell.dart';
 
@@ -111,25 +116,18 @@ final appRouter = GoRouter(
       ),
     ),
 
-    // Placeholder routes (feature not yet implemented)
+    // Reminders
+    GoRoute(path: '/reminders', builder: (_, __) => const RemindersScreen()),
     GoRoute(
-      path: '/motor/:id/reminder/add',
-      builder: (_, state) => ComingSoonScreen(
-        title: 'Tambah Pengingat',
-        description:
-            'Fitur pengingat servis berdasarkan jarak tempuh atau tanggal. Akan hadir di versi berikutnya.',
-        icon: Icons.notifications_outlined,
-        backRoute: '/home',
+      path: '/motor/:id/reminders',
+      builder: (_, state) => RemindersScreen(
+        motorcycleId: int.tryParse(state.pathParameters['id'] ?? ''),
       ),
     ),
     GoRoute(
-      path: '/motor/:id/reminders',
-      builder: (_, state) => ComingSoonScreen(
-        title: 'Daftar Pengingat',
-        description:
-            'Pengingat servis yang sudah dibuat. Akan hadir di versi berikutnya.',
-        icon: Icons.notifications_active_outlined,
-        backRoute: '/home',
+      path: '/motor/:id/reminder/add',
+      builder: (_, state) => RemindersScreen(
+        motorcycleId: int.tryParse(state.pathParameters['id'] ?? ''),
       ),
     ),
     GoRoute(
@@ -144,12 +142,9 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/motor/:id/oil/add',
-      builder: (_, state) => ComingSoonScreen(
-        title: 'Catat Ganti Oli',
-        description:
-            'Catat penggantian oli mesin dengan cepat. Akan hadir di versi berikutnya.',
-        icon: Icons.opacity_outlined,
-        backRoute: '/home',
+      builder: (_, state) => AddServiceScreen(
+        motorcycleId: int.tryParse(state.pathParameters['id'] ?? ''),
+        isOilChange: true,
       ),
     ),
 
@@ -167,36 +162,11 @@ final appRouter = GoRouter(
     // Budget route
     GoRoute(path: '/budget', builder: (_, __) => const BudgetScreen()),
 
-    // Placeholder: backup, restore, licenses
-    GoRoute(
-      path: '/backup',
-      builder: (_, __) => const ComingSoonScreen(
-        title: 'Backup Data',
-        description:
-            'Backup semua data motor ke file lokal. Fitur ini akan segera hadir.',
-        icon: Icons.cloud_upload_outlined,
-        backRoute: '/account',
-      ),
-    ),
-    GoRoute(
-      path: '/restore',
-      builder: (_, __) => const ComingSoonScreen(
-        title: 'Pulihkan Data',
-        description:
-            'Pulihkan data dari file backup. Fitur ini akan segera hadir.',
-        icon: Icons.cloud_download_outlined,
-        backRoute: '/account',
-      ),
-    ),
-    GoRoute(
-      path: '/licenses',
-      builder: (_, __) => Scaffold(
-        appBar: AppBar(title: const Text('Lisensi')),
-        body: const Center(
-          child: Text('Lisensi pihak ketiga akan ditampilkan di sini.'),
-        ),
-      ),
-    ),
+    // Settings, Backup, Restore, Licenses
+    GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
+    GoRoute(path: '/backup', builder: (_, __) => const BackupScreen()),
+    GoRoute(path: '/restore', builder: (_, __) => const RestoreScreen()),
+    GoRoute(path: '/licenses', builder: (_, __) => const LicensesScreen()),
 
     // Complaints
     GoRoute(path: '/complaints', builder: (_, __) => const ComplaintsScreen()),

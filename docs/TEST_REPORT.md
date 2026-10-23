@@ -30,7 +30,7 @@ dart run build_runner build --delete-conflicting-outputs
 ```powershell
 flutter test
 ```
-✅ **SUCCESS** - **113/113 passed** (100% pass rate, 0 failed, 0 skipped).
+✅ **SUCCESS** - **129/129 passed** (100% pass rate, 0 failed, 0 skipped).
 
 #### Breakdown of Test Suites:
 - `test/widget_test.dart` (2 tests): Logo branding & tagline smoke tests.
@@ -48,9 +48,12 @@ flutter test
 - `test/ai/ai_context_retriever_test.dart` (3 tests): Active motorcycle profile retrieval, component wear ratio aggregation, strict multi-motor data isolation.
 - `test/ai/model_download_service_test.dart` (4 tests): Initial state reporting, streaming chunked SHA-256 integrity verification, corrupted file rejection and cleanup, model deletion from disk and SQLite.
 - `test/ai/ai_chat_service_test.dart` (4 tests): Transparent fallback when model is not downloaded, immediate safety alert trigger on critical symptoms, SQLite message and analysis persistence, multi-turn history loading.
+- `test/notifications/reminder_engine_test.dart` (6 tests): Odometer staleness detection, recent log non-trigger, overdue service interval triggering, unresolved complaint follow-up, SQLite sync idempotency, multi-motor isolation.
+- `test/backup/backup_restore_service_test.dart` (7 tests): Valid unencrypted `.bhb` generation with SHA-256 checksum, PBKDF2 HMAC-SHA256 encrypted backup, non-destructive preview inspection, atomic full-schema restore preserving foreign keys, encrypted backup decryption, wrong passphrase rejection, corrupted/tampered payload rejection.
+- `test/settings/settings_test.dart` (3 tests): SQLite settings get/set, database statistics calculation across tables, clear all user data wiping user tables while keeping reference catalogs intact.
 
 ### 4. Android Debug APK Build
 ```powershell
 flutter build apk --debug
 ```
-✅ **SUCCESS** - Built `build\app\outputs\flutter-apk\app-debug.apk` (165,163,972 bytes) via Gradle `assembleDebug` with Android NDK 28 & `llama_flutter_android` C++ native runtime.
+✅ **SUCCESS** - Built `build\app\outputs\flutter-apk\app-debug.apk` via Gradle `assembleDebug` with Android NDK 28, `llama_flutter_android` C++ native runtime, and Android local notification services.

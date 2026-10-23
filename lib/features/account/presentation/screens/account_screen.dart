@@ -22,6 +22,15 @@ class AccountScreen extends ConsumerWidget {
             pinned: true,
             backgroundColor: context.bg,
             surfaceTintColor: Colors.transparent,
+            title: const Text('Akun'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                tooltip: 'Pengaturan',
+                onPressed: () => context.push('/settings'),
+              ),
+              const SizedBox(width: 8),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
@@ -32,19 +41,13 @@ class AccountScreen extends ConsumerWidget {
                   ),
                 ),
                 padding: const EdgeInsets.fromLTRB(16, 60, 16, 0),
-                child: Row(
+                child: const Row(
                   children: [
-                    const BuildHausLogo(size: 44),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.settings_outlined),
-                      onPressed: () => _showSettingsBottomSheet(context, ref),
-                    ),
+                    BuildHausLogo(size: 44),
                   ],
                 ),
               ),
             ),
-            title: const Text('Akun'),
           ),
 
           SliverPadding(
@@ -153,13 +156,6 @@ class AccountScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-
-  void _showSettingsBottomSheet(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => _SettingsSheet(parentRef: ref),
     );
   }
 }
@@ -302,11 +298,15 @@ class _QuickStatsSection extends ConsumerWidget {
         Expanded(
           child: FutureBuilder<int>(
             future: db.getUpcomingRemindersCount(),
-            builder: (ctx, snap) => _StatCard(
-              icon: Icons.schedule,
-              value: '${snap.data ?? 0}',
-              label: 'Reminders',
-              color: BuildHausTheme.danger,
+            builder: (ctx, snap) => InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => context.push('/reminders'),
+              child: _StatCard(
+                icon: Icons.schedule,
+                value: '${snap.data ?? 0}',
+                label: 'Reminders',
+                color: BuildHausTheme.danger,
+              ),
             ),
           ),
         ),
@@ -746,6 +746,14 @@ class _DataManagementSection extends StatelessWidget {
     return Column(
       children: [
         _SettingsTile(
+          icon: Icons.notifications_active_outlined,
+          iconColor: Colors.orange.shade700,
+          title: 'Pengingat Perawatan',
+          subtitle: 'Jadwal servis berkala & pengingat odometer',
+          onTap: () => context.push('/reminders'),
+        ),
+        const SizedBox(height: 8),
+        _SettingsTile(
           icon: Icons.smart_toy_outlined,
           iconColor: Colors.amber.shade700,
           title: 'Model AI Offline',
@@ -757,7 +765,7 @@ class _DataManagementSection extends StatelessWidget {
           icon: Icons.backup_outlined,
           iconColor: Colors.blue,
           title: 'Backup Data',
-          subtitle: 'Simpan semua data ke file',
+          subtitle: 'Simpan semua data ke file .bhb',
           onTap: () => context.push('/backup'),
         ),
         const SizedBox(height: 8),
@@ -765,8 +773,16 @@ class _DataManagementSection extends StatelessWidget {
           icon: Icons.restore_outlined,
           iconColor: Colors.purple,
           title: 'Restore Data',
-          subtitle: 'Pulihkan data dari file backup',
+          subtitle: 'Pulihkan data dari file backup .bhb',
           onTap: () => context.push('/restore'),
+        ),
+        const SizedBox(height: 8),
+        _SettingsTile(
+          icon: Icons.settings_outlined,
+          iconColor: Colors.teal,
+          title: 'Pengaturan Aplikasi',
+          subtitle: 'Notifikasi, preferensi tema, dan data',
+          onTap: () => context.push('/settings'),
         ),
       ],
     );
@@ -839,8 +855,9 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
@@ -880,195 +897,6 @@ class _SettingsTile extends StatelessWidget {
               ),
             ),
             Icon(Icons.arrow_forward_ios, size: 14, color: context.muted),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SettingsSheet extends ConsumerWidget {
-  final WidgetRef parentRef;
-  const _SettingsSheet({required this.parentRef});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: context.line,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text('Pengaturan', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: context.surface2,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: context.line),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.indigo.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          themeMode == ThemeMode.dark
-                              ? Icons.dark_mode
-                              : Icons.light_mode,
-                          color: Colors.indigo,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Tema Tampilan',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                                color: context.ink,
-                              ),
-                            ),
-                            Text(
-                              themeMode == ThemeMode.dark
-                                  ? 'Mode Gelap aktif'
-                                  : (themeMode == ThemeMode.light
-                                        ? 'Mode Terang aktif'
-                                        : 'Mengikuti tema sistem HP'),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: context.muted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _ThemeChoiceChip(
-                          label: 'Terang',
-                          icon: Icons.light_mode_outlined,
-                          isSelected: themeMode == ThemeMode.light,
-                          onTap: () => ref
-                              .read(themeModeProvider.notifier)
-                              .setTheme(ThemeMode.light),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _ThemeChoiceChip(
-                          label: 'Gelap',
-                          icon: Icons.dark_mode_outlined,
-                          isSelected: themeMode == ThemeMode.dark,
-                          onTap: () => ref
-                              .read(themeModeProvider.notifier)
-                              .setTheme(ThemeMode.dark),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _ThemeChoiceChip(
-                          label: 'Sistem',
-                          icon: Icons.phone_android_outlined,
-                          isSelected: themeMode == ThemeMode.system,
-                          onTap: () => ref
-                              .read(themeModeProvider.notifier)
-                              .setTheme(ThemeMode.system),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/ai-model');
-              },
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: context.surface2,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: context.line),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade700.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.smart_toy_outlined,
-                        color: Colors.amber.shade700,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Kelola Model AI Offline',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                              color: context.ink,
-                            ),
-                          ),
-                          Text(
-                            'Unduh & kelola model Qwen3 0.6B',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: context.muted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.chevron_right, color: context.muted, size: 20),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
           ],
         ),
       ),

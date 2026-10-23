@@ -10,7 +10,12 @@ import '../../../../core/utils/formatters.dart';
 
 class AddServiceScreen extends ConsumerStatefulWidget {
   final int? motorcycleId;
-  const AddServiceScreen({super.key, this.motorcycleId});
+  final bool isOilChange;
+  const AddServiceScreen({
+    super.key,
+    this.motorcycleId,
+    this.isOilChange = false,
+  });
 
   @override
   ConsumerState<AddServiceScreen> createState() => _AddServiceScreenState();
@@ -36,7 +41,26 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   Future<void> _loadComponentTypes() async {
     final db = ref.read(databaseProvider);
     final types = await db.getAllComponentTypes();
-    if (mounted) setState(() => _componentTypes = types);
+    if (mounted) {
+      setState(() {
+        _componentTypes = types;
+        if (widget.isOilChange && _items.isEmpty && types.isNotEmpty) {
+          final oilComp = types.firstWhere(
+            (c) => c.name.toLowerCase().contains('oli'),
+            orElse: () => types.first,
+          );
+          _items.add(
+            _ServiceItemEntry(
+              action: 'replace',
+              componentTypeId: oilComp.id,
+              componentName: oilComp.name,
+              partsCost: 0,
+              laborCost: 0,
+            ),
+          );
+        }
+      });
+    }
   }
 
   @override
