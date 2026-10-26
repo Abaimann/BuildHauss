@@ -118,79 +118,102 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Budget card display
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0e0e0e),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'ANGGARAN TERSEDIA',
-                              style: TextStyle(
-                                color: context.muted,
-                                fontSize: 10,
+              // Budget card display (Tappable to edit budget)
+              GestureDetector(
+                onTap: _showEditBudget,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0e0e0e),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white12),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'ANGGARAN TERSEDIA (KETUK UNTUK UBAH)',
+                                style: TextStyle(
+                                  color: context.muted,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              Formatters.currency(_budgetAmount),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                              const SizedBox(height: 2),
+                              Text(
+                                Formatters.currency(_budgetAmount),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
                             ),
-                          ],
-                        ),
-                        Text(
-                          'BuildHaus',
-                          style: TextStyle(color: context.muted, fontSize: 11),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Divider(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      height: 1,
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Alokasi terpakai: ${Formatters.currency(summary.totalFundedCost)}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 11,
+                            decoration: BoxDecoration(
+                              color: Colors.white10,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.edit_outlined, size: 12, color: Colors.white70),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Ubah',
+                                  style: TextStyle(color: Colors.white70, fontSize: 10),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        Text(
-                          summary.shortfall > 0
-                              ? 'Kekurangan: ${Formatters.currency(summary.shortfall)}'
-                              : 'Sisa: ${Formatters.currency(summary.remainingBudget)}',
-                          style: TextStyle(
-                            color: summary.shortfall > 0
-                                ? context.statusWarn
-                                : context.statusOk,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Divider(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        height: 1,
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Alokasi terpakai: ${Formatters.currency(summary.totalFundedCost)}',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          Text(
+                            summary.shortfall > 0
+                                ? 'Kekurangan: ${Formatters.currency(summary.shortfall)}'
+                                : 'Sisa: ${Formatters.currency(summary.remainingBudget)}',
+                            style: TextStyle(
+                              color: summary.shortfall > 0
+                                  ? context.statusWarn
+                                  : context.statusOk,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
 

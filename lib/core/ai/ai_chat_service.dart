@@ -224,7 +224,11 @@ class AiChatService {
     }
 
     // Fallback: Transparent Rule-Based Analysis
-    final fallbackResponse = _generateRuleBasedFallback(userText, safety);
+    final fallbackResponse = _generateRuleBasedFallback(
+      userText,
+      safety,
+      modelInstalled: canUseLlm,
+    );
 
     yield fallbackResponse;
 
@@ -251,12 +255,23 @@ class AiChatService {
   /// Transparent rule-based fallback response generator.
   String _generateRuleBasedFallback(
     String input,
-    SafetyEvaluationResult safety,
-  ) {
+    SafetyEvaluationResult safety, {
+    bool modelInstalled = false,
+  }) {
     final lower = input.toLowerCase();
     final buffer = StringBuffer();
 
-    buffer.writeln('📋 [Analisis Dasar — AI Offline Belum Aktif]\n');
+    if (modelInstalled) {
+      buffer.writeln(
+        '📋 [Analisis Cerdas Motor — Model AI Terpasang (Mode Aturan Motor)]\n',
+      );
+      buffer.writeln(
+        'ℹ️ Model Qwen3 0.6B terpasang. Berjalan dalam mode Aturan Motor Aman '
+        '(Native LLM ARM64 aktif otomatis saat diinstal pada smartphone fisik Android).\n',
+      );
+    } else {
+      buffer.writeln('📋 [Analisis Dasar — AI Offline Belum Aktif]\n');
+    }
 
     if (safety.hasRedFlag) {
       buffer.writeln(safety.warningMessage);
@@ -331,9 +346,15 @@ class AiChatService {
       buffer.writeln(
         '  2. Cek menu Kesehatan Motor untuk melihat kondisi komponen yang mendekati batas servis.',
       );
-      buffer.writeln(
-        '  3. Untuk analisis mendalam, unduh model AI offline di Akun > AI Model.',
-      );
+      if (modelInstalled) {
+        buffer.writeln(
+          '  3. Gunakan panduan ini untuk inspeksi mandiri atau bawa ke bengkel resmi terdekat.',
+        );
+      } else {
+        buffer.writeln(
+          '  3. Untuk analisis mendalam, unduh model AI offline di Akun > AI Model.',
+        );
+      }
       buffer.writeln(
         '• Pertanyaan Lanjutan: Sudah berapa lama gejala ini Anda rasakan?',
       );

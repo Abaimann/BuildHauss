@@ -1,47 +1,44 @@
 # BuildHaus — Implementation Status (23 October 2026)
 
-## Status: Tahap 05 Selesai & Terverifikasi (Local Notifications, Offline Backup & Restore, Settings & UI Finalization)
+## Status: Tahap 06 Selesai & Terverifikasi (Final E2E Testing, Security Hardening, Bug Fixing & Android APK Release)
 
-Hasil pengujian otomatis dan build APK pada lingkungan lokal Windows (Flutter 3.38.5 / Dart 3.10.4):
+**Keputusan Development Gate:** **RELEASE READY**
 
-| Area | Kondisi codebase setelah perubahan | Verifikasi |
+Hasil pengujian otomatis dan build APK pada lingkungan lokal Windows (Flutter 3.38.5 / Dart 3.10.4 / Android SDK 36 / NDK 28):
+
+| Area | Kondisi Codebase Setelah Perubahan | Status Verifikasi |
 |---|---|---|
-| **Data motor** | `createMotorcycle` menulis profil + odometer awal dalam transaksi. Form tambah menggunakan `modelId` eksplisit dan validasi tahun. | ✅ Terverifikasi unit test (`phase01_database_test.dart`) |
-| **Edit motor** | Pilihan brand/model/tahun ditambahkan dan update profil+odometer ditransaksikan. | ✅ Analyzer bersih, form validation & model isolation terverifikasi |
-| **Penghapusan motor** | Urutan hapus dependensi (chat/keluhan/inspeksi/servis/budget) dibuat eksplisit, transaksional. | ✅ Terverifikasi unit test |
-| **Model & katalog** | Seeding idempotent menggunakan lookup sebelum insert; `getMotorcycleModelId` tidak mengembalikan model lain saat tidak ditemukan. | ✅ Terverifikasi unit test |
-| **Maintenance rule** | Query mengembalikan aturan model motor aktif dan generic. Aturan Honda tidak digunakan untuk Yamaha. | ✅ Terverifikasi unit test (`health_engine_test.dart`) |
-| **Komponen** | Upsert berdasarkan pasangan `(motorcycle_id, component_type_id)`, isolasi antar-komponen terjamin (ganti oli tidak mereset rem). | ✅ Terverifikasi unit test (`health_engine_test.dart`, `phase02_health_database_test.dart`) |
-| **Mileage Predictor** | Masa pembelajaran 3 periode bulanan, prediksi km/hari, km/minggu, km/bulan, penanganan rollback, duplicate timestamp, zero usage. | ✅ Terverifikasi 19 unit test (`mileage_predictor_test.dart`) |
-| **Self-Inspection Engine** | Evaluasi makna semantik, deteksi pemicu keselamatan kritis (rem blong, bocor bensin, ban botak/benjol), pemetaan komponen. | ✅ Terverifikasi 5 unit test (`self_inspection_engine_test.dart`) |
-| **Health Engine Dinamis** | Aturan spesifik model vs generic, isolasi komponen, inspect vs replace action, integrasi temuan inspeksi mandiri, safety override. | ✅ Terverifikasi 17 unit test (`health_engine_test.dart`) |
-| **Smart Budget Engine** | Prioritas keselamatan kritis terdepan, tindakan inspect vs replace dibedakan, tidak ada harga fiktif, kalkulasi tanpa double-counting. | ✅ Terverifikasi 24 unit test (`budget_engine_test.dart`, `phase03_budget_engine_test.dart`) |
-| **Rekomendasi Sparepart** | Pemfilteran fitment motor (Honda vs Yamaha terisolasi), status verified vs reference, data resmi AHM & YIMM. | ✅ Terverifikasi unit & database test (`phase03_budget_database_test.dart`) |
-| **Persistensi Budget SQLite** | Penyimpanan `budget_plans`, `service_recommendations`, `recommendation_items`, riwayat rencana budget, snapshot atomik. | ✅ Terverifikasi (`phase03_budget_database_test.dart`) |
-| **UI Budget Dinamis** | Layar `budget_screen.dart` terhubung ke `budgetPlanSummaryProvider`, data hardcoded dihapus, desain UI dipertahankan 100%. | ✅ Terverifikasi widget & screen integration |
-| **Model Manifest** | Model Qwen3-0.6B-GGUF (Q4_K_M, ~378.3 MB), URL resmi Hugging Face, exact SHA-256 (`ac2d9771...`), validasi manifest ketat. | ✅ Terverifikasi 6 unit test (`model_manifest_test.dart`) |
-| **Model Download Manager** | Real HTTP downloader (Dio), HTTP Range resume support, status machine, verifikasi SHA-256 chunked streaming, perpindahan atomik. | ✅ Terverifikasi 4 unit test (`model_download_service_test.dart`) |
-| **Safety Guard Deterministik** | Deteksi red flag keselamatan (rem blong, kebocoran bensin, ban pecah, kemudi oleng), larangan berkendara, override kebal LLM. | ✅ Terverifikasi 6 unit test (`ai_safety_guard_test.dart`) |
-| **Context Retrieval Lokal** | Ekstraksi context motor aktif, odometer, status komponen, riwayat servis, isolasi multi-motor, deteksi keluhan berulang. | ✅ Terverifikasi 3 unit test (`ai_context_retriever_test.dart`) |
-| **AI Assistant & Chat** | Alur interaksi user → LLM/fallback, streaming respons, persistensi pesan dan analisis ke SQLite, fallback transparan. | ✅ Terverifikasi 4 unit test (`ai_chat_service_test.dart`) |
-| **Native llama.cpp Runtime** | Kompilasi native C++ dengan Android NDK 28 & CMake 3.22.1, ARM64 NEON, Vulkan acceleration support, 16KB page size compliance. | ✅ Terverifikasi Android NDK build & assembleDebug |
-| **Local Notifications** | `NotificationService` Android 13+ runtime permissions, inexact battery-friendly scheduling, notification channels. | ✅ Terverifikasi unit test & service initialization |
-| **Reminder Engine** | Penjadwalan deterministik berbasis `HealthEngine` dan `MileagePredictor`, odometer staleness check, keluhan $>3$ hari, idempotency sinkronisasi. | ✅ Terverifikasi 6 unit test (`reminder_engine_test.dart`) |
-| **Offline Backup & Restore** | Format file `.bhb`, verifikasi checksum SHA-256, enkripsi terotentikasi PBKDF2 HMAC-SHA256 (10.000 iterasi) + HMAC tag, restorasi atomik transaksi SQLite. | ✅ Terverifikasi 7 unit test (`backup_restore_service_test.dart`) |
-| **Settings & UI Finalization** | Tema dinamis (Terang, Gelap, Sistem) persisten di SQLite, kontrol notifikasi, statistik database, penghapusan data pengguna aman. | ✅ Terverifikasi 3 unit test (`settings_test.dart`) |
-| **Pengujian Flutter** | 129 unit/widget/migration/database tests berjalan. | ✅ **Lulus 129/129 (flutter test)** |
-| **Statis Analyzer** | Codebase bersih tanpa error dan tanpa warning. | ✅ **0 issues found (flutter analyze)** |
-| **Build Debug APK** | `flutter build apk --debug` menghasilkan `app-debug.apk` dengan runtime native dan notifikasi lokal. | ✅ **Sukses dikompilasi (assembleDebug)** |
+| **Data Motor & CRUD** | `createMotorcycle` menulis profil + odometer awal dalam transaksi. Form tambah menggunakan `modelId` eksplisit dan validasi tahun. | ✅ Terverifikasi unit test (`phase01_database_test.dart`) |
+| **Edit & Hapus Motor** | Update profil + odometer ditransaksikan; urutan hapus dependensi transaksional tanpa foreign key violation. | ✅ Terverifikasi unit test & database integrity |
+| **Model & Katalog** | Seeding idempotent menggunakan lookup sebelum insert; isolasi data merek Honda vs Yamaha terjamin. | ✅ Terverifikasi unit test |
+| **Mileage Predictor** | Masa pembelajaran 3 periode bulanan, prediksi km/hari, km/minggu, km/bulan, tahan rollback/duplicate timestamp. | ✅ Terverifikasi 19 unit test (`mileage_predictor_test.dart`) |
+| **Health Engine Dinamis** | Aturan spesifik model vs generic, isolasi antar-komponen, status jujur 'unknown' bila tanpa riwayat servis. | ✅ Terverifikasi 17 unit test (`health_engine_test.dart`) |
+| **Self-Inspection Engine** | Evaluasi semantik, deteksi pemicu keselamatan kritis (rem blong, bocor bensin, ban benjol), pemetaan komponen. | ✅ Terverifikasi 5 unit test (`self_inspection_engine_test.dart`) |
+| **Smart Budget Engine** | Prioritas keselamatan kritis terdepan, tindakan inspect vs replace dibedakan, kalkulasi tanpa double-counting. | ✅ Terverifikasi 24 unit test (`budget_engine_test.dart`) |
+| **Offline AI (Qwen3 + llama.cpp)** | Integrasi GGUF Q4_K_M (~378 MB), runtime native C++ NDK 28, chunked SHA-256 validation, deterministic safety guard, fallback transparan. | ✅ Terverifikasi 23 unit test & NDK compilation |
+| **Local Notifications** | `NotificationService` Android 13+ permission, inexact battery-friendly scheduling, notification channels. | ✅ Terverifikasi unit & live runtime test |
+| **NotificationIdGenerator** | Skema ID deterministik, stable, dan zero-collision dalam batas 31-bit integer ($0 \le \text{ID} \le 2.147.483.647$). | ✅ Terverifikasi 3 unit test (`notification_id_generator_test.dart`) |
+| **Kriptografi Backup (.bhb)** | Standar resmi NIST **AES-256-GCM** authenticated encryption + **PBKDF2-HMAC-SHA256 (100.000 iterasi)**, 16-byte salt, 12-byte nonce, 16-byte auth tag, backward compatibility format v1. | ✅ Terverifikasi 9 unit test (`backup_restore_service_test.dart`) |
+| **Restorasi Atomik & Foreign Key** | Eksekusi dalam transaksi SQLite tunggal dengan verifikasi otomatis `PRAGMA foreign_key_check`. | ✅ Terverifikasi unit test & database integrity |
+| **Settings & UI Finalization** | Tema dinamis (Terang, Gelap, Sistem) persisten di SQLite, kontrol notifikasi, statistik database, penghapusan data aman. | ✅ Terverifikasi 3 unit test (`settings_test.dart`) |
+| **Perbaikan Bug UI / Layout** | Memperbaiki RenderFlex 5.0 px overflow pada `FlexibleSpaceBar` di `health_screen.dart` dengan mengubah `expandedHeight: 120`. | ✅ Terverifikasi layout & widget test |
+| **Cross-Feature E2E Tests** | Alur end-to-end lengkap dari fresh install, motor, odometer, health, servis, budget, reminder, hingga backup/restore terenkripsi. | ✅ Terverifikasi 7 test (`cross_feature_e2e_test.dart`) |
+| **Widget & App Navigation Tests** | Bootstrapping `BuildHausApp`, rendering `AppShell`, tab navigation flow (Beranda, Sehat, Sparepart, Riwayat, Akun). | ✅ Terverifikasi 2 widget test (`app_navigation_test.dart`) |
+| **Static Analyzer** | Codebase bersih tanpa error dan tanpa warning. | ✅ **0 issues found (`flutter analyze`)** |
+| **Pengujian Otomatis Flutter** | Seluruh unit test, widget test, migration test, dan database integration test lulus. | ✅ **Lulus 143/143 (`flutter test`)** |
+| **Build Debug APK** | `flutter build apk --debug` menghasilkan `app-debug.apk` (157.5 MB). | ✅ **Sukses dikompilasi** |
+| **Build Release APK** | `flutter build apk --release` menghasilkan `app-release.apk` (**68.5 MB**, SHA-256 terverifikasi, R8 optimized). | ✅ **Sukses dikompilasi** |
+| **Live Device Verification** | Instalasi `app-release.apk` langsung pada emulator Android `BuildHaus_Pixel` (API 36). | ✅ **Sideload & Upgrade Berhasil** |
 
 ---
 
-## Langkah verifikasi mandiri
+## Langkah Verifikasi Mandiri
 
 ```powershell
 flutter pub get
-dart run build_runner build --delete-conflicting-outputs
-dart format lib test
+dart format lib test integration_test
 flutter analyze
 flutter test
 flutter build apk --debug
+flutter build apk --release
 ```

@@ -5,6 +5,7 @@ import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../../core/database/sample_data_seeder.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
 
 class AccountScreen extends ConsumerWidget {
@@ -41,11 +42,7 @@ class AccountScreen extends ConsumerWidget {
                   ),
                 ),
                 padding: const EdgeInsets.fromLTRB(16, 60, 16, 0),
-                child: const Row(
-                  children: [
-                    BuildHausLogo(size: 44),
-                  ],
-                ),
+                child: const Row(children: [BuildHausLogo(size: 44)]),
               ),
             ),
           ),
@@ -356,12 +353,12 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _EmptyMotorsCard extends StatelessWidget {
+class _EmptyMotorsCard extends ConsumerWidget {
   final BuildContext context;
   const _EmptyMotorsCard(this.context);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -388,6 +385,18 @@ class _EmptyMotorsCard extends StatelessWidget {
             icon: const Icon(Icons.add, size: 18),
             label: const Text('Tambah Motor'),
             style: ElevatedButton.styleFrom(minimumSize: const Size(0, 44)),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final db = ref.read(databaseProvider);
+              await SampleDataSeeder(db).seedRealisticSampleMotorcycles();
+              ref.invalidate(motorcyclesProvider);
+              ref.invalidate(activeMotorcycleProvider);
+            },
+            icon: const Icon(Icons.auto_awesome, size: 18),
+            label: const Text('Muat 3 Motor Contoh'),
+            style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
           ),
         ],
       ),
@@ -492,7 +501,7 @@ class _MotorListTile extends ConsumerWidget {
               ),
             ],
           ),
-          onTap: () => context.push('/edit-motor/${motorcycle.id}'),
+          onTap: () => context.push('/motor/${motorcycle.id}/edit'),
         ),
       ),
     );
@@ -740,11 +749,51 @@ class _ThemeChoiceChip extends StatelessWidget {
   }
 }
 
-class _DataManagementSection extends StatelessWidget {
+class _DataManagementSection extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
+        _SettingsTile(
+          icon: Icons.two_wheeler_outlined,
+          iconColor: Colors.teal.shade700,
+          title: 'Muat Data Motor Contoh',
+          subtitle: 'Isi 3 motor realistis (Vario, Aerox, Beat)',
+          onTap: () async {
+            final confirm = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Muat Data Contoh?'),
+                content: const Text(
+                  'Ini akan menambahkan 3 motor realistis (Honda Vario 160, Yamaha Aerox, Honda Beat Street) '
+                  'beserta riwayat servis, odometer, dan jadwal pengingat perawatan.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Batal'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text('Muat Data'),
+                  ),
+                ],
+              ),
+            );
+            if (confirm == true && context.mounted) {
+              final db = ref.read(databaseProvider);
+              await SampleDataSeeder(db).seedRealisticSampleMotorcycles(force: true);
+              ref.invalidate(motorcyclesProvider);
+              ref.invalidate(activeMotorcycleProvider);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('3 motor contoh berhasil dimuat!')),
+                );
+              }
+            }
+          },
+        ),
+        const SizedBox(height: 8),
         _SettingsTile(
           icon: Icons.notifications_active_outlined,
           iconColor: Colors.orange.shade700,

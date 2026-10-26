@@ -29,6 +29,18 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     super.initState();
     _activeComplaintId = widget.complaintId;
     _initializeChat();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(aiModelStatusProvider);
+      ref.invalidate(aiModelInfoProvider);
+    });
+  }
+
+  Future<void> _openModelManager() async {
+    await context.push('/ai-model');
+    if (mounted) {
+      ref.invalidate(aiModelStatusProvider);
+      ref.invalidate(aiModelInfoProvider);
+    }
   }
 
   Future<void> _initializeChat() async {
@@ -106,7 +118,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           aiStatus.when(
             data: (status) => status == 'ready'
                 ? GestureDetector(
-                    onTap: () => context.push('/ai-model'),
+                    onTap: _openModelManager,
                     child: Chip(
                       label: Text(
                         '🤖 LLM Offline',
@@ -121,7 +133,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                     ),
                   )
                 : GestureDetector(
-                    onTap: () => context.push('/ai-model'),
+                    onTap: _openModelManager,
                     child: Chip(
                       avatar: const Icon(Icons.download, size: 12),
                       label: Text(
@@ -173,7 +185,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                     ),
                   ),
                   TextButton.icon(
-                    onPressed: () => context.push('/ai-model'),
+                    onPressed: _openModelManager,
                     icon: const Icon(Icons.download, size: 14),
                     label: const Text(
                       'Unduh (378 MB)',

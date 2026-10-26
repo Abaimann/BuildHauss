@@ -268,6 +268,19 @@ final sparepartsByCategoryProvider =
       return db.getSparepartsByCategory(category);
     });
 
+// All spareparts provider
+final allSparepartsProvider = FutureProvider<List<Sparepart>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.getAllSpareparts();
+});
+
+// All sparepart fitments provider
+final allSparepartFitmentsProvider =
+    FutureProvider<List<SparepartFitment>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.getAllSparepartFitments();
+});
+
 // Dynamic Smart Budget Plan Summary provider
 final budgetPlanSummaryProvider = FutureProvider.family<BudgetPlanSummary, int>(
   (ref, budgetAmount) async {

@@ -93,6 +93,11 @@ final appRouter = GoRouter(
           EditMotorcycleScreen(id: int.parse(state.pathParameters['id']!)),
     ),
     GoRoute(
+      path: '/edit-motor/:id',
+      builder: (_, state) =>
+          EditMotorcycleScreen(id: int.parse(state.pathParameters['id']!)),
+    ),
+    GoRoute(
       path: '/motor/:id/odometer',
       builder: (_, state) =>
           OdometerScreen(motorcycleId: int.parse(state.pathParameters['id']!)),

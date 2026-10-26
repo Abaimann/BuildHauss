@@ -176,7 +176,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Jika Anda mengisi kata sandi, file backup akan dienkripsi dengan PBKDF2 + HMAC-SHA256.',
+            'Jika Anda mengisi kata sandi, file backup akan dienkripsi dengan standar NIST AES-256-GCM dan PBKDF2-HMAC-SHA256.',
             style: TextStyle(fontSize: 11, color: context.muted),
           ),
           const SizedBox(height: 10),

@@ -66,6 +66,7 @@ class AppDatabase extends _$AppDatabase {
       },
       beforeOpen: (details) async {
         await customStatement('PRAGMA foreign_keys = ON');
+        await ensureReferenceData();
       },
     );
   }
@@ -109,9 +110,35 @@ class AppDatabase extends _$AppDatabase {
       ComponentTypesCompanion.insert(
         name: 'CVT',
         category: 'transmisi',
-        appliesTo: const Value('cvt'),
       ),
       ComponentTypesCompanion.insert(name: 'Knalpot', category: 'mesin'),
+      ComponentTypesCompanion.insert(
+        name: 'Oli gardan',
+        category: 'transmisi',
+      ),
+      ComponentTypesCompanion.insert(
+        name: 'Minyak rem',
+        category: 'pengereman',
+        safetyCritical: const Value(true),
+      ),
+      ComponentTypesCompanion.insert(
+        name: 'Radiator coolant',
+        category: 'pendingin',
+      ),
+      ComponentTypesCompanion.insert(
+        name: 'Rantai & gir',
+        category: 'transmisi',
+        safetyCritical: const Value(true),
+      ),
+      ComponentTypesCompanion.insert(
+        name: 'Suspensi',
+        category: 'suspensi',
+        safetyCritical: const Value(true),
+      ),
+      ComponentTypesCompanion.insert(
+        name: 'Filter oli',
+        category: 'mesin',
+      ),
     ];
 
     for (final c in components) {
@@ -583,6 +610,135 @@ class AppDatabase extends _$AppDatabase {
         brand: const Value('generic'),
         partNumber: const Value('GEN-RELAY'),
       ),
+
+      // Oli Gardan
+      SparepartsCompanion.insert(
+        name: 'AHM Oil Scooter Gear Oil 120ml',
+        category: 'oli_gardan',
+        referencePrice: const Value(16000),
+        brand: const Value('Honda'),
+        partNumber: const Value('HN-GEAR120'),
+      ),
+      SparepartsCompanion.insert(
+        name: 'Yamalube Motor Gear Oil 100ml',
+        category: 'oli_gardan',
+        referencePrice: const Value(17500),
+        brand: const Value('Yamaha'),
+        partNumber: const Value('YM-GEAR100'),
+      ),
+      SparepartsCompanion.insert(
+        name: 'Castrol Scooter Gear Oil 80W-90 120ml',
+        category: 'oli_gardan',
+        referencePrice: const Value(22000),
+        brand: const Value('Castrol'),
+        partNumber: const Value('CA-GEAR80W'),
+      ),
+      SparepartsCompanion.insert(
+        name: 'Motul Scooter Gear Oil 80W-90 120ml',
+        category: 'oli_gardan',
+        referencePrice: const Value(35000),
+        brand: const Value('Motul'),
+        partNumber: const Value('MT-GEAR80W'),
+      ),
+      SparepartsCompanion.insert(
+        name: 'Federal Gear Oil Matic 120ml',
+        category: 'oli_gardan',
+        referencePrice: const Value(15000),
+        brand: const Value('Federal'),
+        partNumber: const Value('FD-GEAR120'),
+      ),
+
+      // Minyak Rem
+      SparepartsCompanion.insert(
+        name: 'Honda Genuine Brake Fluid DOT 4 50ml',
+        category: 'minyak_rem',
+        referencePrice: const Value(18000),
+        brand: const Value('Honda'),
+        partNumber: const Value('HN-BFDOT4'),
+      ),
+      SparepartsCompanion.insert(
+        name: 'Yamalube Brake Fluid DOT 4 50ml',
+        category: 'minyak_rem',
+        referencePrice: const Value(20000),
+        brand: const Value('Yamaha'),
+        partNumber: const Value('YM-BFDOT4'),
+      ),
+      SparepartsCompanion.insert(
+        name: 'Prestone Brake Fluid DOT 4 300ml',
+        category: 'minyak_rem',
+        referencePrice: const Value(38000),
+        brand: const Value('Prestone'),
+        partNumber: const Value('PR-BFDOT4'),
+      ),
+      SparepartsCompanion.insert(
+        name: 'Jumbo Brake Fluid DOT 3 300ml',
+        category: 'minyak_rem',
+        referencePrice: const Value(22000),
+        brand: const Value('Jumbo'),
+        partNumber: const Value('JB-BFDOT3'),
+      ),
+
+      // Radiator Coolant
+      SparepartsCompanion.insert(
+        name: 'AHM Radiator Coolant Pre-mix 1L',
+        category: 'coolant',
+        referencePrice: const Value(24000),
+        brand: const Value('Honda'),
+        partNumber: const Value('HN-COOL1L'),
+      ),
+      SparepartsCompanion.insert(
+        name: 'Yamalube Yamacoolant 1L',
+        category: 'coolant',
+        referencePrice: const Value(38000),
+        brand: const Value('Yamaha'),
+        partNumber: const Value('YM-COOL1L'),
+      ),
+      SparepartsCompanion.insert(
+        name: 'Prestone Ready to Use Coolant 1L',
+        category: 'coolant',
+        referencePrice: const Value(45000),
+        brand: const Value('Prestone'),
+        partNumber: const Value('PR-COOL1L'),
+      ),
+      SparepartsCompanion.insert(
+        name: 'Megacool Radiator Coolant 1L',
+        category: 'coolant',
+        referencePrice: const Value(18000),
+        brand: const Value('Megacool'),
+        partNumber: const Value('MG-COOL1L'),
+      ),
+
+      // Filter Oli
+      SparepartsCompanion.insert(
+        name: 'Filter Oli Saringan Kasa Honda Vario',
+        category: 'filter_oli',
+        referencePrice: const Value(18000),
+        brand: const Value('Honda'),
+        partNumber: const Value('HN-FLTOIL'),
+      ),
+      SparepartsCompanion.insert(
+        name: 'Filter Oli Yamaha NMAX/Aerox Original',
+        category: 'filter_oli',
+        referencePrice: const Value(28000),
+        brand: const Value('Yamaha'),
+        partNumber: const Value('YM-FLTOIL'),
+      ),
+
+      // Knalpot & Exhaust
+      SparepartsCompanion.insert(
+        name: 'Gasket Paking Knalpot Tembaga Matic Universal',
+        category: 'knalpot',
+        referencePrice: const Value(15000),
+        brand: const Value('OEM'),
+        partNumber: const Value('EX-GSK01'),
+      ),
+      SparepartsCompanion.insert(
+        name: 'Knalpot Standar Racing Bobok Beat/Vario/Aerox',
+        category: 'knalpot',
+        referencePrice: const Value(350000),
+        brand: const Value('Rob1'),
+        partNumber: const Value('EX-STD02'),
+      ),
     ];
 
     for (final item in items) {
@@ -707,6 +863,46 @@ class AppDatabase extends _$AppDatabase {
         'https://www.astra-honda.com',
         vario160?.id,
       ),
+      (
+        'AHM Oil Scooter Gear Oil 120ml',
+        '08234-M99-K0NZ1',
+        'oli_gardan',
+        'Honda',
+        16000,
+        astraId,
+        'https://www.astra-honda.com',
+        vario160?.id,
+      ),
+      (
+        'Honda Genuine Brake Fluid DOT 4 50ml',
+        '08260-M99-01NZ1',
+        'minyak_rem',
+        'Honda',
+        18000,
+        astraId,
+        'https://www.astra-honda.com',
+        vario160?.id,
+      ),
+      (
+        'AHM Radiator Coolant Pre-mix 1L',
+        '08CLA-G01-W01',
+        'coolant',
+        'Honda',
+        24000,
+        astraId,
+        'https://www.astra-honda.com',
+        vario160?.id,
+      ),
+      (
+        'Saringan Kasa Filter Oli Honda Vario 160',
+        '15421-K0R-V00',
+        'filter_oli',
+        'Honda',
+        18000,
+        astraId,
+        'https://www.astra-honda.com',
+        vario160?.id,
+      ),
       // Yamaha NMAX genuine parts
       (
         'Oli Mesin Yamalube Matic 10W-40',
@@ -734,6 +930,46 @@ class AppDatabase extends _$AppDatabase {
         'filter_udara',
         'Yamaha',
         50000,
+        yamahaId,
+        'https://www.yamaha-motor.co.id',
+        nmax?.id,
+      ),
+      (
+        'Yamalube Motor Gear Oil 100ml',
+        '90793-AJ827',
+        'oli_gardan',
+        'Yamaha',
+        17500,
+        yamahaId,
+        'https://www.yamaha-motor.co.id',
+        nmax?.id,
+      ),
+      (
+        'Yamaha Yamalube Brake Fluid DOT 4 50ml',
+        '90793-AJ811',
+        'minyak_rem',
+        'Yamaha',
+        20000,
+        yamahaId,
+        'https://www.yamaha-motor.co.id',
+        nmax?.id,
+      ),
+      (
+        'Yamalube Yamacoolant 1L',
+        '90793-AJ803',
+        'coolant',
+        'Yamaha',
+        38000,
+        yamahaId,
+        'https://www.yamaha-motor.co.id',
+        nmax?.id,
+      ),
+      (
+        'V-Belt Yamaha Genuine Aerox/NMAX',
+        'B65-E7641-00',
+        'cvt',
+        'Yamaha',
+        135000,
         yamahaId,
         'https://www.yamaha-motor.co.id',
         nmax?.id,
@@ -974,6 +1210,14 @@ class AppDatabase extends _$AppDatabase {
       ('Ban', 12000.0, 1095, null),
       ('Filter udara', 12000.0, 365, null),
       ('Busi', 16000.0, 730, null),
+      ('CVT', 12000.0, 365, 8000.0),
+      ('Oli gardan', 8000.0, 120, 6000.0),
+      ('Minyak rem', 20000.0, 730, null),
+      ('Radiator coolant', 12000.0, 365, null),
+      ('Rantai & gir', 15000.0, 365, null),
+      ('Suspensi', 24000.0, 730, null),
+      ('Filter oli', 8000.0, 180, null),
+      ('Knalpot', 24000.0, 730, null),
     ];
 
     for (final (name, km, days, severeKm) in genericRules) {
@@ -1324,11 +1568,7 @@ class AppDatabase extends _$AppDatabase {
   Future<List<ComponentType>> getApplicableComponents(
     String? usageProfile,
   ) async {
-    if (usageProfile == 'cvt') return select(componentTypes).get();
-    return (select(
-          componentTypes,
-        )..where((t) => t.appliesTo.isNull() | t.appliesTo.equals('cvt').not()))
-        .get();
+    return select(componentTypes).get();
   }
 
   // ============================================================
@@ -2042,7 +2282,12 @@ class AppDatabase extends _$AppDatabase {
   Future<List<ComponentStatusWithName>> getComponentStatusesWithNames(
     int motorcycleId,
   ) async {
-    final statuses = await getComponentStatuses(motorcycleId);
+    var statuses = await getComponentStatuses(motorcycleId);
+    final applicable = await getApplicableComponents(null);
+    if (statuses.length < applicable.length) {
+      await recalculateComponentStatuses(motorcycleId);
+      statuses = await getComponentStatuses(motorcycleId);
+    }
     final types = await getAllComponentTypes();
     final typeMap = {for (var t in types) t.id: t.name};
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
+import 'package:cryptography/cryptography.dart' as crypto_pkg;
 import 'package:drift/drift.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -43,7 +44,8 @@ class BackupRestoreService {
   final Directory? _customBackupDir;
 
   static const String appIdentifier = 'BuildHaus';
-  static const int currentBackupFormatVersion = 1;
+  static const int currentBackupFormatVersion =
+      2; // v2: AES-256-GCM + PBKDF2-SHA256 (100k iter)
   static const int currentSchemaVersion = 4;
 
   BackupRestoreService({required AppDatabase db, Directory? customBackupDir})
@@ -336,16 +338,34 @@ class BackupRestoreService {
     };
 
     if (passphrase != null && passphrase.trim().isNotEmpty) {
-      // Authenticated PBKDF2 encryption
+      // Authenticated AES-256-GCM encryption with PBKDF2-HMAC-SHA256 (100,000 iterations)
       final saltBytes = _generateRandomBytes(16);
-      final key = _deriveKey(passphrase.trim(), saltBytes);
+      final pbkdf2 = crypto_pkg.Pbkdf2(
+        macAlgorithm: crypto_pkg.Hmac.sha256(),
+        iterations: 100000,
+        bits: 256,
+      );
+      final secretKey = await pbkdf2.deriveKey(
+        secretKey: crypto_pkg.SecretKey(utf8.encode(passphrase.trim())),
+        nonce: saltBytes,
+      );
 
-      final encryptedPayload = _xorCipher(payloadBytes, key);
-      final hmacTag = Hmac(sha256, key).convert(encryptedPayload).toString();
+      final aesGcm = crypto_pkg.AesGcm.with256bits();
+      final nonce = aesGcm.newNonce();
 
+      final secretBox = await aesGcm.encrypt(
+        payloadBytes,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+
+      envelope['algorithm'] = 'AES-256-GCM';
+      envelope['kdf'] = 'PBKDF2-HMAC-SHA256';
+      envelope['kdf_iterations'] = 100000;
       envelope['salt'] = base64Encode(saltBytes);
-      envelope['auth_tag'] = hmacTag;
-      envelope['payload'] = base64Encode(encryptedPayload);
+      envelope['nonce'] = base64Encode(secretBox.nonce);
+      envelope['auth_tag'] = base64Encode(secretBox.mac.bytes);
+      envelope['payload'] = base64Encode(secretBox.cipherText);
     } else {
       // Unencrypted payload
       envelope['data'] = dataMap;
@@ -432,28 +452,75 @@ class BackupRestoreService {
         );
       }
 
+      final formatVersion = envelope['format_version'] as int? ?? 1;
       final saltBase64 = envelope['salt'] as String?;
-      final authTag = envelope['auth_tag'] as String?;
       final payloadBase64 = envelope['payload'] as String?;
 
-      if (saltBase64 == null || authTag == null || payloadBase64 == null) {
+      if (saltBase64 == null || payloadBase64 == null) {
         throw const FormatException('Metadata enkripsi backup tidak lengkap.');
       }
 
       final saltBytes = base64Decode(saltBase64);
-      final key = _deriveKey(passphrase.trim(), saltBytes);
-
       final encryptedPayload = base64Decode(payloadBase64);
-      final calculatedTag = Hmac(
-        sha256,
-        key,
-      ).convert(encryptedPayload).toString();
+      List<int> decryptedBytes;
 
-      if (calculatedTag != authTag) {
-        throw const FormatException('Kata sandi salah atau data rusak.');
+      if (formatVersion >= 2) {
+        // Format v2: NIST AES-256-GCM authenticated decryption
+        final nonceBase64 = envelope['nonce'] as String?;
+        final authTagBase64 = envelope['auth_tag'] as String?;
+        if (nonceBase64 == null || authTagBase64 == null) {
+          throw const FormatException(
+            'Parameter AES-GCM nonce atau auth_tag hilang.',
+          );
+        }
+
+        final nonce = base64Decode(nonceBase64);
+        final macBytes = base64Decode(authTagBase64);
+        final iterations = envelope['kdf_iterations'] as int? ?? 100000;
+
+        final pbkdf2 = crypto_pkg.Pbkdf2(
+          macAlgorithm: crypto_pkg.Hmac.sha256(),
+          iterations: iterations,
+          bits: 256,
+        );
+        final secretKey = await pbkdf2.deriveKey(
+          secretKey: crypto_pkg.SecretKey(utf8.encode(passphrase.trim())),
+          nonce: saltBytes,
+        );
+
+        final aesGcm = crypto_pkg.AesGcm.with256bits();
+        try {
+          decryptedBytes = await aesGcm.decrypt(
+            crypto_pkg.SecretBox(
+              encryptedPayload,
+              nonce: nonce,
+              mac: crypto_pkg.Mac(macBytes),
+            ),
+            secretKey: secretKey,
+          );
+        } on crypto_pkg.SecretBoxAuthenticationError {
+          throw const FormatException('Kata sandi salah atau data rusak.');
+        }
+      } else {
+        // Format v1: Legacy PBKDF2 HMAC-SHA256 + keystream for backward compatibility
+        final authTag = envelope['auth_tag'] as String?;
+        if (authTag == null) {
+          throw const FormatException('Metadata auth_tag legacy v1 hilang.');
+        }
+
+        final key = _deriveKeyLegacy(passphrase.trim(), saltBytes);
+        final calculatedTag = Hmac(
+          sha256,
+          key,
+        ).convert(encryptedPayload).toString();
+
+        if (calculatedTag != authTag) {
+          throw const FormatException('Kata sandi salah atau data rusak.');
+        }
+
+        decryptedBytes = _xorCipher(encryptedPayload, key);
       }
 
-      final decryptedBytes = _xorCipher(encryptedPayload, key);
       final expectedChecksum = envelope['checksum_sha256'] as String?;
       if (expectedChecksum != null) {
         final actualChecksum = sha256.convert(decryptedBytes).toString();
@@ -808,6 +875,16 @@ class BackupRestoreService {
           await _db.setSetting(entry.key, entry.value.toString());
         }
       }
+
+      // Foreign key integrity check across the entire restored database
+      final fkViolations = await _db
+          .customSelect('PRAGMA foreign_key_check')
+          .get();
+      if (fkViolations.isNotEmpty) {
+        throw StateError(
+          'Integritas database gagal: Terdeteksi ${fkViolations.length} pelanggaran relasi foreign key.',
+        );
+      }
     });
 
     // Record last restore timestamp
@@ -821,8 +898,8 @@ class BackupRestoreService {
     return List<int>.generate(length, (_) => rand.nextInt(256));
   }
 
-  /// PBKDF2 HMAC-SHA256 key derivation with 10,000 iterations
-  List<int> _deriveKey(String passphrase, List<int> salt) {
+  /// Legacy v1 PBKDF2 HMAC-SHA256 key derivation with 10,000 iterations for backward compatibility
+  List<int> _deriveKeyLegacy(String passphrase, List<int> salt) {
     var key = Hmac(sha256, utf8.encode(passphrase)).convert(salt).bytes;
     for (int i = 1; i < 10000; i++) {
       key = Hmac(sha256, key).convert(salt).bytes;
@@ -830,7 +907,7 @@ class BackupRestoreService {
     return key;
   }
 
-  /// Symmetric XOR stream cipher
+  /// Legacy v1 symmetric XOR stream cipher for backward compatibility
   List<int> _xorCipher(List<int> data, List<int> key) {
     final result = List<int>.filled(data.length, 0);
     for (int i = 0; i < data.length; i++) {

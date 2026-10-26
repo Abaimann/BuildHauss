@@ -26,7 +26,6 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nicknameController = TextEditingController();
   final _plateController = TextEditingController();
-  final _emojiController = TextEditingController(text: '🏍️');
   final _odometerController = TextEditingController();
 
   String? _selectedBrand;
@@ -47,7 +46,6 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
   void dispose() {
     _nicknameController.dispose();
     _plateController.dispose();
-    _emojiController.dispose();
     _odometerController.dispose();
     super.dispose();
   }
@@ -103,16 +101,6 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                     style: TextStyle(color: context.muted, fontSize: 12),
                   ),
                   const SizedBox(height: 24),
-
-                  // Emoji
-                  _buildLabel('Emoji'),
-                  TextFormField(
-                    controller: _emojiController,
-                    decoration: const InputDecoration(hintText: 'Contoh: 🏍️'),
-                    maxLength: 2,
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                  const SizedBox(height: 8),
 
                   // Nickname
                   _buildLabel('Nama / Plat nomor'),
@@ -325,9 +313,7 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                 ? null
                 : _plateController.text.trim(),
           ),
-          emoji: Value(
-            _emojiController.text.isEmpty ? '🏍️' : _emojiController.text,
-          ),
+          emoji: const Value('🏍️'),
           usageProfile: Value(_selectedUsage),
         ),
         initialOdometerKm: odo,

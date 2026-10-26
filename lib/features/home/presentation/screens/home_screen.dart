@@ -6,6 +6,7 @@ import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart'
     show Motorcycle, MotorcycleModel;
+import '../../../../core/database/sample_data_seeder.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
 
 // Helper widget to show brand name instead of emoji
@@ -59,7 +60,7 @@ class HomeScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (motors) {
           if (motors.isEmpty) {
-            return _buildEmptyState(context);
+            return _buildEmptyState(context, ref);
           }
           return _HomeContent(motors: motors, activeMotor: activeMotor);
         },
@@ -67,7 +68,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -94,6 +95,20 @@ class HomeScreen extends ConsumerWidget {
                 onPressed: () => context.push('/add-motor'),
                 icon: const Icon(Icons.add),
                 label: const Text('Tambah Motor Pertama'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  final db = ref.read(databaseProvider);
+                  await SampleDataSeeder(db).seedRealisticSampleMotorcycles();
+                  ref.invalidate(motorcyclesProvider);
+                  ref.invalidate(activeMotorcycleProvider);
+                },
+                icon: const Icon(Icons.auto_awesome),
+                label: const Text('Muat 3 Data Motor Contoh'),
               ),
             ),
           ],
@@ -655,12 +670,18 @@ class _HealthSummary extends ConsumerWidget {
           );
         }
 
-        final scores = statuses.map((s) => s.status.score ?? 0.0).toList();
-        final avgScore = scores.isEmpty
-            ? 0.0
-            : scores.reduce((a, b) => a + b) / scores.length;
+        final validScores = statuses
+            .where((s) => s.status.score != null)
+            .map((s) => s.status.score!)
+            .toList();
+        final hasEvidence = validScores.isNotEmpty;
+        final avgScore = hasEvidence
+            ? validScores.reduce((a, b) => a + b) / validScores.length
+            : 0.0;
 
-        final statusColor = avgScore >= 75
+        final statusColor = !hasEvidence
+            ? context.muted
+            : avgScore >= 75
             ? BuildHausTheme.ok
             : avgScore >= 50
             ? BuildHausTheme.warn
@@ -686,7 +707,7 @@ class _HealthSummary extends ConsumerWidget {
                     ),
                     child: Center(
                       child: Text(
-                        avgScore > 0 ? '${avgScore.round()}' : '?',
+                        hasEvidence ? '${avgScore.round()}' : '?',
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -710,7 +731,9 @@ class _HealthSummary extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          avgScore >= 75
+                          !hasEvidence
+                              ? 'Belum cukup data riwayat servis'
+                              : avgScore >= 75
                               ? 'Baik — semua komponen prima'
                               : avgScore >= 50
                               ? 'Perlu perhatian — beberapa komponen perlu dicek'

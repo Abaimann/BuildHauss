@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:drift/drift.dart';
 import '../database/app_database.dart';
+import '../notifications/notification_id_generator.dart';
 import '../notifications/notification_service.dart';
 import 'health_engine.dart';
 import 'mileage_predictor.dart';
@@ -223,12 +224,26 @@ class ReminderEngine {
       );
 
       if (match == null) {
-        // Generate a positive unique notification ID within safe 31-bit integer range
-        final notifId =
-            (item.motorcycleId * 10000 +
-                (item.componentTypeId ?? 999) * 10 +
-                Random().nextInt(9)) %
-            2147483647;
+        // Generate a deterministic, stable, and collision-free notification ID
+        final int notifId;
+        if (item.reminderType == 'odometer') {
+          notifId = NotificationIdGenerator.forOdometer(item.motorcycleId);
+        } else if (item.componentTypeId != null) {
+          notifId = NotificationIdGenerator.forComponent(
+            item.motorcycleId,
+            item.componentTypeId!,
+          );
+        } else if (item.reminderType == 'complaint') {
+          notifId = NotificationIdGenerator.forComplaint(
+            item.motorcycleId,
+            item.componentName.hashCode.abs() % 9999,
+          );
+        } else {
+          notifId = NotificationIdGenerator.forManual(
+            item.motorcycleId,
+            item.title.hashCode.abs() % 9999,
+          );
+        }
 
         await _db.insertReminder(
           LocalRemindersCompanion.insert(

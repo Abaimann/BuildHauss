@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:buildhaus/core/database/app_database.dart';
@@ -71,7 +73,7 @@ void main() {
     );
 
     test(
-      '2. Creates encrypted .bhb backup with PBKDF2 HMAC-SHA256 and salt',
+      '2. Creates encrypted .bhb backup with AES-256-GCM and PBKDF2 (100k iter)',
       () async {
         await db.insertMotorcycle(
           MotorcyclesCompanion.insert(
@@ -87,7 +89,12 @@ void main() {
         final envelope = jsonDecode(jsonStr) as Map<String, dynamic>;
 
         expect(envelope['is_encrypted'], isTrue);
+        expect(envelope['format_version'], 2);
+        expect(envelope['algorithm'], 'AES-256-GCM');
+        expect(envelope['kdf'], 'PBKDF2-HMAC-SHA256');
+        expect(envelope['kdf_iterations'], 100000);
         expect(envelope['salt'], isNotNull);
+        expect(envelope['nonce'], isNotNull);
         expect(envelope['auth_tag'], isNotNull);
         expect(envelope['payload'], isNotNull);
         expect(
@@ -277,5 +284,125 @@ void main() {
         ),
       );
     });
+
+    test('8. Rejects encrypted backup with tampered ciphertext', () async {
+      await db.insertMotorcycle(
+        MotorcyclesCompanion.insert(
+          nickname: 'Tamper Encrypted',
+          manufactureYear: 2023,
+        ),
+      );
+
+      const passphrase = 'KunciKriptoAman123!';
+      final file = await service.createBackup(passphrase: passphrase);
+
+      // Tamper 1 byte of the ciphertext payload
+      final content = await file.readAsString();
+      final envelope = jsonDecode(content) as Map<String, dynamic>;
+      final rawPayload = base64Decode(envelope['payload'] as String);
+      rawPayload[0] ^= 0xFF; // flip bits
+      envelope['payload'] = base64Encode(rawPayload);
+      await file.writeAsString(jsonEncode(envelope));
+
+      // Attempt restore: AES-GCM MAC verification must fail
+      expect(
+        () async => await service.restoreBackup(file, passphrase: passphrase),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('Kata sandi salah atau data rusak'),
+          ),
+        ),
+      );
+    });
+
+    test(
+      '9. Restores legacy v1 encrypted backup file (backward compatibility)',
+      () async {
+        // Create a legacy v1 format backup manually
+        final dataMap = {
+          'motorcycles': [
+            {
+              'id': 10,
+              'model_id': null,
+              'nickname': 'Legacy V1 Motor',
+              'manufacture_year': 2019,
+              'plate_number': 'B 1111 LEG',
+              'initial_odometer_km': 10000.0,
+              'usage_profile': 'harian',
+              'fuel_consumption_rate': null,
+              'created_at': DateTime(2026, 1, 1).toIso8601String(),
+              'updated_at': DateTime(2026, 1, 1).toIso8601String(),
+            },
+          ],
+          'odometer_logs': [],
+          'component_statuses': [],
+          'service_records': [],
+          'service_items': [],
+          'self_inspections': [],
+          'inspection_answers': [],
+          'complaints': [],
+          'complaint_messages': [],
+          'complaint_analyses': [],
+          'budget_plans': [],
+          'service_recommendations': [],
+          'recommendation_items': [],
+          'local_reminders': [],
+          'app_settings': {'theme_mode': 'dark'},
+        };
+
+        const passphrase = 'LegacyPassword123!';
+        final payloadBytes = utf8.encode(jsonEncode(dataMap));
+        final checksum = sha256.convert(payloadBytes).toString();
+
+        final rand = Random.secure();
+        final saltBytes = List<int>.generate(16, (_) => rand.nextInt(256));
+
+        // Legacy v1 PBKDF2 with 10k iterations
+        var key = Hmac(
+          sha256,
+          utf8.encode(passphrase),
+        ).convert(saltBytes).bytes;
+        for (int i = 1; i < 10000; i++) {
+          key = Hmac(sha256, key).convert(saltBytes).bytes;
+        }
+
+        // Legacy v1 XOR
+        final encrypted = List<int>.filled(payloadBytes.length, 0);
+        for (int i = 0; i < payloadBytes.length; i++) {
+          encrypted[i] = payloadBytes[i] ^ key[i % key.length];
+        }
+        final authTag = Hmac(sha256, key).convert(encrypted).toString();
+
+        final envelope = {
+          'app': 'BuildHaus',
+          'app_version': '1.0.0',
+          'format_version': 1, // Legacy format version 1
+          'schema_version': 4,
+          'created_at': DateTime.now().toIso8601String(),
+          'checksum_sha256': checksum,
+          'is_encrypted': true,
+          'summary': {'motorcycles_count': 1},
+          'salt': base64Encode(saltBytes),
+          'auth_tag': authTag,
+          'payload': base64Encode(encrypted),
+        };
+
+        final legacyFile = File('${tempDir.path}/legacy_v1_backup.bhb');
+        await legacyFile.writeAsString(jsonEncode(envelope));
+
+        // Clear DB and restore legacy v1 backup
+        await db.delete(db.motorcycles).go();
+        expect(await db.getAllMotorcycles(), isEmpty);
+
+        await service.restoreBackup(legacyFile, passphrase: passphrase);
+
+        final restored = await db.getAllMotorcycles();
+        expect(restored.length, 1);
+        expect(restored.first.id, 10);
+        expect(restored.first.nickname, 'Legacy V1 Motor');
+      },
+    );
   });
 }

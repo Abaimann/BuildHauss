@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -6,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/database/app_database.dart';
+import '../../../../core/notifications/notification_id_generator.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -536,11 +536,10 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
                     onPressed: () async {
                       final db = ref.read(databaseProvider);
                       final odo = double.tryParse(_odoController.text.trim());
-                      final notifId =
-                          (widget.motorId * 1000 +
-                              Random().nextInt(899) +
-                              100) %
-                          2147483647;
+                      final notifId = NotificationIdGenerator.forManual(
+                        widget.motorId,
+                        DateTime.now().millisecondsSinceEpoch % 9999,
+                      );
 
                       await db.insertReminder(
                         LocalRemindersCompanion.insert(

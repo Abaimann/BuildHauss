@@ -6,6 +6,7 @@ import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
+import '../../../../core/utils/formatters.dart';
 
 class HealthScreen extends ConsumerWidget {
   const HealthScreen({super.key});
@@ -50,7 +51,7 @@ class HealthScreen extends ConsumerWidget {
         slivers: [
           // App Bar
           SliverAppBar(
-            expandedHeight: 100,
+            expandedHeight: 120,
             pinned: true,
             backgroundColor: context.bg,
             surfaceTintColor: Colors.transparent,
@@ -783,7 +784,7 @@ class _ComponentStatusSection extends ConsumerWidget {
 
         return Column(
           children: [
-            ...data.map((d) => _ComponentTile(data: d)),
+            ...data.map((d) => _ComponentTile(data: d, motorcycle: motorcycle)),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () => context.push('/history/add'),
@@ -824,12 +825,13 @@ class _ComponentStatusSection extends ConsumerWidget {
   }
 }
 
-class _ComponentTile extends StatelessWidget {
+class _ComponentTile extends ConsumerWidget {
   final ComponentStatusWithName data;
-  const _ComponentTile({required this.data});
+  final Motorcycle motorcycle;
+  const _ComponentTile({required this.data, required this.motorcycle});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final score = data.status.score;
     final color = score == null
         ? context.muted
@@ -856,132 +858,549 @@ class _ComponentTile extends StatelessWidget {
 
     final isSafetyIssue = data.status.explanation.contains('KESELAMATAN');
 
+    final allParts = ref.watch(allSparepartsProvider).value ?? [];
+    final allFitments = ref.watch(allSparepartFitmentsProvider).value ?? [];
+    final matchedParts = _getMatchingParts(
+      componentName: data.componentName,
+      allSpareparts: allParts,
+      fitments: allFitments,
+      modelId: motorcycle.modelId,
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: context.surface2,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSafetyIssue
-                ? BuildHausTheme.danger.withValues(alpha: 0.4)
-                : context.line,
-          ),
+      child: InkWell(
+        onTap: () => _showComponentPartsModal(
+          context,
+          data,
+          matchedParts,
+          motorcycle,
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Text(
-                  _getEmoji(data.componentName),
-                  style: const TextStyle(fontSize: 20),
-                ),
-              ),
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: context.surface2,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSafetyIssue
+                  ? BuildHausTheme.danger.withValues(alpha: 0.4)
+                  : context.line,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        _getEmoji(data.componentName),
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              data.componentName,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: context.ink,
+                              ),
+                            ),
+                            if (isSafetyIssue) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: BuildHausTheme.dangerBg,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'SAFETY',
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                    color: BuildHausTheme.danger,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (data.status.explanation.isNotEmpty)
+                          Text(
+                            data.status.explanation,
+                            style: TextStyle(fontSize: 10, color: context.muted),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        data.componentName,
+                        score == null ? '—' : '${score.round()}',
                         style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          color: context.ink,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: color,
                         ),
                       ),
-                      if (isSafetyIssue) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 5,
-                            vertical: 1,
-                          ),
-                          decoration: BoxDecoration(
-                            color: BuildHausTheme.dangerBg,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'SAFETY',
-                            style: TextStyle(
-                              fontSize: 8,
-                              fontWeight: FontWeight.bold,
-                              color: BuildHausTheme.danger,
-                            ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Text(
+                          displayLabel,
+                          style: TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                            color: color,
                           ),
                         ),
-                      ],
+                      ),
                     ],
                   ),
-                  if (data.status.explanation.isNotEmpty)
-                    Text(
-                      data.status.explanation,
-                      style: TextStyle(fontSize: 10, color: context.muted),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
                 ],
               ),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  score == null ? '—' : '${score.round()}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: color,
-                  ),
-                ),
+              if (matchedParts.isNotEmpty) ...[
+                const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 1,
+                    horizontal: 10,
+                    vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  child: Text(
-                    displayLabel,
-                    style: TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                      color: color,
+                    color: context.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: context.line.withValues(alpha: 0.7),
                     ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.build_circle_outlined,
+                        size: 13,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '${matchedParts.first.name} · ${Formatters.currency(matchedParts.first.referencePrice ?? 0)}',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            color: context.ink,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 1.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: context.soft,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '${matchedParts.length} part',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: context.muted,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        Icons.chevron_right,
+                        size: 14,
+                        color: context.muted,
+                      ),
+                    ],
                   ),
                 ),
               ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
+  void _showComponentPartsModal(
+    BuildContext context,
+    ComponentStatusWithName data,
+    List<Sparepart> matchedParts,
+    Motorcycle motorcycle,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.65,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (_, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+              child: ListView(
+                controller: scrollController,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: context.muted.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: context.soft,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _getEmoji(data.componentName),
+                            style: const TextStyle(fontSize: 22),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              data.componentName,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Motor: ${motorcycle.nickname}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: context.muted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (data.status.score != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.soft,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Skor: ${data.status.score!.round()}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: context.surface2,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      data.status.explanation,
+                      style: TextStyle(fontSize: 12, color: context.ink),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Pilihan Sparepart (${matchedParts.length})',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          context.go('/parts');
+                        },
+                        child: const Text('Buka Katalog ➔'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (matchedParts.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Center(
+                        child: Text(
+                          'Belum ada sparepart terdaftar untuk komponen ini di katalog lokal.',
+                          style: TextStyle(color: context.muted, fontSize: 12),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    )
+                  else
+                    ...matchedParts.map(
+                      (part) => Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: context.surface2,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: part.isVerified
+                                ? BuildHausTheme.ok.withValues(alpha: 0.3)
+                                : context.line,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          part.name,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      if (part.isVerified) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                            vertical: 1,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: BuildHausTheme.ok.withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            'OEM RESMI',
+                                            style: TextStyle(
+                                              fontSize: 8,
+                                              fontWeight: FontWeight.bold,
+                                              color: BuildHausTheme.ok,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    '${part.brand ?? 'Aftermarket'} · Part #${part.partNumber ?? '-'}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: context.muted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              Formatters.currency(part.referencePrice ?? 0),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      context.push('/history/add');
+                    },
+                    icon: const Icon(Icons.add_task, size: 18),
+                    label: const Text('Catat Servis Komponen Ini'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  List<Sparepart> _getMatchingParts({
+    required String componentName,
+    required List<Sparepart> allSpareparts,
+    required List<SparepartFitment> fitments,
+    int? modelId,
+  }) {
+    final n = componentName.toLowerCase();
+    List<String> targetCategories;
+    List<String> nameKeywords;
+
+    if (n.contains('minyak rem')) {
+      targetCategories = ['minyak_rem'];
+      nameKeywords = ['minyak rem', 'brake fluid', 'dot 3', 'dot 4'];
+    } else if (n.contains('oli gardan')) {
+      targetCategories = ['oli_gardan'];
+      nameKeywords = ['oli gardan', 'gear oil', 'final gear'];
+    } else if (n.contains('filter oli')) {
+      targetCategories = ['filter_oli'];
+      nameKeywords = ['filter oli', 'oil filter'];
+    } else if (n.contains('filter udara') || n.contains('filter')) {
+      targetCategories = ['filter'];
+      nameKeywords = ['filter udara', 'air filter'];
+    } else if (n.contains('oli') || n.contains('mesin')) {
+      targetCategories = ['oli'];
+      nameKeywords = ['oli', 'engine oil', '10w-40', '10w-30'];
+    } else if (n.contains('kampas rem') || n.contains('rem')) {
+      targetCategories = ['rem'];
+      nameKeywords = ['kampas rem', 'brake pad', 'brake shoe', 'dispad'];
+    } else if (n.contains('ban')) {
+      targetCategories = ['ban'];
+      nameKeywords = ['ban', 'tire', 'tubeless'];
+    } else if (n.contains('busi')) {
+      targetCategories = ['busi'];
+      nameKeywords = ['busi', 'spark plug'];
+    } else if (n.contains('cvt')) {
+      targetCategories = ['cvt'];
+      nameKeywords = ['cvt', 'v-belt', 'roller', 'vanbelt'];
+    } else if (n.contains('aki')) {
+      targetCategories = ['aki'];
+      nameKeywords = ['aki', 'battery', 'accu'];
+    } else if (n.contains('coolant') || n.contains('radiator')) {
+      targetCategories = ['coolant'];
+      nameKeywords = ['coolant', 'radiator'];
+    } else if (n.contains('rantai')) {
+      targetCategories = ['rantai'];
+      nameKeywords = ['rantai', 'gir', 'gear', 'chain'];
+    } else if (n.contains('suspensi') || n.contains('shock')) {
+      targetCategories = ['shock'];
+      nameKeywords = ['shock', 'suspensi', 'absorber'];
+    } else if (n.contains('knalpot')) {
+      targetCategories = ['knalpot'];
+      nameKeywords = ['knalpot', 'exhaust', 'muffler'];
+    } else {
+      targetCategories = [];
+      nameKeywords = [n];
+    }
+
+    // First, strictly match by defined category
+    var candidates = allSpareparts.where((p) {
+      final cat = p.category.toLowerCase();
+      return targetCategories.contains(cat);
+    }).toList();
+
+    // If no exact category match found, fallback to name keywords
+    if (candidates.isEmpty) {
+      candidates = allSpareparts.where((p) {
+        final name = p.name.toLowerCase();
+        return nameKeywords.any((k) => name.contains(k));
+      }).toList();
+    }
+
+    if (modelId != null && fitments.isNotEmpty) {
+      final verifiedPartIds = fitments
+          .where((f) => f.modelId == modelId)
+          .map((f) => f.sparepartId)
+          .toSet();
+      candidates.sort((a, b) {
+        final aVerified = verifiedPartIds.contains(a.id);
+        final bVerified = verifiedPartIds.contains(b.id);
+        if (aVerified && !bVerified) return -1;
+        if (!aVerified && bVerified) return 1;
+        return (a.referencePrice ?? 0).compareTo(b.referencePrice ?? 0);
+      });
+    }
+
+    return candidates;
+  }
+
   String _getEmoji(String name) {
     final n = name.toLowerCase();
-    if (n.contains('rem') || n.contains('pengereman')) return '🛑';
+    if (n.contains('minyak rem')) return '💧';
+    if (n.contains('oli gardan')) return '⚙️';
+    if (n.contains('filter oli')) return '🧴';
+    if (n.contains('filter udara') || n.contains('filter')) return '🌬️';
     if (n.contains('oli') || n.contains('mesin')) return '🛢️';
+    if (n.contains('rem') || n.contains('pengereman')) return '🛑';
     if (n.contains('rantai')) return '⛓️';
     if (n.contains('ban') || n.contains('roda')) return '🛞';
     if (n.contains('aki') || n.contains('kelistrikan')) return '🔋';
-    if (n.contains('filter') || n.contains('udara')) return '🔧';
     if (n.contains('busi')) return '⚡';
     if (n.contains('cvt') || n.contains('transmisi')) return '⚙️';
-    if (n.contains('knalpot')) return '🔩';
+    if (n.contains('coolant') || n.contains('radiator')) return '🧊';
+    if (n.contains('suspensi') || n.contains('shock')) return '🛵';
+    if (n.contains('knalpot')) return '💨';
     return '🔩';
   }
 }

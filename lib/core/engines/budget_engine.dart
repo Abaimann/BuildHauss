@@ -537,7 +537,7 @@ class BudgetEngine {
   }
 
   String _normalizeKey(String name) {
-    return name.toLowerCase().replaceAll(' ', '_');
+    return name.toLowerCase().replaceAll('&', 'dan').replaceAll(' ', '_');
   }
 
   String? _extractBrandFromModel(Motorcycle m) {
@@ -565,6 +565,13 @@ class BudgetEngine {
       'cvt': ['cvt', 'transmisi'],
       'aki': ['aki', 'kelistrikan'],
       'knalpot': ['knalpot'],
+      'oli_gardan': ['oli_gardan', 'gardan', 'oli'],
+      'minyak_rem': ['minyak_rem', 'rem'],
+      'radiator_coolant': ['coolant', 'radiator', 'pendingin'],
+      'rantai_dan_gir': ['rantai', 'gear'],
+      'rantai_&_gir': ['rantai', 'gear'],
+      'suspensi': ['shock', 'suspensi'],
+      'filter_oli': ['filter_oli', 'filter'],
     };
 
     final targetCategories = categoryKeywords[compKey] ?? [compKey];

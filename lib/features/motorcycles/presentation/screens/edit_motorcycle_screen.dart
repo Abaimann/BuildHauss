@@ -20,7 +20,6 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nicknameController = TextEditingController();
   final _plateController = TextEditingController();
-  final _emojiController = TextEditingController(text: '🏍️');
   final _odometerController = TextEditingController();
 
   String _selectedUsage = 'campuran';
@@ -43,7 +42,6 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
   void dispose() {
     _nicknameController.dispose();
     _plateController.dispose();
-    _emojiController.dispose();
     _odometerController.dispose();
     super.dispose();
   }
@@ -63,7 +61,6 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
         _selectedYear = m.manufactureYear;
         _nicknameController.text = m.nickname;
         _plateController.text = m.plateNumber ?? '';
-        _emojiController.text = m.emoji;
         _selectedUsage = m.usageProfile;
         _loaded = true;
       });
@@ -112,14 +109,6 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
                 style: TextStyle(color: context.muted, fontSize: 12),
               ),
               const SizedBox(height: 24),
-
-              _buildLabel('Emoji'),
-              TextFormField(
-                controller: _emojiController,
-                decoration: const InputDecoration(hintText: 'Contoh: 🏍️'),
-                maxLength: 2,
-                style: const TextStyle(fontSize: 20),
-              ),
 
               _buildLabel('Nama / Nickname'),
               TextFormField(
@@ -292,9 +281,7 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
                 ? null
                 : _plateController.text.trim(),
           ),
-          emoji: Value(
-            _emojiController.text.isEmpty ? '🏍️' : _emojiController.text,
-          ),
+          emoji: Value(_motor?.emoji ?? '🏍️'),
           usageProfile: Value(_selectedUsage),
           updatedAt: Value(DateTime.now()),
         ),
