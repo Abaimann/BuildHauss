@@ -20,6 +20,10 @@
 -keep class io.flutter.**  { *; }
 -keep class io.flutter.plugins.**  { *; }
 
+# Flutter Local Notifications & Gson reflection safety
+-keep class com.dexterous.flutterlocalnotifications.** { *; }
+-keepattributes Signature, InnerClasses, EnclosingMethod, RuntimeVisibleAnnotations
+
 # Google Play deferred components suppression (BuildHaus is offline-first, no Play Core used)
 -dontwarn com.google.android.play.core.**
 

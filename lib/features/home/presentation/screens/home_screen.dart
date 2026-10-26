@@ -7,6 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart'
     show Motorcycle, MotorcycleModel;
 import '../../../../core/database/sample_data_seeder.dart';
+import '../../../../shared/widgets/animated_widgets.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
 
 // Helper widget to show brand name instead of emoji
@@ -169,75 +170,126 @@ class _HomeContent extends ConsumerWidget {
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Motor Selector
-              _MotorSelector(motors: motors, activeMotor: activeMotor),
+              FadeSlideIn(
+                index: 0,
+                child: _MotorSelector(motors: motors, activeMotor: activeMotor),
+              ),
               const SizedBox(height: 20),
 
               // Bike Card
               if (activeMotor != null) ...[
-                _BikeCard(motorcycle: activeMotor!),
+                FadeSlideIn(
+                  index: 1,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 280),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0.03, 0),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    ),
+                    child: _BikeCard(
+                      key: ValueKey('bike_card_${activeMotor!.id}'),
+                      motorcycle: activeMotor!,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 24),
               ],
 
               // Quick Actions
-              _SectionTitle('Aksi Cepat'),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: _QuickActionCard(
-                      icon: Icons.favorite_outline,
-                      label: 'Kesehatan',
-                      subtitle: 'Monitor kondisi',
-                      color: BuildHausTheme.ok,
-                      onTap: () => context.go('/health'),
+              FadeSlideIn(
+                index: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SectionTitle('Aksi Cepat'),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _QuickActionCard(
+                            icon: Icons.favorite_outline,
+                            label: 'Kesehatan',
+                            subtitle: 'Monitor kondisi',
+                            color: BuildHausTheme.ok,
+                            onTap: () => context.go('/health'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _QuickActionCard(
+                            icon: Icons.smart_toy_outlined,
+                            label: 'Konsultasi AI',
+                            subtitle: 'Analisis keluhan',
+                            color: Colors.purple,
+                            onTap: () => context.push('/ai-chat'),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _QuickActionCard(
-                      icon: Icons.smart_toy_outlined,
-                      label: 'Konsultasi AI',
-                      subtitle: 'Analisis keluhan',
-                      color: Colors.purple,
-                      onTap: () => context.push('/ai-chat'),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _QuickActionCard(
+                            icon: Icons.account_balance_wallet_outlined,
+                            label: 'Atur Budget',
+                            subtitle: 'Prioritas servis',
+                            color: BuildHausTheme.warn,
+                            onTap: () => context.go('/budget'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _QuickActionCard(
+                            icon: Icons.build_outlined,
+                            label: 'Cari Sparepart',
+                            subtitle: 'Katalog resmi',
+                            color: Colors.blue,
+                            onTap: () => context.go('/parts'),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: _QuickActionCard(
-                      icon: Icons.account_balance_wallet_outlined,
-                      label: 'Atur Budget',
-                      subtitle: 'Prioritas servis',
-                      color: BuildHausTheme.warn,
-                      onTap: () => context.go('/budget'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _QuickActionCard(
-                      icon: Icons.build_outlined,
-                      label: 'Cari Sparepart',
-                      subtitle: 'Katalog resmi',
-                      color: Colors.blue,
-                      onTap: () => context.go('/parts'),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
 
               // Health Summary
-              _SectionTitle('Ringkasan Kesehatan'),
-              const SizedBox(height: 10),
-              _HealthSummary(activeMotor: activeMotor),
+              FadeSlideIn(
+                index: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SectionTitle('Ringkasan Kesehatan'),
+                    const SizedBox(height: 10),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 280),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      child: _HealthSummary(
+                        key: ValueKey('health_summary_${activeMotor?.id}'),
+                        activeMotor: activeMotor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 24),
 
               // Reminder Notice
-              _ReminderNotice(),
+              FadeSlideIn(
+                index: 4,
+                child: _ReminderNotice(),
+              ),
               const SizedBox(height: 20),
 
               // Bottom padding for nav bar
@@ -326,12 +378,13 @@ class _MotorSelector extends ConsumerWidget {
         itemBuilder: (context, i) {
           final m = motors[i];
           final isActive = activeMotor?.id == m.id;
-          return GestureDetector(
+          return TapScale(
             onTap: () => ref
                 .read(activeMotorcycleProvider.notifier)
                 .setActiveMotorcycle(m),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
               width: 76,
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -399,7 +452,7 @@ class _MotorSelector extends ConsumerWidget {
 class _BikeCard extends ConsumerWidget {
   final Motorcycle motorcycle;
 
-  const _BikeCard({required this.motorcycle});
+  const _BikeCard({super.key, required this.motorcycle});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -416,10 +469,6 @@ class _BikeCard extends ConsumerWidget {
       ),
       error: (_, __) => const SizedBox.shrink(),
       data: (odo) {
-        final odoText = odo != null
-            ? '${odo.odometerKm.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} km'
-            : 'Belum ada data';
-
         return Container(
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -512,17 +561,47 @@ class _BikeCard extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            odoText,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: -0.5,
+                          if (odo != null)
+                            TweenAnimationBuilder<double>(
+                              key: ValueKey('odo_${motorcycle.id}_${odo.odometerKm}'),
+                              tween: Tween<double>(
+                                begin: 0,
+                                end: odo.odometerKm,
+                              ),
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeOutCubic,
+                              builder: (context, animatedKm, _) {
+                                final formatted = animatedKm
+                                    .toStringAsFixed(0)
+                                    .replaceAllMapped(
+                                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                      (m) => '${m[1]},',
+                                    );
+                                return Text(
+                                  '$formatted km',
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    letterSpacing: -0.5,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                );
+                              },
+                            )
+                          else
+                            const Text(
+                              'Belum ada data',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: -0.5,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
                         ],
                       ),
                     ),
@@ -608,7 +687,7 @@ class _CardWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return TapScale(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -626,7 +705,7 @@ class _CardWrapper extends StatelessWidget {
 class _HealthSummary extends ConsumerWidget {
   final Motorcycle? activeMotor;
 
-  const _HealthSummary({this.activeMotor});
+  const _HealthSummary({super.key, this.activeMotor});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -687,80 +766,91 @@ class _HealthSummary extends ConsumerWidget {
             ? BuildHausTheme.warn
             : BuildHausTheme.danger;
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: context.surface2,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: context.line),
-          ),
-          child: Column(
-            children: [
-              Row(
+        return TweenAnimationBuilder<double>(
+          key: ValueKey('health_bar_${activeMotor?.id}_$avgScore'),
+          tween: Tween<double>(begin: 0, end: avgScore),
+          duration: const Duration(milliseconds: 550),
+          curve: Curves.easeOutCubic,
+          builder: (context, animatedScore, _) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: context.surface2,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: context.line),
+              ),
+              child: Column(
                 children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Center(
-                      child: Text(
-                        hasEvidence ? '${avgScore.round()}' : '?',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: statusColor,
+                  Row(
+                    children: [
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Skor Kesehatan',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: context.ink,
+                        child: Center(
+                          child: Text(
+                            hasEvidence ? '${animatedScore.round()}' : '?',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: statusColor,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          !hasEvidence
-                              ? 'Belum cukup data riwayat servis'
-                              : avgScore >= 75
-                              ? 'Baik — semua komponen prima'
-                              : avgScore >= 50
-                              ? 'Perlu perhatian — beberapa komponen perlu dicek'
-                              : 'Perlu segera ditangani',
-                          style: TextStyle(fontSize: 11, color: context.muted),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Skor Kesehatan',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: context.ink,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              !hasEvidence
+                                  ? 'Belum cukup data riwayat servis'
+                                  : avgScore >= 75
+                                  ? 'Baik — semua komponen prima'
+                                  : avgScore >= 50
+                                  ? 'Perlu perhatian — beberapa komponen perlu dicek'
+                                  : 'Perlu segera ditangani',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: context.muted,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      TextButton(
+                        onPressed: () => context.go('/health'),
+                        child: const Text('Detail'),
+                      ),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: () => context.go('/health'),
-                    child: const Text('Detail'),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: animatedScore / 100,
+                      backgroundColor: context.soft,
+                      color: statusColor,
+                      minHeight: 8,
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: avgScore / 100,
-                  backgroundColor: context.soft,
-                  color: statusColor,
-                  minHeight: 8,
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

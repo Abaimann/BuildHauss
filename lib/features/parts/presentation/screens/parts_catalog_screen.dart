@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../shared/widgets/animated_widgets.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
 import '../providers/parts_providers.dart';
 
@@ -97,9 +98,11 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
           if (activeMotor != null)
             SliverToBoxAdapter(
               child: statsAsync.when(
-                data: (stats) => Container(
-                  margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  padding: const EdgeInsets.all(12),
+                data: (stats) => FadeSlideIn(
+                  index: 0,
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: context.surface2,
                     borderRadius: BorderRadius.circular(14),
@@ -215,6 +218,7 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                     ],
                   ),
                 ),
+                ),
                 loading: () => const SizedBox.shrink(),
                 error: (_, __) => const SizedBox.shrink(),
               ),
@@ -290,10 +294,11 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
 
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
-                        child: GestureDetector(
+                        child: TapScale(
                           onTap: () => setState(() => _selectedCategory = cat),
                           child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeOutCubic,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 7,
@@ -370,9 +375,11 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                     final isSelected = _sortBy == s.$1;
                     return Padding(
                       padding: const EdgeInsets.only(right: 4),
-                      child: GestureDetector(
+                      child: TapScale(
                         onTap: () => setState(() => _sortBy = s.$1),
-                        child: Container(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOutCubic,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
                             vertical: 4,
@@ -501,7 +508,11 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                     childAspectRatio: 0.68,
                   ),
                   delegate: SliverChildBuilderDelegate(
-                    (context, i) => _PartCard(item: filtered[i]),
+                    (context, i) => FadeSlideIn(
+                      key: ValueKey('part_card_${filtered[i].part.id}'),
+                      index: i,
+                      child: _PartCard(item: filtered[i]),
+                    ),
                     childCount: filtered.length,
                   ),
                 ),
@@ -610,7 +621,8 @@ class _PartCard extends StatelessWidget {
         break;
     }
 
-    return GestureDetector(
+    return TapScale(
+      pressedScale: 0.97,
       onTap: () => _showPartDetail(context),
       child: Container(
         decoration: BoxDecoration(

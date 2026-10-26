@@ -5,6 +5,7 @@ import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../../shared/widgets/animated_widgets.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
 import '../../../../core/utils/formatters.dart';
 
@@ -113,21 +114,49 @@ class HealthScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _HealthScoreCard(motorcycle: activeMotor),
+                FadeSlideIn(
+                  index: 0,
+                  child: _HealthScoreCard(motorcycle: activeMotor),
+                ),
                 const SizedBox(height: 16),
-                _MileagePredictionHealthCard(motorcycle: activeMotor),
+                FadeSlideIn(
+                  index: 1,
+                  child: _MileagePredictionHealthCard(motorcycle: activeMotor),
+                ),
                 const SizedBox(height: 16),
-                _SelfInspectionBanner(motorcycle: activeMotor),
+                FadeSlideIn(
+                  index: 2,
+                  child: _SelfInspectionBanner(motorcycle: activeMotor),
+                ),
                 const SizedBox(height: 16),
-                _AIRecommendationCard(motorcycle: activeMotor),
+                FadeSlideIn(
+                  index: 3,
+                  child: _AIRecommendationCard(motorcycle: activeMotor),
+                ),
                 const SizedBox(height: 24),
-                _SectionTitle('Status Komponen'),
-                const SizedBox(height: 10),
-                _ComponentStatusSection(motorcycle: activeMotor),
+                FadeSlideIn(
+                  index: 4,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SectionTitle('Status Komponen'),
+                      const SizedBox(height: 10),
+                      _ComponentStatusSection(motorcycle: activeMotor),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 24),
-                _SectionTitle('Pengingat Servis'),
-                const SizedBox(height: 10),
-                _RemindersSection(motorcycle: activeMotor),
+                FadeSlideIn(
+                  index: 5,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SectionTitle('Pengingat Servis'),
+                      const SizedBox(height: 10),
+                      _RemindersSection(motorcycle: activeMotor),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 40),
               ]),
             ),
@@ -244,28 +273,40 @@ class _HealthScoreCard extends ConsumerWidget {
                         color: color.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          SizedBox(
-                            width: 56,
-                            height: 56,
-                            child: CircularProgressIndicator(
-                              value: hasEvidence ? avgScore / 100 : null,
-                              strokeWidth: 6,
-                              backgroundColor: context.soft,
-                              color: color,
-                            ),
-                          ),
-                          Text(
-                            hasEvidence ? '${avgScore.round()}' : '?',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: color,
-                            ),
-                          ),
-                        ],
+                      child: TweenAnimationBuilder<double>(
+                        key: ValueKey('health_ring_${motorcycle.id}_$avgScore'),
+                        tween: Tween<double>(begin: 0, end: avgScore),
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, animatedScore, _) {
+                          return Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 56,
+                                height: 56,
+                                child: CircularProgressIndicator(
+                                  value: hasEvidence
+                                      ? animatedScore / 100
+                                      : null,
+                                  strokeWidth: 6,
+                                  backgroundColor: context.soft,
+                                  color: color,
+                                ),
+                              ),
+                              Text(
+                                hasEvidence
+                                    ? '${animatedScore.round()}'
+                                    : '?',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: color,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(width: 20),
@@ -784,7 +825,15 @@ class _ComponentStatusSection extends ConsumerWidget {
 
         return Column(
           children: [
-            ...data.map((d) => _ComponentTile(data: d, motorcycle: motorcycle)),
+            ...data.asMap().entries.map(
+              (entry) => FadeSlideIn(
+                index: entry.key,
+                child: _ComponentTile(
+                  data: entry.value,
+                  motorcycle: motorcycle,
+                ),
+              ),
+            ),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () => context.push('/history/add'),
@@ -869,14 +918,14 @@ class _ComponentTile extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
+      child: TapScale(
+        pressedScale: 0.98,
         onTap: () => _showComponentPartsModal(
           context,
           data,
           matchedParts,
           motorcycle,
         ),
-        borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(

@@ -29,8 +29,24 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
-        ndk {
-            abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+        if (!project.hasProperty("split-per-abi")) {
+            ndk {
+                abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+            }
+        }
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+        resources {
+            excludes += setOf(
+                "DebugProbesKt.bin",
+                "kotlin-tooling-metadata.json",
+                "META-INF/*.version",
+                "META-INF/proguard/**"
+            )
         }
     }
 
@@ -61,6 +77,8 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

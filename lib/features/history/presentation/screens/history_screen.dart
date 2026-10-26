@@ -5,6 +5,7 @@ import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../../shared/widgets/animated_widgets.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
@@ -150,7 +151,10 @@ class _ServiceTab extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           itemCount: records.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, i) => _ServiceCard(record: records[i]),
+          itemBuilder: (context, i) => FadeSlideIn(
+            index: i,
+            child: _ServiceCard(record: records[i]),
+          ),
         );
       },
     );
@@ -270,7 +274,10 @@ class _OdometerTab extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           itemCount: logs.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, i) => _OdometerCard(log: logs[i]),
+          itemBuilder: (context, i) => FadeSlideIn(
+            index: i,
+            child: _OdometerCard(log: logs[i]),
+          ),
         );
       },
     );
@@ -358,7 +365,10 @@ class _ReminderTab extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           itemCount: reminders.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, i) => _ReminderCard(reminder: reminders[i]),
+          itemBuilder: (context, i) => FadeSlideIn(
+            index: i,
+            child: _ReminderCard(reminder: reminders[i]),
+          ),
         );
       },
     );
