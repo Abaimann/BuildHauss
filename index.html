@@ -2,173 +2,363 @@
 <html lang="id">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>BuildHaus — Aplikasi Perawatan Motor Offline-First (Desain Terkini)</title>
-    <!-- Google Fonts: Plus Jakarta Sans -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BuildHaus — Asisten Pintar Perawatan Motor Pribadi & AI Teman Riding</title>
+    <meta name="description" content="Aplikasi asisten perawatan motor cerdas pertama di Indonesia. Pantau 14 komponen kritis secara deterministik, konsultasi keluhan dengan Google Gemini AI, dan hitung estimasi biaya servis transparan." />
+    
+    <!-- Open Graph & Meta -->
+    <meta property="og:title" content="BuildHaus — Asisten Pintar Perawatan Motor Pribadi" />
+    <meta property="og:description" content="Kalkulator kesehatan motor deterministik, estimasi budget transparan, dan AI Riding Buddy dengan Google Gemini 2.5 Flash." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#0c110d" />
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
     <style>
-      /* ===== BUILDHAUS EXACT DESIGN SYSTEM TOKENS ===== */
       :root {
-        --bg: #0c110d;
+        --bg: #0b0f0c;
+        --bg-alt: #101511;
         --surface: #141a15;
         --surface2: #1b231c;
-        --surface3: #222c24;
+        --surface3: #222d24;
         --ink: #f2f7f3;
-        --ink2: #c4d0c6;
-        --muted: #7e8e81;
-        --line: #263328;
-        --line-subtle: #1c271e;
+        --ink2: #c5d3c8;
+        --muted: #7b8e7f;
+        --line: #223024;
+        --line-accent: rgba(61, 169, 110, 0.25);
         --accent: #3da96e;
         --accent-hover: #48c380;
-        --accent-glow: rgba(61, 169, 110, 0.22);
-        --accent-gradient: linear-gradient(135deg, #1b3320 0%, #0d1b10 100%);
-        --soft: #232d25;
-        --ok: #3da96e;
-        --ok-bg: rgba(61, 169, 110, 0.16);
+        --accent-glow: rgba(61, 169, 110, 0.28);
+        --accent-gradient: linear-gradient(135deg, #1b3823 0%, #0d1b11 100%);
+        --gemini: #8b5cf6;
+        --gemini-glow: rgba(139, 92, 246, 0.25);
         --warn: #d9822b;
-        --warn-bg: rgba(217, 130, 43, 0.16);
         --danger: #e04f43;
-        --danger-bg: rgba(224, 79, 67, 0.16);
-        --purple: #8b5cf6;
-        --purple-bg: rgba(139, 92, 246, 0.16);
-        --blue: #3b82f6;
-        --blue-bg: rgba(59, 130, 246, 0.16);
-        --r-card: 16px;
-        --r-pill: 99px;
-      }
-
-      body.light {
-        --bg: #f4f6f3;
-        --surface: #ffffff;
-        --surface2: #e9eee8;
-        --surface3: #dde4db;
-        --ink: #141a15;
-        --ink2: #38453a;
-        --muted: #6e7d70;
-        --line: #d1dcd0;
-        --line-subtle: #e2eae1;
-        --accent: #2e8d59;
-        --accent-hover: #26774a;
-        --accent-glow: rgba(46, 141, 89, 0.16);
-        --accent-gradient: linear-gradient(135deg, #e4f3e8 0%, #d1ecd9 100%);
-        --soft: #dfe7de;
-        --ok: #2e8d59;
-        --ok-bg: #d9efe0;
-        --warn: #c2701f;
-        --warn-bg: #faeedd;
-        --danger: #cf3d31;
-        --danger-bg: #fde8e6;
-        --purple: #7c3aed;
-        --purple-bg: #f1eaff;
-        --blue: #2563eb;
-        --blue-bg: #e8f0fe;
+        --r-pill: 999px;
+        --r-card: 20px;
+        --max-w: 1200px;
       }
 
       * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+
       body {
-        background: var(--bg);
+        background-color: var(--bg);
         color: var(--ink);
         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-        font-size: 13px;
-        line-height: 1.5;
-        transition: background 0.3s ease, color 0.3s ease;
+        font-size: 15px;
+        line-height: 1.6;
         -webkit-font-smoothing: antialiased;
         overflow-x: hidden;
       }
 
-      /* ===== CONTAINER & STAGE ===== */
-      .wrap { max-width: 1260px; margin: auto; padding: 24px 20px; }
-      .stage {
-        display: grid;
-        grid-template-columns: 1fr 380px 1.1fr;
-        gap: 28px;
-        align-items: center;
-        border: 1px solid var(--line);
-        border-radius: 26px;
-        padding: 24px;
-        background: var(--surface);
-        min-height: 740px;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      /* Background Ambient Glows */
+      .glow-bg {
+        position: fixed;
+        top: 0; left: 0; right: 0; height: 100vh;
+        pointer-events: none;
+        z-index: 0;
+        background:
+          radial-gradient(circle at 15% 15%, rgba(61, 169, 110, 0.08) 0%, transparent 40%),
+          radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.07) 0%, transparent 45%),
+          radial-gradient(circle at 50% 80%, rgba(61, 169, 110, 0.05) 0%, transparent 50%);
       }
 
-      /* ===== TOP HEADER ===== */
-      .header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
-      .brand-mark {
-        width: 44px; height: 44px;
-        border-radius: 13px;
+      /* Container */
+      .wrap {
+        max-width: var(--max-w);
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ===== NAVBAR ===== */
+      .navbar-wrap {
+        position: sticky;
+        top: 16px;
+        z-index: 100;
+        margin-bottom: 24px;
+      }
+      .navbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 24px;
+        background: rgba(17, 23, 18, 0.82);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--line);
+        border-radius: var(--r-pill);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: var(--ink);
+      }
+      .brand-icon {
+        width: 38px; height: 38px;
+        background: var(--accent);
+        border-radius: 10px;
+        display: grid; place-items: center;
+        color: #0c140e;
+        box-shadow: 0 4px 14px var(--accent-glow);
+      }
+      .brand-name { font-size: 18px; font-weight: 800; letter-spacing: -0.4px; }
+      .brand-ver {
+        font-size: 10px; font-weight: 700;
+        background: rgba(61, 169, 110, 0.16);
+        color: var(--accent);
+        padding: 2px 8px; border-radius: var(--r-pill);
+      }
+      .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+      .nav-links a {
+        text-decoration: none;
+        color: var(--ink2);
+        font-size: 13.5px;
+        font-weight: 600;
+        transition: color 0.2s;
+      }
+      .nav-links a:hover { color: var(--accent); }
+      .btn-nav-download {
         background: var(--accent);
         color: #0b140d;
-        display: grid; place-items: center;
-        flex-shrink: 0;
-        box-shadow: 0 4px 16px var(--accent-glow);
-      }
-      .brand-mark svg { width: 26px; height: 26px; }
-      .header-info b { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; }
-      .header-info small { display: block; color: var(--muted); font-size: 11.5px; }
-      .theme-btn {
-        margin-left: auto;
-        background: var(--surface2);
-        border: 1px solid var(--line);
-        color: var(--ink);
-        padding: 8px 16px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 9px 18px;
         border-radius: var(--r-pill);
-        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 4px 18px var(--accent-glow);
+      }
+      .btn-nav-download:hover {
+        background: var(--accent-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 24px rgba(61, 169, 110, 0.4);
+      }
+
+      /* ===== HERO SECTION ===== */
+      .hero {
+        padding: 60px 0 80px;
+        text-align: center;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(61, 169, 110, 0.12);
+        border: 1px solid rgba(61, 169, 110, 0.3);
+        padding: 6px 16px;
+        border-radius: var(--r-pill);
         font-size: 12px;
-        font-weight: 600;
-        display: inline-flex; align-items: center; gap: 8px;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 24px;
+        animation: pulseBadge 3s infinite;
+      }
+      @keyframes pulseBadge {
+        0%, 100% { border-color: rgba(61, 169, 110, 0.3); }
+        50% { border-color: rgba(61, 169, 110, 0.7); box-shadow: 0 0 20px var(--accent-glow); }
+      }
+      .hero-title {
+        font-size: clamp(34px, 5.5vw, 62px);
+        font-weight: 800;
+        letter-spacing: -1.5px;
+        line-height: 1.15;
+        margin-bottom: 20px;
+      }
+      .hero-title span.highlight {
+        background: linear-gradient(135deg, #4ade80 0%, #3da96e 50%, #22c55e 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .hero-title span.ai-highlight {
+        background: linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .hero-subtitle {
+        max-width: 760px;
+        margin: 0 auto 36px;
+        font-size: 16px;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+      .hero-cta-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 48px;
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: #09120b;
+        text-decoration: none;
+        padding: 16px 32px;
+        border-radius: var(--r-pill);
+        font-size: 15px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 8px 28px var(--accent-glow);
+      }
+      .btn-primary:hover {
+        background: var(--accent-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 34px rgba(61, 169, 110, 0.45);
+      }
+      .btn-secondary {
+        background: var(--surface2);
+        color: var(--ink);
+        text-decoration: none;
+        padding: 16px 28px;
+        border-radius: var(--r-pill);
+        font-size: 15px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid var(--line);
         transition: all 0.2s;
       }
-      .theme-btn:hover { border-color: var(--accent); }
+      .btn-secondary:hover {
+        background: var(--surface3);
+        border-color: var(--accent);
+        transform: translateY(-1px);
+      }
+      .hero-specs-row {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 32px;
+        padding: 20px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .spec-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--ink2);
+        text-align: left;
+      }
+      .spec-icon {
+        width: 34px; height: 34px;
+        background: var(--surface2);
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        display: grid; place-items: center;
+        font-size: 16px;
+      }
+      .spec-item b { display: block; font-size: 14px; font-weight: 800; color: var(--ink); }
 
-      /* ===== LEFT EXPLAIN PANEL ===== */
-      .explain { padding-right: 8px; }
-      .badge-version {
-        display: inline-flex; align-items: center; gap: 6px;
-        background: var(--ok-bg); color: var(--ok);
-        font-size: 10px; font-weight: 700;
-        padding: 4px 10px; border-radius: var(--r-pill);
-        letter-spacing: 0.5px; text-transform: uppercase;
+      /* ===== SECTION COMMON ===== */
+      .section { padding: 90px 0; }
+      .section-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--accent);
+        background: rgba(61, 169, 110, 0.12);
+        padding: 4px 12px;
+        border-radius: var(--r-pill);
         margin-bottom: 12px;
       }
-      .explain h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; line-height: 1.2; margin-bottom: 10px; }
-      .explain h1 span { color: var(--ok); }
-      .explain p { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
-      .feature-list { list-style: none; margin: 18px 0; display: flex; flex-direction: column; gap: 10px; }
-      .feature-list li {
-        display: flex; gap: 10px; align-items: flex-start;
-        font-size: 12.5px; color: var(--ink2);
+      .section-title {
+        font-size: clamp(26px, 3.5vw, 42px);
+        font-weight: 800;
+        letter-spacing: -0.8px;
+        line-height: 1.25;
+        margin-bottom: 14px;
       }
-      .feature-list .dot {
-        width: 20px; height: 20px; border-radius: 6px;
-        background: var(--ok-bg); color: var(--ok);
-        display: grid; place-items: center; font-size: 11px;
-        font-weight: bold; flex-shrink: 0; margin-top: 1px;
+      .section-desc {
+        font-size: 15px;
+        color: var(--muted);
+        max-width: 620px;
+        line-height: 1.6;
+      }
+      .section-center { text-align: center; }
+      .section-center .section-desc { margin: 0 auto; }
+
+      /* ===== INTERACTIVE DEMO STAGE ===== */
+      .demo-stage {
+        display: grid;
+        grid-template-columns: 1fr 380px 1fr;
+        gap: 32px;
+        align-items: center;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 32px;
+        padding: 36px 32px;
+        margin-top: 48px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+      }
+      .demo-col-left, .demo-col-right {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .demo-feature-card {
+        background: var(--surface2);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 18px 20px;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .demo-feature-card.active, .demo-feature-card:hover {
+        border-color: var(--accent);
+        background: var(--surface3);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      }
+      .demo-feature-card h4 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: var(--ink);
+      }
+      .demo-feature-card p {
+        font-size: 12.5px;
+        color: var(--muted);
+        line-height: 1.5;
       }
 
-      /* Quick switcher pills on left */
-      .quick-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
-      .quick-nav button {
-        background: var(--surface2); border: 1px solid var(--line);
-        color: var(--muted); padding: 7px 12px; border-radius: 8px;
-        font-size: 11px; font-weight: 600; cursor: pointer;
-        transition: all 0.18s ease;
-      }
-      .quick-nav button.active, .quick-nav button:hover {
-        background: var(--ok); color: #0b140d; border-color: var(--ok);
-      }
-
-      /* ===== PHONE FRAME ===== */
+      /* ===== SMARTPHONE CONTAINER ===== */
       .phone {
-        width: 360px; height: 720px;
-        padding: 10px;
+        width: 360px;
+        height: 720px;
         background: #060907;
         border: 2px solid #243126;
         border-radius: 46px;
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(61, 169, 110, 0.15);
+        padding: 10px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(61, 169, 110, 0.2);
         position: relative;
-        flex-shrink: 0;
+        margin: 0 auto;
       }
       .screen {
         height: 100%;
@@ -176,7 +366,8 @@
         background: var(--bg);
         position: relative;
         overflow: hidden;
-        display: flex; flex-direction: column;
+        display: flex;
+        flex-direction: column;
       }
       .dynamic-island {
         position: absolute; z-index: 20; top: 9px; left: 50%;
@@ -190,1296 +381,1073 @@
         display: flex; justify-content: space-between; align-items: center;
         z-index: 19; color: var(--ink);
       }
-
-      /* ===== APP PAGES ===== */
-      .page-scroll {
+      .screen-content {
         flex: 1;
         overflow-y: auto;
-        padding: 44px 16px 72px;
+        padding: 44px 16px 68px;
         scrollbar-width: none;
       }
-      .page-scroll::-webkit-scrollbar { display: none; }
-      .app-page { display: none; animation: slideUpFade 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
-      .app-page.active { display: block; }
+      .screen-content::-webkit-scrollbar { display: none; }
 
-      @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(8px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      /* ===== APP HEADER BAR ===== */
-      .app-bar {
-        display: flex; align-items: center; justify-content: space-between;
-        margin-bottom: 16px;
-      }
-      .app-bar-brand { display: flex; align-items: center; gap: 8px; }
-      .greeting-chip {
-        display: inline-flex; align-items: center; gap: 5px;
-        background: var(--surface2); border: 1px solid var(--line);
-        padding: 4px 10px; border-radius: var(--r-pill);
-        font-size: 11px; font-weight: 600; color: var(--ink);
-      }
-
-      /* ===== MOTOR SELECTOR CAROUSEL ===== */
-      .motor-carousel {
-        display: flex; gap: 8px; overflow-x: auto;
-        padding-bottom: 4px; margin-bottom: 16px;
-        scrollbar-width: none;
-      }
-      .motor-carousel::-webkit-scrollbar { display: none; }
-      .motor-card-pill {
-        flex-shrink: 0; width: 84px; padding: 9px 8px;
-        border-radius: 14px; background: var(--surface2);
-        border: 1px solid var(--line); text-align: center;
-        cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .motor-card-pill:active { transform: scale(0.96); }
-      .motor-card-pill.active {
-        background: var(--ink); color: var(--bg);
-        border-color: var(--ink);
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-      }
-      .brand-tag {
-        font-size: 8.5px; font-weight: 800; letter-spacing: 0.5px;
-        text-transform: uppercase; opacity: 0.8;
-      }
-      .motor-card-pill b { display: block; font-size: 11px; font-weight: 700; margin: 2px 0 1px; }
-      .motor-card-pill small { font-size: 8.5px; opacity: 0.65; }
-
-      /* ===== BIKE CARD (CURRENT GRADIENT CARD) ===== */
-      .featured-bike-card {
+      /* Mockup Components inside Phone */
+      .m-bike-card {
         background: var(--accent-gradient);
-        border: 1px solid rgba(61, 169, 110, 0.28);
-        border-radius: 20px;
-        padding: 18px;
-        position: relative;
-        overflow: hidden;
-        margin-bottom: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        transition: transform 0.2s ease;
+        border: 1px solid rgba(61, 169, 110, 0.35);
+        border-radius: 18px;
+        padding: 16px;
+        margin-bottom: 14px;
+        color: #fff;
       }
-      .featured-bike-card:hover { transform: translateY(-1px); }
-      .bike-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-      .pill-badge {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 3px 8px; border-radius: var(--r-pill);
-        font-size: 9px; font-weight: 800; letter-spacing: 0.6px;
+      .m-badge {
+        font-size: 9px; font-weight: 800; text-transform: uppercase;
+        background: rgba(61, 169, 110, 0.25);
+        color: #3da96e; padding: 2px 8px; border-radius: 99px;
       }
-      .pill-badge.green {
-        background: rgba(61, 169, 110, 0.2);
-        color: #3da96e;
-      }
-      .brand-box {
-        font-size: 11px; font-weight: 800; color: #fff;
-        background: rgba(255, 255, 255, 0.12);
-        padding: 2px 8px; border-radius: 6px;
-      }
-      .bike-nickname {
-        font-size: 21px; font-weight: 800; color: #fff;
-        line-height: 1.15; margin-bottom: 2px;
-      }
-      .bike-plate { font-size: 11.5px; color: rgba(255, 255, 255, 0.65); }
-      .bike-card-bottom {
-        display: flex; justify-content: space-between; align-items: flex-end;
-        margin-top: 14px;
-      }
-      .odo-label { font-size: 9.5px; color: rgba(255, 255, 255, 0.55); text-transform: uppercase; }
-      .odo-number {
-        font-size: 26px; font-weight: 800; color: #ffffff;
-        letter-spacing: -0.5px; line-height: 1.1;
-      }
-      .update-odo-btn {
-        background: rgba(255, 255, 255, 0.14);
-        border: 0; color: #fff;
-        padding: 6px 12px; border-radius: 8px;
-        font-size: 11px; font-weight: 700; cursor: pointer;
-        display: inline-flex; align-items: center; gap: 4px;
-        transition: background 0.15s;
-      }
-      .update-odo-btn:hover { background: rgba(255, 255, 255, 0.22); }
-
-      /* ===== QUICK ACTIONS 2X2 ===== */
-      .section-heading {
-        display: flex; justify-content: space-between; align-items: center;
-        font-size: 13.5px; font-weight: 800; color: var(--ink);
-        margin: 16px 0 10px;
-      }
-      .quick-actions-grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-        margin-bottom: 20px;
-      }
-      .qa-card {
-        background: var(--surface2);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 12px;
-        cursor: pointer;
-        display: flex; flex-direction: column; align-items: center; text-align: center;
-        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .qa-card:active { transform: scale(0.96); }
-      .qa-card:hover { border-color: var(--line-subtle); background: var(--surface3); }
-      .qa-icon-wrap {
-        width: 32px; height: 32px; border-radius: 9px;
-        display: grid; place-items: center; font-size: 16px; margin-bottom: 6px;
-      }
-      .qa-card b { font-size: 11px; font-weight: 700; color: var(--ink); }
-      .qa-card small { font-size: 9.5px; color: var(--muted); }
-
-      /* ===== HEALTH SUMMARY CARD ===== */
-      .health-summary-box {
+      .m-score-card {
         background: var(--surface2);
         border: 1px solid var(--line);
         border-radius: 16px;
         padding: 14px;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
       }
-      .health-summary-row { display: flex; align-items: center; gap: 12px; }
-      .health-score-square {
-        width: 50px; height: 50px; border-radius: 13px;
-        background: var(--ok-bg); color: var(--ok);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 20px; font-weight: 800; flex-shrink: 0;
+      .m-score-box {
+        width: 48px; height: 48px; border-radius: 12px;
+        background: rgba(61, 169, 110, 0.18); color: var(--accent);
+        display: grid; place-items: center; font-size: 20px; font-weight: 800;
       }
-      .health-summary-info { flex: 1; min-width: 0; }
-      .health-summary-info b { font-size: 13px; font-weight: 700; color: var(--ink); }
-      .health-summary-info p { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
-      .linear-gauge {
-        height: 7px; background: var(--soft);
-        border-radius: var(--r-pill); overflow: hidden; margin-top: 10px;
-      }
-      .linear-gauge-fill { height: 100%; border-radius: var(--r-pill); transition: width 0.5s ease; }
-
-      /* ===== NOTICE / REMINDER ===== */
-      .reminder-notice {
-        background: var(--warn-bg);
-        border: 1px solid rgba(217, 130, 43, 0.35);
-        border-radius: 12px;
-        padding: 11px 13px;
-        display: flex; gap: 10px; align-items: center;
-        margin-bottom: 14px;
-      }
-      .reminder-notice span { font-size: 18px; }
-      .reminder-notice b { display: block; font-size: 11px; color: var(--warn); font-weight: 700; }
-      .reminder-notice p { font-size: 10px; color: var(--muted); margin-top: 1px; }
-
-      /* ===== HEALTH SCREEN SPECIFICS ===== */
-      .circular-gauge-card {
-        background: linear-gradient(135deg, rgba(61, 169, 110, 0.15) 0%, rgba(61, 169, 110, 0.04) 100%);
-        border: 1px solid rgba(61, 169, 110, 0.3);
-        border-radius: 20px; padding: 18px; text-align: center; margin-bottom: 14px;
-      }
-      .gauge-ring-outer {
-        width: 80px; height: 80px; margin: 0 auto 10px; position: relative;
-        display: grid; place-items: center;
-      }
-      .gauge-ring-outer svg { transform: rotate(-90deg); width: 80px; height: 80px; }
-      .gauge-center-text { position: absolute; font-size: 24px; font-weight: 800; color: var(--ok); }
-      .status-pill-big {
-        display: inline-block; padding: 4px 10px; border-radius: var(--r-pill);
-        background: var(--ok-bg); color: var(--ok); font-size: 10px; font-weight: 800;
-        letter-spacing: 0.5px;
-      }
-
-      .mileage-banner {
-        background: var(--surface2); border: 1px solid var(--line);
-        border-radius: 14px; padding: 12px; margin-bottom: 12px;
-        display: flex; align-items: center; gap: 10px;
-      }
-      .mileage-stats-grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;
-      }
-      .mileage-stat-card {
-        background: var(--soft); border-radius: 8px; padding: 6px 10px;
-      }
-      .mileage-stat-card small { font-size: 9px; color: var(--muted); display: block; }
-      .mileage-stat-card b { font-size: 12px; color: var(--ink); }
-
-      /* Component Tile in Health Screen */
-      .comp-tile {
-        background: var(--surface2); border: 1px solid var(--line);
-        border-radius: 14px; padding: 12px; margin-bottom: 8px;
-        cursor: pointer; transition: transform 0.15s;
-      }
-      .comp-tile:active { transform: scale(0.98); }
-      .comp-tile-head { display: flex; align-items: center; gap: 10px; }
-      .comp-icon-box {
-        width: 38px; height: 38px; border-radius: 10px;
-        background: var(--ok-bg); color: var(--ok);
-        display: grid; place-items: center; font-size: 18px; flex-shrink: 0;
-      }
-      .comp-icon-box.warn { background: var(--warn-bg); color: var(--warn); }
-      .comp-icon-box.danger { background: var(--danger-bg); color: var(--danger); }
-      .comp-meta { flex: 1; min-width: 0; }
-      .comp-meta b { font-size: 12px; color: var(--ink); font-weight: 700; }
-      .comp-meta p { font-size: 9.5px; color: var(--muted); }
-      .comp-score-box { text-align: right; }
-      .comp-score-val { font-size: 15px; font-weight: 800; color: var(--ok); }
-      .comp-score-badge {
-        font-size: 8px; font-weight: 800; padding: 2px 6px; border-radius: var(--r-pill);
-      }
-      .matched-part-pill {
-        background: var(--surface); border: 1px solid var(--line);
-        border-radius: 8px; padding: 5px 8px; margin-top: 8px;
-        display: flex; align-items: center; justify-content: space-between;
-        font-size: 10px; color: var(--ink);
-      }
-
-      /* ===== SPAREPART CATALOG SCREEN ===== */
-      .search-box { position: relative; margin-bottom: 10px; }
-      .search-box input {
-        width: 100%; height: 38px; border-radius: 10px;
-        background: var(--surface2); border: 1px solid var(--line);
-        padding: 0 12px 0 34px; color: var(--ink); font-size: 12px;
-        font-family: inherit;
-      }
-      .search-box input:focus { outline: 1px solid var(--ok); }
-      .search-icon-svg {
-        position: absolute; left: 10px; top: 11px;
-        width: 16px; height: 16px; color: var(--muted);
-      }
-
-      .filter-chips-scroll {
-        display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px;
-        scrollbar-width: none;
-      }
-      .filter-chips-scroll::-webkit-scrollbar { display: none; }
-      .filter-chip {
-        flex-shrink: 0; padding: 6px 11px; border-radius: var(--r-pill);
-        background: var(--surface2); border: 1px solid var(--line);
-        font-size: 11px; font-weight: 600; color: var(--ink);
-        cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
-        transition: all 0.15s;
-      }
-      .filter-chip:active { transform: scale(0.96); }
-      .filter-chip.active { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 700; }
-      .filter-chip.budget-active { background: #166534; color: #fff; border-color: #166534; }
-      .filter-chip.health-active { background: #9a3412; color: #fff; border-color: #9a3412; }
-
-      .parts-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-      .part-catalog-card {
-        background: var(--surface2); border: 1px solid var(--line);
-        border-radius: 14px; overflow: hidden; cursor: pointer;
-        display: flex; flex-direction: column; transition: transform 0.15s;
-      }
-      .part-catalog-card:active { transform: scale(0.97); }
-      .part-catalog-card.budget-highlight { border: 1.5px solid rgba(61, 169, 110, 0.6); }
-      .part-catalog-card.health-highlight { border: 1.5px solid rgba(224, 79, 67, 0.6); }
-      .part-img-area {
-        height: 76px; background: var(--surface3);
-        display: flex; align-items: center; justify-content: center;
-        position: relative; font-size: 32px;
-      }
-      .part-tier-tag {
-        position: absolute; top: 6px; left: 6px; right: 6px;
-        padding: 2px 6px; border-radius: 4px;
-        font-size: 8px; font-weight: 800; color: #fff;
-        text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      }
-      .part-tier-tag.budget { background: #166534; }
-      .part-tier-tag.health { background: #9a3412; }
-      .part-body { padding: 9px; flex: 1; display: flex; flex-direction: column; }
-      .part-cat-label { font-size: 8.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
-      .part-title {
-        font-size: 11px; font-weight: 700; color: var(--ink);
-        line-height: 1.3; margin: 2px 0;
-        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-      }
-      .part-brand { font-size: 9.5px; color: var(--muted); margin-bottom: 4px; }
-      .part-price-est { font-size: 11px; font-weight: 800; color: var(--warn); margin-top: auto; }
-
-      /* ===== AKUN (ACCOUNT SCREEN) - MATCHING FLUTTER EXACT ===== */
-      .profile-card {
-        background: linear-gradient(135deg, var(--surface2) 0%, var(--surface) 100%);
-        border: 1px solid var(--line);
-        border-radius: 20px; padding: 18px;
-        display: flex; align-items: center; gap: 14px;
-        margin-bottom: 14px;
-      }
-      .profile-avatar-box {
-        width: 58px; height: 58px; border-radius: 18px;
-        background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
-        border: 1px solid rgba(255,255,255,0.15);
-        display: grid; place-items: center; font-size: 26px; flex-shrink: 0;
-      }
-      .profile-info b { font-size: 16px; font-weight: 800; color: var(--ink); display: block; }
-      .profile-info small { color: var(--muted); font-size: 11.5px; display: block; margin: 1px 0 6px; }
-      .offline-badge {
-        display: inline-flex; align-items: center; gap: 4px;
-        background: var(--ok-bg); color: var(--ok);
-        font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill);
-      }
-
-      .ai-model-banner {
+      .m-comp-tile {
         background: var(--surface2);
-        border: 1px solid rgba(139, 92, 246, 0.3);
-        border-radius: 16px; padding: 12px 14px;
-        display: flex; align-items: center; gap: 12px;
-        cursor: pointer; margin-bottom: 14px; transition: transform 0.15s;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
       }
-      .ai-model-banner:active { transform: scale(0.98); }
-      .ai-model-icon {
-        width: 38px; height: 38px; border-radius: 10px;
-        background: var(--purple-bg); color: var(--purple);
-        display: grid; place-items: center; font-size: 20px; flex-shrink: 0;
+      .m-chat-bubble {
+        padding: 12px 14px;
+        border-radius: 14px;
+        font-size: 12px;
+        margin-bottom: 10px;
+        line-height: 1.45;
       }
-
-      .account-stats-row {
-        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
-        margin-bottom: 18px;
+      .m-chat-user {
+        background: var(--surface2);
+        border: 1px solid var(--line);
+        color: var(--ink);
+        border-bottom-right-radius: 4px;
       }
-      .account-stat-box {
-        background: var(--surface2); border: 1px solid var(--line);
-        border-radius: 14px; padding: 12px 8px; text-align: center;
+      .m-chat-ai {
+        background: var(--surface3);
+        border: 1px solid rgba(61, 169, 110, 0.3);
+        color: var(--ink);
+        border-bottom-left-radius: 4px;
       }
-      .account-stat-box span { font-size: 18px; display: block; margin-bottom: 4px; }
-      .account-stat-box b { font-size: 13px; font-weight: 800; color: var(--ink); display: block; }
-      .account-stat-box small { font-size: 9.5px; color: var(--muted); }
-
-      .settings-list {
-        background: var(--surface2); border: 1px solid var(--line);
-        border-radius: 16px; overflow: hidden; margin-bottom: 14px;
-      }
-      .settings-item {
-        padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;
-        border-bottom: 1px solid var(--line-subtle); cursor: pointer; transition: background 0.15s;
-      }
-      .settings-item:last-child { border-bottom: 0; }
-      .settings-item:hover { background: var(--surface3); }
-      .settings-item-left { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; color: var(--ink); }
-
-      /* ===== AI CHAT OVERLAY MODAL (OPENS FROM HOME / HEALTH) ===== */
-      .ai-overlay-modal {
-        position: absolute; inset: 0; background: var(--bg);
-        z-index: 30; display: none; flex-direction: column;
-        padding: 40px 16px 20px;
-        animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .ai-overlay-modal.active { display: flex; }
-      @keyframes slideInRight {
-        from { transform: translateX(100%); }
-        to { transform: translateX(0); }
-      }
-      .ai-overlay-header {
-        display: flex; align-items: center; gap: 10px; padding-bottom: 10px;
-        border-bottom: 1px solid var(--line); margin-bottom: 12px;
-      }
-      .back-circle-btn {
-        width: 32px; height: 32px; border-radius: 50%;
-        background: var(--surface2); border: 1px solid var(--line);
-        color: var(--ink); display: grid; place-items: center; cursor: pointer;
-        font-size: 14px; flex-shrink: 0;
-      }
-      .ai-chat-bubble {
-        padding: 11px 13px; border-radius: 14px; font-size: 11.5px;
-        line-height: 1.45; margin-bottom: 10px;
-      }
-      .ai-chat-bubble.assistant {
-        background: var(--surface2); border: 1px solid var(--line);
-        color: var(--ink); align-self: flex-start;
-      }
-      .ai-chat-bubble.user {
-        background: var(--ok); color: #07130b; font-weight: 600;
-        align-self: flex-end; margin-left: 30px;
-      }
-      .safety-alert-box {
-        background: var(--danger-bg); border: 1px solid rgba(224, 79, 67, 0.4);
-        border-radius: 10px; padding: 9px 11px; margin-top: 6px;
-        color: var(--danger); font-size: 10.5px; font-weight: 600;
-      }
-
-      /* ===== BOTTOM NAVIGATION BAR (5 REAL TABS) ===== */
-      .bottom-nav {
+      .m-nav-bar {
+        position: absolute; bottom: 0; left: 0; right: 0;
         height: 60px;
-        background: var(--surface);
+        background: rgba(12, 17, 13, 0.95);
         border-top: 1px solid var(--line);
-        display: flex; justify-content: space-around; align-items: center;
-        z-index: 10;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 20;
       }
-      .nav-tab-btn {
-        background: none; border: 0; color: var(--muted);
-        font-family: inherit; font-size: 9.5px; font-weight: 600;
-        display: flex; flex-direction: column; align-items: center; gap: 3px;
-        cursor: pointer; padding: 6px 12px; transition: color 0.15s;
+      .m-nav-item {
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 600;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        cursor: pointer;
       }
-      .nav-tab-btn svg { width: 20px; height: 20px; transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
-      .nav-tab-btn.active { color: var(--ok); font-weight: 800; }
-      .nav-tab-btn.active svg { transform: scale(1.15); stroke-width: 2.5; }
+      .m-nav-item.active { color: var(--accent); }
 
-      /* ===== RIGHT DETAILS / STATS PANEL ===== */
-      .right-panel {
+      /* ===== GRID FEATURES ===== */
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+        margin-top: 48px;
+      }
+      .feature-box {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--r-card);
+        padding: 32px 28px;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+      }
+      .feature-box:hover {
+        border-color: var(--line-accent);
+        transform: translateY(-4px);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+      }
+      .feature-box-icon {
+        width: 52px; height: 52px;
+        border-radius: 14px;
+        background: var(--surface2);
+        border: 1px solid var(--line);
+        display: grid; place-items: center;
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+      .feature-box h3 { font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--ink); }
+      .feature-box p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+      .feature-box .badge-feature {
+        margin-top: 16px;
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      /* ===== DOWNLOAD APK SECTION ===== */
+      .download-card {
+        background: linear-gradient(135deg, rgba(20, 26, 21, 0.95) 0%, rgba(13, 18, 14, 0.95) 100%);
+        border: 1px solid rgba(61, 169, 110, 0.3);
+        border-radius: 36px;
+        padding: 60px 48px;
+        margin-top: 48px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(61, 169, 110, 0.1);
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 48px;
+        align-items: center;
+      }
+      .download-left h2 { font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
+      .download-left p { font-size: 15px; color: var(--muted); line-height: 1.65; margin-bottom: 28px; }
+      .download-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+      .apk-specs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        background: var(--surface2);
+        border: 1px solid var(--line);
+        padding: 16px 20px;
+        border-radius: 16px;
+        font-size: 12.5px;
+      }
+      .apk-spec-row b { color: var(--ink); font-weight: 700; }
+      .apk-spec-row span { color: var(--muted); }
+      
+      .download-right {
+        background: var(--surface2);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 28px;
+        text-align: center;
+      }
+      .qr-box {
+        width: 170px; height: 170px;
+        background: #ffffff;
+        border-radius: 16px;
+        margin: 0 auto 16px;
+        display: grid; place-items: center;
+        padding: 12px;
+      }
+      .qr-box svg { width: 100%; height: 100%; }
+      .download-right small { display: block; color: var(--muted); font-size: 11.5px; }
+
+      /* Steps Guide */
+      .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-top: 36px;
+      }
+      .step-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 22px;
+        position: relative;
+      }
+      .step-num {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #0c140e;
+        display: grid; place-items: center;
+        font-size: 13px; font-weight: 800;
+        margin-bottom: 12px;
+      }
+      .step-card b { font-size: 14px; font-weight: 700; display: block; margin-bottom: 6px; }
+      .step-card p { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+      /* ===== COMPARISON TABLE ===== */
+      .table-wrap {
+        margin-top: 48px;
+        overflow-x: auto;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+      table.comp-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+        text-align: left;
+      }
+      table.comp-table th, table.comp-table td {
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--line);
+      }
+      table.comp-table th {
+        background: var(--surface2);
+        color: var(--ink);
+        font-weight: 800;
+      }
+      table.comp-table th.col-buildhaus {
+        color: var(--accent);
+        background: rgba(61, 169, 110, 0.12);
+        border-left: 1px solid var(--accent);
+        border-right: 1px solid var(--accent);
+      }
+      table.comp-table td.col-buildhaus {
+        font-weight: 700;
+        color: var(--accent);
+        background: rgba(61, 169, 110, 0.05);
         border-left: 1px solid var(--line);
-        padding-left: 26px;
-        color: var(--muted); font-size: 12px; line-height: 1.6;
+        border-right: 1px solid var(--line);
       }
-      .metric-badge {
-        display: inline-flex; align-items: center; gap: 8px;
-        background: var(--surface2); border: 1px solid var(--line);
-        padding: 8px 14px; border-radius: 12px; margin-bottom: 8px; width: 100%;
+
+      /* ===== FAQ ACCORDION ===== */
+      .faq-list {
+        max-width: 800px;
+        margin: 48px auto 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
       }
-      .metric-badge b { font-size: 15px; color: var(--ink); }
-      .metric-badge small { font-size: 11px; color: var(--ok); font-weight: 700; margin-left: auto; }
+      .faq-item {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: border-color 0.2s;
+      }
+      .faq-item.open { border-color: var(--accent); }
+      .faq-question {
+        padding: 20px 24px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+      }
+      .faq-question span.arrow {
+        transition: transform 0.25s;
+        color: var(--muted);
+      }
+      .faq-item.open .faq-question span.arrow {
+        transform: rotate(180deg);
+        color: var(--accent);
+      }
+      .faq-answer {
+        padding: 0 24px 20px;
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.6;
+        display: none;
+      }
+      .faq-item.open .faq-answer { display: block; }
+
+      /* ===== FOOTER ===== */
+      .footer {
+        padding: 60px 0 40px;
+        border-top: 1px solid var(--line);
+        margin-top: 80px;
+      }
+      .footer-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 32px;
+        margin-bottom: 40px;
+      }
+      .footer-brand small {
+        display: block;
+        max-width: 320px;
+        color: var(--muted);
+        font-size: 12.5px;
+        margin-top: 8px;
+        line-height: 1.6;
+      }
+      .footer-links { display: flex; gap: 48px; }
+      .footer-links div b { display: block; font-size: 13px; font-weight: 700; margin-bottom: 12px; color: var(--ink); }
+      .footer-links div a {
+        display: block; font-size: 13px; color: var(--muted);
+        text-decoration: none; margin-bottom: 8px;
+        transition: color 0.15s;
+      }
+      .footer-links div a:hover { color: var(--accent); }
+      .footer-bottom {
+        padding-top: 24px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-size: 12px;
+        color: var(--muted);
+      }
 
       /* Responsive */
-      @media (max-width: 990px) {
-        .stage { grid-template-columns: 1fr 360px; }
-        .right-panel { display: none; }
+      @media (max-width: 992px) {
+        .demo-stage { grid-template-columns: 1fr; }
+        .download-card { grid-template-columns: 1fr; }
+        .steps-grid { grid-template-columns: 1fr 1fr; }
+        .nav-links { display: none; }
       }
-      @media (max-width: 768px) {
-        .stage { display: flex; flex-direction: column; padding: 12px; }
-        .phone { width: 100%; max-width: 360px; height: 680px; }
+      @media (max-width: 600px) {
+        .steps-grid { grid-template-columns: 1fr; }
+        .hero-specs-row { flex-direction: column; align-items: flex-start; }
       }
     </style>
   </head>
   <body>
+    <div class="glow-bg"></div>
+
     <div class="wrap">
-      <!-- HEADER -->
-      <header class="header">
-        <div class="brand-mark">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-          </svg>
-        </div>
-        <div class="header-info">
-          <b>BuildHaus</b>
-          <small>Offline-First Motorcycle Health, Smart Spareparts & AI Assistant</small>
-        </div>
-        <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">
-          <span>🌙</span> Mode Gelap
-        </button>
-      </header>
+      <!-- Navbar -->
+      <div class="navbar-wrap">
+        <nav class="navbar">
+          <a href="#" class="brand">
+            <div class="brand-icon">
+              <!-- BuildHaus Helmet/Motor Logo SVG -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+                <path d="M12 2L3 9v11a2 2 0 002 2h14a2 2 0 002-2V9l-9-7z"></path>
+                <path d="M9 22V12h6v10"></path>
+              </svg>
+            </div>
+            <div>
+              <span class="brand-name">BuildHaus</span>
+              <span class="brand-ver">v1.0.0</span>
+            </div>
+          </a>
 
-      <!-- STAGE CONTAINER -->
-      <div class="stage">
-        <!-- LEFT PANEL: EXPLANATION -->
-        <div class="explain">
-          <div class="badge-version">⚡ Rilis Terkini — 100% Persis Flutter Asli</div>
-          <h1>5 Tab Utama Sesuai <span>Aplikasi Asli</span></h1>
-          <p>
-            Menu navigasi bawah sekarang sudah <strong>persis seperti aplikasi BuildHaus asli</strong>: <b>Beranda</b>, <b>Sehat</b>, <b>Sparepart</b>, <b>Riwayat</b>, dan <b>Akun</b>.
-          </p>
-          <p>
-            Fitur <b>Konsultasi AI</b> dapat dibuka langsung dari kartu aksi cepat di Beranda atau tombol di layar Sehat layaknya di aplikasi Flutter aslinya.
-          </p>
+          <ul class="nav-links">
+            <li><a href="#fitur">Fitur</a></li>
+            <li><a href="#demo">Live Demo</a></li>
+            <li><a href="#komparasi">Keunggulan</a></li>
+            <li><a href="#download">Unduh APK</a></li>
+            <li><a href="#faq">FAQ</a></li>
+          </ul>
 
-          <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-top: 14px;">Pilih Tab Layar:</div>
-          <div class="quick-nav">
-            <button class="active" onclick="switchTab('home')">🏠 Beranda</button>
-            <button onclick="switchTab('health')">💚 Sehat</button>
-            <button onclick="switchTab('parts')">⚙️ Sparepart</button>
-            <button onclick="switchTab('history')">📜 Riwayat</button>
-            <button onclick="switchTab('account')">👤 Akun</button>
+          <a href="#download" class="btn-nav-download">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="16" height="16">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download APK
+          </a>
+        </nav>
+      </div>
+
+      <!-- HERO SECTION -->
+      <section class="hero">
+        <div class="hero-badge">
+          ✨ Ditenagai Google Gemini 2.5 Flash • 100% Offline-First SQLite
+        </div>
+        <h1 class="hero-title">
+          Rawat Motor Kesayangan dengan <span class="highlight">Data Nyata</span> & <span class="ai-highlight">AI Pintar</span>
+        </h1>
+        <p class="hero-subtitle">
+          Aplikasi asisten perawatan motor pribadi pertama di Indonesia yang menggabungkan kalkulasi kesehatan deterministik, AI chat santai teman riding, dan estimasi biaya servis transparan. Ringan, hemat memori, dan data tetap aman di HP Anda.
+        </p>
+
+        <div class="hero-cta-group">
+          <a href="#download" class="btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Unduh APK Android (27.9 MB)
+          </a>
+          <a href="#demo" class="btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="18" height="18">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+              <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+            Coba Demo Interaktif
+          </a>
+        </div>
+
+        <div class="hero-specs-row">
+          <div class="spec-item">
+            <div class="spec-icon">⚡</div>
+            <div>
+              <b>0 MB Download AI</b>
+              <span>Tanpa unduh file model besar</span>
+            </div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-icon">🔒</div>
+            <div>
+              <b>100% Offline-First</b>
+              <span>Data aman di SQLite lokal</span>
+            </div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-icon">🩺</div>
+            <div>
+              <b>14 Komponen Kritis</b>
+              <span>Dimonitor secara presisi</span>
+            </div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-icon">🏍️</div>
+            <div>
+              <b>Honda & Yamaha</b>
+              <span>Aturan spesifik tiap model</span>
+            </div>
           </div>
         </div>
+      </section>
 
-        <!-- CENTER: INTERACTIVE PHONE FRAME -->
-        <div class="phone">
-          <div class="screen">
+      <!-- LIVE INTERACTIVE DEMO STAGE -->
+      <section class="section" id="demo">
+        <div class="section-center">
+          <span class="section-badge">Simulasi Langsung</span>
+          <h2 class="section-title">Lihat & Coba Langsung di Layar Smartphone</h2>
+          <p class="section-desc">Klik tombol di samping atau gunakan layar ponsel di bawah untuk merasakan pengalaman interaktif BuildHaus sebelum Anda mengunduh.</p>
+        </div>
+
+        <div class="demo-stage">
+          <!-- Left Column Navigation -->
+          <div class="demo-col-left">
+            <div class="demo-feature-card active" onclick="switchMockup('home')">
+              <h4>🏠 Beranda & Odometer</h4>
+              <p>Ringkasan odometer aktual, estimasi kilometer per minggu, kartu motor aktif, dan skor kesehatan sekilas.</p>
+            </div>
+            <div class="demo-feature-card" onclick="switchMockup('health')">
+              <h4>🩺 Status Kesehatan Komponen</h4>
+              <p>Skor 0-100% untuk oli, kampas rem, CVT, ban, aki, dan badge "KELUHAN" jika baru dilaporkan di AI.</p>
+            </div>
+            <div class="demo-feature-card" onclick="switchMockup('budget')">
+              <h4>💰 Smart Budget & Estimasi</h4>
+              <p>Alokasi anggaran servis cerdas: mendahulukan keselamatan sebelum perawatan rutin.</p>
+            </div>
+          </div>
+
+          <!-- Phone Simulator -->
+          <div class="phone">
             <div class="dynamic-island"></div>
             <div class="status-bar">
               <span>09:41</span>
-              <span>●●● ▰</span>
+              <span>5G • 100%</span>
             </div>
 
-            <!-- SCROLLABLE PAGE CONTAINER -->
-            <div class="page-scroll">
-
-              <!-- ==================== 1. BERANDA (HOME SCREEN) ==================== -->
-              <div class="app-page active" id="tab-home">
-                <div class="app-bar">
-                  <div class="app-bar-brand">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--ok)" stroke-width="2.5">
-                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                    </svg>
-                    <b style="font-size: 16px; font-weight: 800;">BuildHaus</b>
-                  </div>
-                  <div class="greeting-chip">
-                    <span>☀️</span> Pagi
-                  </div>
-                </div>
-
-                <!-- Motor Selector Carousel -->
-                <div class="motor-carousel" id="motorCarousel">
-                  <!-- Injected via JS -->
-                </div>
-
-                <!-- Featured Bike Card -->
-                <div class="featured-bike-card" id="featuredBikeCard">
-                  <div class="bike-card-top">
-                    <div class="pill-badge green">
-                      <span>★</span> MOTOR UTAMA
-                    </div>
-                    <div class="brand-box" id="bikeBrandTag">HONDA</div>
-                  </div>
-                  <div class="bike-nickname" id="bikeName">Vario 160 Hitam</div>
-                  <div class="bike-plate" id="bikePlate">B 2841 RDM</div>
-                  <div class="bike-card-bottom">
-                    <div>
-                      <div class="odo-label">Odometer</div>
-                      <div class="odo-number" id="bikeOdo">18.450 km</div>
-                    </div>
-                    <button class="update-odo-btn" onclick="updateOdometerPrompt()">
-                      <span>✏️</span> Update
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Quick Actions Grid -->
-                <div class="section-heading">
-                  <span>Aksi Cepat</span>
-                </div>
-                <div class="quick-actions-grid">
-                  <div class="qa-card" onclick="switchTab('health')">
-                    <div class="qa-icon-wrap" style="background: var(--ok-bg); color: var(--ok);">♥</div>
-                    <b>Kesehatan</b>
-                    <small>Monitor kondisi</small>
-                  </div>
-                  <div class="qa-card" onclick="openAiChatModal()">
-                    <div class="qa-icon-wrap" style="background: var(--purple-bg); color: var(--purple);">🤖</div>
-                    <b>Konsultasi AI</b>
-                    <small>Analisis keluhan</small>
-                  </div>
-                  <div class="qa-card" onclick="switchTab('parts')">
-                    <div class="qa-icon-wrap" style="background: var(--warn-bg); color: var(--warn);">👛</div>
-                    <b>Atur Budget</b>
-                    <small>Prioritas servis</small>
-                  </div>
-                  <div class="qa-card" onclick="switchTab('parts')">
-                    <div class="qa-icon-wrap" style="background: var(--blue-bg); color: var(--blue);">🔧</div>
-                    <b>Cari Sparepart</b>
-                    <small>Katalog resmi</small>
-                  </div>
-                </div>
-
-                <!-- Health Summary -->
-                <div class="section-heading">
-                  <span>Ringkasan Kesehatan</span>
-                </div>
-                <div class="health-summary-box">
-                  <div class="health-summary-row">
-                    <div class="health-score-square" id="homeScoreSquare">85</div>
-                    <div class="health-summary-info">
-                      <b>Skor Kesehatan</b>
-                      <p id="homeScoreDesc">Baik — semua komponen prima</p>
-                    </div>
-                    <button class="theme-btn" style="padding: 4px 10px; font-size: 10px;" onclick="switchTab('health')">Detail</button>
-                  </div>
-                  <div class="linear-gauge">
-                    <div class="linear-gauge-fill" id="homeScoreBar" style="width: 85%; background: var(--ok);"></div>
-                  </div>
-                </div>
-
-                <!-- Reminder Notice -->
-                <div class="reminder-notice">
-                  <span>🔔</span>
-                  <div>
-                    <b>Pengingat Servis</b>
-                    <p>Periksa kampas rem secara berkala untuk keselamatan berkendara.</p>
-                  </div>
-                </div>
+            <div class="screen">
+              <div class="screen-content" id="phone-screen">
+                <!-- Content dynamically rendered via JavaScript -->
               </div>
 
-              <!-- ==================== 2. SEHAT (HEALTH SCREEN) ==================== -->
-              <div class="app-page" id="tab-health">
-                <div class="app-bar">
-                  <b style="font-size: 17px; font-weight: 800;">Kesehatan Motor</b>
-                  <div class="greeting-chip" id="healthMotorBadge">Vario 160</div>
+              <!-- Phone Bottom Nav -->
+              <div class="m-nav-bar">
+                <div class="m-nav-item active" id="tab-home" onclick="switchMockup('home')">
+                  <span>🏠</span>
+                  <span>Beranda</span>
                 </div>
-
-                <!-- Circular Health Gauge Card -->
-                <div class="circular-gauge-card">
-                  <div class="gauge-ring-outer">
-                    <svg viewBox="0 0 36 36">
-                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--soft)" stroke-width="3.2"/>
-                      <path id="gaugeSvgPath" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--ok)" stroke-dasharray="85, 100" stroke-width="3.2" stroke-linecap="round"/>
-                    </svg>
-                    <div class="gauge-center-text" id="healthBigScore">85</div>
-                  </div>
-                  <div class="status-pill-big" id="healthStatusPill">BAIK — KONDISI PRIMA</div>
-                  <p style="font-size: 10px; color: var(--muted); margin-top: 8px;">
-                    Estimasi berbasis riwayat servis dan interval pakai aktual.
-                  </p>
+                <div class="m-nav-item" id="tab-health" onclick="switchMockup('health')">
+                  <span>🩺</span>
+                  <span>Kesehatan</span>
                 </div>
-
-                <!-- Mileage Prediction Card -->
-                <div class="mileage-banner">
-                  <span style="font-size: 22px;">📈</span>
-                  <div style="flex: 1;">
-                    <b style="font-size: 11.5px; color: var(--ink);">Estimasi Penggunaan Terkalibrasi</b>
-                    <p style="font-size: 9.5px; color: var(--muted);">Akurasi tinggi dari 3+ periode bulanan</p>
-                    <div class="mileage-stats-grid">
-                      <div class="mileage-stat-card">
-                        <small>Rata-rata/minggu</small>
-                        <b id="kmWeekText">145 km</b>
-                      </div>
-                      <div class="mileage-stat-card">
-                        <small>Rata-rata/bulan</small>
-                        <b id="kmMonthText">580 km</b>
-                      </div>
-                    </div>
-                  </div>
+                <div class="m-nav-item" id="tab-chat" onclick="switchMockup('chat')">
+                  <span>✨</span>
+                  <span>AI Chat</span>
                 </div>
-
-                <!-- AI Recommendation Banner with Button to Chat -->
-                <div class="mileage-banner" style="border-color: rgba(139, 92, 246, 0.3); background: var(--surface2);">
-                  <div class="ai-avatar" style="width:34px;height:34px;font-size:16px;">🤖</div>
-                  <div style="flex:1;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;">
-                      <b style="font-size:11.5px;">AI Rekomendasi</b>
-                      <span style="font-size:8px;font-weight:bold;color:var(--purple);background:var(--purple-bg);padding:1px 6px;border-radius:99px;">OFFLINE</span>
-                    </div>
-                    <p style="font-size:10px;color:var(--muted);margin-top:2px;" id="aiHealthSnippet">
-                      Motor dalam kondisi baik. Pastikan cek kampas rem rutin.
-                    </p>
-                  </div>
-                  <button class="theme-btn" style="padding:4px 8px;font-size:10px;" onclick="openAiChatModal()">Tanya AI</button>
-                </div>
-
-                <!-- Component Status List -->
-                <div class="section-heading">
-                  <span>Status Komponen</span>
-                </div>
-                <div id="componentTilesList">
-                  <!-- Injected via JS -->
-                </div>
-              </div>
-
-              <!-- ==================== 3. SPAREPART CATALOG SCREEN ==================== -->
-              <div class="app-page" id="tab-parts">
-                <div class="app-bar">
-                  <div>
-                    <b style="font-size: 17px; font-weight: 800;">Katalog Sparepart</b>
-                    <small style="display:block; color: var(--muted); font-size: 10.5px;" id="catalogSubtitle">Rekomendasi untuk Vario 160</small>
-                  </div>
-                </div>
-
-                <!-- Search Input -->
-                <div class="search-box">
-                  <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                  <input type="text" id="partSearchInput" placeholder="Cari suku cadang, merek, atau tipe..." oninput="filterPartsGrid()" />
-                </div>
-
-                <!-- Smart Filter Chips -->
-                <div class="filter-chips-scroll" id="filterChipsRow">
-                  <button class="filter-chip active" onclick="setCategoryFilter('Semua', this)">Semua</button>
-                  <button class="filter-chip" onclick="setCategoryFilter('Rekomendasi Budget', this)">👛 Rekomendasi Budget</button>
-                  <button class="filter-chip" onclick="setCategoryFilter('Perhatian Kesehatan', this)">⚠️ Perhatian Kesehatan</button>
-                  <button class="filter-chip" onclick="setCategoryFilter('Oli', this)">Oli</button>
-                  <button class="filter-chip" onclick="setCategoryFilter('Pengereman', this)">Pengereman</button>
-                  <button class="filter-chip" onclick="setCategoryFilter('Transmisi', this)">Transmisi</button>
-                </div>
-
-                <!-- 2-Column Product Grid -->
-                <div class="parts-grid-2col" id="partsGrid">
-                  <!-- Injected via JS -->
-                </div>
-              </div>
-
-              <!-- ==================== 4. RIWAYAT (HISTORY SCREEN) ==================== -->
-              <div class="app-page" id="tab-history">
-                <div class="app-bar">
-                  <b style="font-size: 17px; font-weight: 800;">Riwayat Servis</b>
-                  <button class="theme-btn" style="padding: 4px 10px; font-size: 11px;" onclick="addServiceRecordPrompt()">+ Catat Servis</button>
-                </div>
-
-                <div class="filter-chips-scroll">
-                  <button class="filter-chip active">Semua Servis</button>
-                  <button class="filter-chip">Odometer Log</button>
-                  <button class="filter-chip">Pengingat</button>
-                </div>
-
-                <div id="historyRecordsList" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-                  <!-- Injected via JS -->
-                </div>
-              </div>
-
-              <!-- ==================== 5. AKUN (ACCOUNT SCREEN) ==================== -->
-              <div class="app-page" id="tab-account">
-                <div class="app-bar">
-                  <b style="font-size: 17px; font-weight: 800;">Akun & Pengaturan</b>
-                  <div class="greeting-chip">⚙️ v1.0.0</div>
-                </div>
-
-                <!-- Profile Card -->
-                <div class="profile-card">
-                  <div class="profile-avatar-box">🏍️</div>
-                  <div class="profile-info">
-                    <b>Rider BuildHaus</b>
-                    <small>Pengguna Offline</small>
-                    <div class="offline-badge">⚡ Offline Mode Aktif</div>
-                  </div>
-                </div>
-
-                <!-- AI Offline Model Management Banner -->
-                <div class="ai-model-banner" onclick="openAiChatModal()">
-                  <div class="ai-model-icon">🤖</div>
-                  <div style="flex:1;">
-                    <b style="font-size:12px; color:var(--ink);">AI Offline Qwen3 (378 MB)</b>
-                    <p style="font-size:9.5px; color:var(--muted); margin-top:1px;">Model AI on-device aktif & terkalibrasi</p>
-                  </div>
-                  <span style="color:var(--purple); font-size:14px;">›</span>
-                </div>
-
-                <!-- Quick Stats Section -->
-                <div class="account-stats-row">
-                  <div class="account-stat-box">
-                    <span>🔧</span>
-                    <b id="accTotalService">3</b>
-                    <small>Total Servis</small>
-                  </div>
-                  <div class="account-stat-box">
-                    <span>💵</span>
-                    <b id="accTotalCost">Rp 220rb</b>
-                    <small>Total Biaya</small>
-                  </div>
-                  <div class="account-stat-box">
-                    <span>🔔</span>
-                    <b>2</b>
-                    <small>Reminders</small>
-                  </div>
-                </div>
-
-                <!-- Motor Saya List -->
-                <div class="section-heading">
-                  <span>Motor Saya</span>
-                </div>
-                <div class="settings-list" id="accountMotorList">
-                  <!-- Injected via JS -->
-                </div>
-
-                <!-- Tampilan & Tema -->
-                <div class="section-heading">
-                  <span>Tampilan</span>
-                </div>
-                <div class="settings-list">
-                  <div class="settings-item" onclick="toggleTheme()">
-                    <div class="settings-item-left">
-                      <span>🌓</span>
-                      <span>Ganti Mode (Gelap / Terang)</span>
-                    </div>
-                    <span style="font-size:10px; color:var(--muted);" id="themeModeText">Mode Gelap</span>
-                  </div>
-                </div>
-
-                <!-- Cadangan & Data -->
-                <div class="section-heading">
-                  <span>Manajemen Data</span>
-                </div>
-                <div class="settings-list">
-                  <div class="settings-item" onclick="alert('Mengekspor database lokal terenkripsi AES-256-GCM...')">
-                    <div class="settings-item-left">
-                      <span>🔒</span>
-                      <span>Ekspor Cadangan Terenkripsi</span>
-                    </div>
-                    <span style="font-size:11px; color:var(--ok);">AES-256</span>
-                  </div>
-                  <div class="settings-item" onclick="alert('Memulihkan database dari file cadangan...')">
-                    <div class="settings-item-left">
-                      <span>📥</span>
-                      <span>Pulihkan Data dari Berkas</span>
-                    </div>
-                    <span style="font-size:11px; color:var(--muted);">Import</span>
-                  </div>
-                </div>
-
-                <!-- Tentang -->
-                <div class="section-heading">
-                  <span>Tentang Aplikasi</span>
-                </div>
-                <div class="settings-list">
-                  <div class="settings-item">
-                    <div class="settings-item-left">
-                      <span>📱</span>
-                      <span>BuildHaus Mobile App</span>
-                    </div>
-                    <span style="font-size:11px; color:var(--muted);">v1.0.0 (Release)</span>
-                  </div>
-                  <div class="settings-item">
-                    <div class="settings-item-left">
-                      <span>💾</span>
-                      <span>Basis Data Lokal</span>
-                    </div>
-                    <span style="font-size:11px; color:var(--ok);">Drift SQLite</span>
-                  </div>
-                  <div class="settings-item">
-                    <div class="settings-item-left">
-                      <span>⚙️</span>
-                      <span>Mesin AI Native</span>
-                    </div>
-                    <span style="font-size:11px; color:var(--purple);">llama.cpp NDK</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            <!-- AI CHAT MODAL OVERLAY (Opened from Home / Sehat) -->
-            <div class="ai-overlay-modal" id="aiOverlayModal">
-              <div class="ai-overlay-header">
-                <button class="back-circle-btn" onclick="closeAiChatModal()">←</button>
-                <div style="flex:1;">
-                  <b style="font-size:13px; color:var(--ink);">AI Mekanik BuildHaus</b>
-                  <small style="display:flex;align-items:center;gap:4px;color:var(--ok);font-size:9.5px;font-weight:700;">
-                    <span style="width:6px;height:6px;background:var(--ok);border-radius:50%;"></span>
-                    OFFLINE · ON-DEVICE (QWEN3 GGUF)
-                  </small>
-                </div>
-              </div>
-
-              <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px;" id="aiMessageFeed">
-                <div class="ai-chat-bubble assistant">
-                  Halo! Saya asisten mekanik offline BuildHaus. Motor aktif kamu saat ini adalah <b id="aiChatMotorName">Honda Vario 160 (18.450 km)</b>. Ada keluhan motor atau komponen yang ingin ditanyakan?
-                </div>
-              </div>
-
-              <div style="margin-top:10px;">
-                <div style="font-size:9.5px; font-weight:700; color:var(--muted); margin-bottom:6px;">PILIH KELUHAN CEPAT:</div>
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                  <button class="theme-btn" style="width:100%; justify-content:flex-start; font-size:10.5px; padding:6px 10px;" onclick="sendAiPrompt('Rem depan berdecit dan piringan terasa panas')">
-                    🛑 "Rem depan berdecit dan piringan panas"
-                  </button>
-                  <button class="theme-btn" style="width:100%; justify-content:flex-start; font-size:10.5px; padding:6px 10px;" onclick="sendAiPrompt('Tarikan motor berat saat tanjakan / getar CVT')">
-                    ⚙️ "Tarikan berat & getar pada CVT"
-                  </button>
-                  <button class="theme-btn" style="width:100%; justify-content:flex-start; font-size:10.5px; padding:6px 10px;" onclick="sendAiPrompt('Kapan batas maksimal ganti oli mesin?')">
-                    🛢️ "Kapan batas maksimal ganti oli mesin?"
-                  </button>
+                <div class="m-nav-item" id="tab-budget" onclick="switchMockup('budget')">
+                  <span>💰</span>
+                  <span>Budget</span>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- BOTTOM NAVIGATION BAR (EXACT 5 FLUTTER TABS) -->
-            <nav class="bottom-nav">
-              <button class="nav-tab-btn active" id="nav-home" onclick="switchTab('home')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                <span>Beranda</span>
-              </button>
-              <button class="nav-tab-btn" id="nav-health" onclick="switchTab('health')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                <span>Sehat</span>
-              </button>
-              <button class="nav-tab-btn" id="nav-parts" onclick="switchTab('parts')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                <span>Sparepart</span>
-              </button>
-              <button class="nav-tab-btn" id="nav-history" onclick="switchTab('history')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
-                <span>Riwayat</span>
-              </button>
-              <button class="nav-tab-btn" id="nav-account" onclick="switchTab('account')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <span>Akun</span>
-              </button>
-            </nav>
+          <!-- Right Column Navigation -->
+          <div class="demo-col-right">
+            <div class="demo-feature-card" onclick="switchMockup('chat')">
+              <h4>✨ Gemini 2.5 Flash Riding Buddy</h4>
+              <p>Chat konsultasi dengan gaya bahasa santai sesama anak motor. Langsung tebak masalah tanpa basa-basi.</p>
+            </div>
+            <div class="demo-feature-card" onclick="switchMockup('inspection')">
+              <h4>🔍 Inspeksi Mandiri 10-Titik</h4>
+              <p>Pemeriksaan visual fisik mandiri untuk deteksi dini rem blong, oli rembes, dan aki soak.</p>
+            </div>
+            <div class="demo-feature-card" onclick="switchMockup('catalog')">
+              <h4>⚙️ Kompatibilitas Suku Cadang</h4>
+              <p>Katalog suku cadang terverifikasi sesuai model motor. Suku cadang Honda tidak akan tertukar dengan Yamaha.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURES SECTION -->
+      <section class="section" id="fitur">
+        <div class="section-center">
+          <span class="section-badge">Keunggulan Sistem</span>
+          <h2 class="section-title">Fitur Komprehensif untuk Pengendara Modern</h2>
+          <p class="section-desc">Dirancang oleh pengendara untuk pengendara. Tanpa iklan yang mengganggu dan tanpa biaya langganan.</p>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature 1 -->
+          <div class="feature-box">
+            <div class="feature-box-icon">🩺</div>
+            <h3>Kalkulasi Deterministik</h3>
+            <p>Skor kondisi komponen dihitung secara transparan berbasis odometer aktual, batas hari, dan pedoman resmi pabrikan. Bukan sekadar perkiraan kasar.</p>
+            <span class="badge-feature">Formula Terverifikasi →</span>
+          </div>
+
+          <!-- Feature 2 -->
+          <div class="feature-box">
+            <div class="feature-box-icon">🤖</div>
+            <h3>AI Teman Riding (Gemini 2.5 Flash)</h3>
+            <p>Konsultasikan keluhan motor dengan bahasa santai (*"bro/sob"*). AI langsung menebak masalah, memberi tips cek mandiri, dan menurunkan skor komponen yang dikeluhkan.</p>
+            <span class="badge-feature" style="color: var(--gemini);">Google Gemini 2.5 Flash →</span>
+          </div>
+
+          <!-- Feature 3 -->
+          <div class="feature-box">
+            <div class="feature-box-icon">💰</div>
+            <h3>Estimasi Biaya & Suku Cadang</h3>
+            <p>Hindari 'getok harga' di bengkel. Ketahui perkiraan harga suku cadang asli dan ongkos pasang sebelum Anda memutuskan membawa motor ke bengkel.</p>
+            <span class="badge-feature">Transparan & Terencana →</span>
+          </div>
+
+          <!-- Feature 4 -->
+          <div class="feature-box">
+            <div class="feature-box-icon">⚠️</div>
+            <h3>Prioritas Keselamatan Nyata</h3>
+            <p>Komponen keselamatan seperti rem, ban, dan kemudi mendapat perlakuan prioritas tertinggi. Jika ada indikasi bahaya, aplikasi langsung memberi peringatan tegas.</p>
+            <span class="badge-feature" style="color: var(--danger);">Safety Override Protection →</span>
+          </div>
+
+          <!-- Feature 5 -->
+          <div class="feature-box">
+            <div class="feature-box-icon">🔒</div>
+            <h3>100% Offline-First SQLite</h3>
+            <p>Data motor dan riwayat servis Anda adalah privasi Anda. Semua tersimpan lokal di perangkat dan dapat di-backup ke file *.bhb kapan saja.</p>
+            <span class="badge-feature">Privasi Terjaga Penuh →</span>
+          </div>
+
+          <!-- Feature 6 -->
+          <div class="feature-box">
+            <div class="feature-box-icon">🏍️</div>
+            <h3>Multi-Motor & Pemakaian Kustom</h3>
+            <p>Kelola motor harian dan motor akhir pekan Anda dalam satu aplikasi. Sesuaikan interval berdasarkan profil pemakaian: Harian Kota, Jarak Jauh, atau Campuran.</p>
+            <span class="badge-feature">Dukungan Honda & Yamaha →</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMPARISON TABLE -->
+      <section class="section" id="komparasi">
+        <div class="section-center">
+          <span class="section-badge">Perbandingan</span>
+          <h2 class="section-title">Mengapa Memilih BuildHaus?</h2>
+          <p class="section-desc">Lihat bagaimana BuildHaus melengkapi dan menyempurnakan metode perawatan motor yang ada saat ini.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table class="comp-table">
+            <thead>
+              <tr>
+                <th>Fitur & Kapabilitas</th>
+                <th class="col-buildhaus">BuildHaus App</th>
+                <th>Buku Servis Kertas</th>
+                <th>Aplikasi Bengkel Biasa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Kalkulator Kesehatan Komponen Otomatis</td>
+                <td class="col-buildhaus">✅ Ya (Deterministik 14 Komponen)</td>
+                <td>❌ Manual tebak sendiri</td>
+                <td>❌ Hanya jadwal ganti oli</td>
+              </tr>
+              <tr>
+                <td>AI Konsultasi Gejala & Keluhan</td>
+                <td class="col-buildhaus">✅ Ya (Gemini 2.5 Flash Aktif)</td>
+                <td>❌ Tidak ada</td>
+                <td>❌ Chatbot CS kaku</td>
+              </tr>
+              <tr>
+                <td>Koneksi Keluhan ke Skor Komponen</td>
+                <td class="col-buildhaus">✅ Ya (Otomatis deteksi gejala)</td>
+                <td>❌ Tidak ada</td>
+                <td>❌ Tidak ada</td>
+              </tr>
+              <tr>
+                <td>Estimasi Biaya Transparan</td>
+                <td class="col-buildhaus">✅ Ya (Sparepart + Ongkos Pasang)</td>
+                <td>❌ Tidak ada</td>
+                <td>⚠️ Tergantung promo bengkel</td>
+              </tr>
+              <tr>
+                <td>Privasi Data Pengguna</td>
+                <td class="col-buildhaus">✅ 100% Offline-First SQLite</td>
+                <td>⚠️ Mudah hilang / sobek</td>
+                <td>❌ Data dijual ke server cloud</td>
+              </tr>
+              <tr>
+                <td>Bebas Iklan & Ringan</td>
+                <td class="col-buildhaus">✅ 0 Iklan • Ringan (27.9 MB)</td>
+                <td>✅ Fisik</td>
+                <td>❌ Penuh banner promo iklan</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- DOWNLOAD APK SECTION -->
+      <section class="section" id="download">
+        <div class="download-card">
+          <div class="download-left">
+            <span class="section-badge" style="background: rgba(61, 169, 110, 0.2);">Build Resmi Android</span>
+            <h2>Unduh BuildHaus APK Sekarang</h2>
+            <p>Mulai rawat motor Anda dengan cara yang lebih cerdas dan hemat. Download file APK langsung ke smartphone Android Anda tanpa perlu login akun Play Store.</p>
+
+            <div class="download-actions">
+              <a href="downloads/buildhaus.apk" download="buildhaus.apk" class="btn-primary" style="font-size: 16px; padding: 18px 36px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" width="22" height="22">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Download APK (v1.0.0)
+              </a>
+              <a href="https://github.com/Abaimann/BuildHauss" target="_blank" class="btn-secondary">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                </svg>
+                GitHub Source
+              </a>
+            </div>
+
+            <div class="apk-specs">
+              <div class="apk-spec-row">
+                <span>Versi:</span> <b>v1.0.0 (Release)</b>
+              </div>
+              <div class="apk-spec-row">
+                <span>Ukuran File:</span> <b>27.9 MB</b>
+              </div>
+              <div class="apk-spec-row">
+                <span>Kompatibilitas:</span> <b>Android 8.0+</b>
+              </div>
+              <div class="apk-spec-row">
+                <span>Arsitektur:</span> <b>Universal (ARM64/v7)</b>
+              </div>
+            </div>
+          </div>
+
+          <div class="download-right">
+            <div class="qr-box">
+              <!-- Visual QR Code Vector pointing to download -->
+              <svg viewBox="0 0 100 100" fill="#0c110d">
+                <rect x="10" y="10" width="24" height="24" fill="none" stroke="#0c110d" stroke-width="4"/>
+                <rect x="16" y="16" width="12" height="12"/>
+                <rect x="66" y="10" width="24" height="24" fill="none" stroke="#0c110d" stroke-width="4"/>
+                <rect x="72" y="16" width="12" height="12"/>
+                <rect x="10" y="66" width="24" height="24" fill="none" stroke="#0c110d" stroke-width="4"/>
+                <rect x="16" y="72" width="12" height="12"/>
+                <!-- Data blocks pattern -->
+                <rect x="42" y="12" width="6" height="6"/>
+                <rect x="52" y="12" width="6" height="12"/>
+                <rect x="42" y="24" width="16" height="6"/>
+                <rect x="12" y="42" width="6" height="6"/>
+                <rect x="24" y="42" width="12" height="6"/>
+                <rect x="42" y="42" width="16" height="16"/>
+                <rect x="66" y="42" width="10" height="6"/>
+                <rect x="82" y="42" width="8" height="12"/>
+                <rect x="42" y="66" width="6" height="12"/>
+                <rect x="54" y="66" width="12" height="6"/>
+                <rect x="72" y="66" width="6" height="14"/>
+                <rect x="62" y="80" width="16" height="8"/>
+                <rect x="84" y="74" width="6" height="14"/>
+                <rect x="42" y="84" width="12" height="6"/>
+              </svg>
+            </div>
+            <b style="display:block; margin-bottom: 4px; font-size: 14px;">Scan dari Smartphone</b>
+            <small>Arahkan kamera HP Android Anda untuk mengunduh file APK secara langsung.</small>
           </div>
         </div>
 
-        <!-- RIGHT PANEL: TECHNICAL SPEC & COMPARISON -->
-        <div class="right-panel">
-          <div class="badge-version">Perbandingan Desain Terkini</div>
-          <div style="font-size: 20px; font-weight: 800; color: var(--ink); margin-bottom: 8px;">
-            Struktur 5 Menu Asli
+        <!-- 4 Steps Guide -->
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <b>Download APK</b>
+            <p>Klik tombol unduh di atas untuk menyimpan file <code>buildhaus.apk</code> ke HP Anda.</p>
           </div>
-          <p>
-            Struktur navigasi bawah sekarang sudah sinkron 100% dengan kode Flutter:
-          </p>
-
-          <div class="metric-badge">
-            <span>🏠 Tab 1:</span>
-            <b>Beranda</b>
-            <small>Garasi & Aksi</small>
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <b>Buka Notifikasi</b>
+            <p>Ketuk notifikasi download selesai atau buka folder Download di File Manager HP Anda.</p>
           </div>
-          <div class="metric-badge">
-            <span>💚 Tab 2:</span>
-            <b>Sehat</b>
-            <small>Health Score</small>
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <b>Izinkan Sumber</b>
+            <p>Jika muncul peringatan keamanan, izinkan instalasi dari peramban/sumber ini (hanya 1x).</p>
           </div>
-          <div class="metric-badge">
-            <span>⚙️ Tab 3:</span>
-            <b>Sparepart</b>
-            <small>Smart Catalog</small>
-          </div>
-          <div class="metric-badge">
-            <span>📜 Tab 4:</span>
-            <b>Riwayat</b>
-            <small>Log Servis</small>
-          </div>
-          <div class="metric-badge">
-            <span>👤 Tab 5:</span>
-            <b>Akun</b>
-            <small>Data & Setting</small>
-          </div>
-
-          <div style="margin-top: 18px;">
-            <b style="color: var(--ink); font-size: 13px;">Asisten AI Mekanik:</b>
-            <p style="font-size: 11.5px; margin-top: 4px;">
-              Diakses melalui kartu <b>"Konsultasi AI"</b> di Beranda atau tombol <b>"Tanya AI"</b> di layar Sehat, membuka dialog cerdas on-device tanpa memakan slot menu navigasi bawah.
-            </p>
+          <div class="step-card">
+            <div class="step-num">4</div>
+            <b>Buka & Siap Pakai</b>
+            <p>BuildHaus langsung siap digunakan! Daftarkan motor Anda dan pantau kondisinya.</p>
           </div>
         </div>
-      </div>
+      </section>
+
+      <!-- FAQ SECTION -->
+      <section class="section" id="faq">
+        <div class="section-center">
+          <span class="section-badge">Bantuan & FAQ</span>
+          <h2 class="section-title">Pertanyaan yang Sering Diajukan</h2>
+          <p class="section-desc">Semua yang perlu Anda ketahui tentang instalasi dan penggunaan BuildHaus.</p>
+        </div>
+
+        <div class="faq-list">
+          <div class="faq-item open">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>Apakah BuildHaus memerlukan koneksi internet untuk bekerja?</span>
+              <span class="arrow">▼</span>
+            </div>
+            <div class="faq-answer">
+              Sebagian besar fitur BuildHaus bekerja secara <b>100% offline</b> (kalkulasi kesehatan motor, catatan servis, log odometer, inspeksi mandiri, dan jadwal pengingat). Fitur internet hanya digunakan saat Anda berkonsultasi dengan asisten cerdas Google Gemini 2.5 Flash.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>Apakah saya harus mengunduh file AI ratusan megabyte?</span>
+              <span class="arrow">▼</span>
+            </div>
+            <div class="faq-answer">
+              <b>Tidak sama sekali.</b> BuildHaus telah dioptimalkan menggunakan Google Gemini 2.5 Flash Cloud API bawaan (0 MB unduhan model). Memori RAM dan penyimpanan smartphone Anda tetap lapang dan hemat baterai.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>Motor apa saja yang didukung oleh BuildHaus?</span>
+              <span class="arrow">▼</span>
+            </div>
+            <div class="faq-answer">
+              BuildHaus mendukung berbagai motor populer di Indonesia, khususnya lini Honda (Vario 160, Beat Street, Scoopy, PCX) dan Yamaha (NMAX 155, Aerox 155, Mio), lengkap dengan aturan interval resmi dan kompatibilitas suku cadang spesifik. Anda juga dapat mendaftarkan motor kustom lainnya.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>Bagaimana cara kerja skor kesehatan motor di BuildHaus?</span>
+              <span class="arrow">▼</span>
+            </div>
+            <div class="faq-answer">
+              Skor kesehatan motor (0–100%) dihitung secara matematis (deterministik) berdasarkan rasio kilometer sejak servis terakhir terhadap batas rekomendasi manual pabrikan, selang hari, profil pemakaian (Harian vs Jarak Jauh), dan keluhan aktif yang Anda laporkan di AI Chat.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>Apakah data servis saya aman jika ganti HP?</span>
+              <span class="arrow">▼</span>
+            </div>
+            <div class="faq-answer">
+              Ya. BuildHaus memiliki fitur <b>Backup & Restore</b> bawaan. Anda dapat mengekspor seluruh data motor, servis, dan odometer ke dalam file cadangan <code>.bhb</code> dan memindahkannya ke HP baru dengan sekali klik.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer class="footer">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a href="#" class="brand">
+              <div class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20">
+                  <path d="M12 2L3 9v11a2 2 0 002 2h14a2 2 0 002-2V9l-9-7z"></path>
+                  <path d="M9 22V12h6v10"></path>
+                </svg>
+              </div>
+              <span class="brand-name">BuildHaus</span>
+            </a>
+            <small>
+              Aplikasi asisten perawatan motor pribadi offline-first dengan kecerdasan Google Gemini 2.5 Flash. Dibuat dengan cinta untuk para pengendara motor di Indonesia.
+            </small>
+          </div>
+
+          <div class="footer-links">
+            <div>
+              <b>Navigasi</b>
+              <a href="#fitur">Fitur Unggulan</a>
+              <a href="#demo">Live Demo</a>
+              <a href="#komparasi">Keunggulan</a>
+              <a href="#download">Download APK</a>
+            </div>
+            <div>
+              <b>Pengembang</b>
+              <a href="https://github.com/Abaimann/BuildHauss" target="_blank">GitHub Repository</a>
+              <a href="https://github.com/Abaimann/BuildHauss/releases" target="_blank">Release Notes</a>
+              <a href="https://flutter.dev" target="_blank">Flutter Framework</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <span>© 2026 BuildHaus Project. Hak Cipta Dilindungi.</span>
+          <span>Versi 1.0.0 • Ditenagai Flutter & Google Gemini AI</span>
+        </div>
+      </footer>
     </div>
 
+    <!-- Interactive Phone Mockup Script -->
     <script>
-      /* ===== MOCK STATE CORRESPONDING TO CURRENT BUILDHAUS APP ===== */
-      const motorcycles = [
-        {
-          id: 1,
-          nickname: "Vario 160 Hitam",
-          brand: "HONDA",
-          model: "Vario 160 ESP+",
-          plate: "B 2841 RDM",
-          odo: 18450,
-          score: 85,
-          statusLabel: "BAIK — PRIMA",
-          kmWeek: 145,
-          kmMonth: 580,
-          components: [
-            { name: "Oli Mesin", score: 88, status: "good", last: "1.200 km lalu", icon: "🛢️", part: "AHM SPX 2 10W-30", price: 65000 },
-            { name: "Kampas Rem Depan", score: 62, status: "inspect", last: "8.500 km lalu", icon: "🛑", part: "Kampas Rem Cakram AHM", price: 48000, isSafety: true },
-            { name: "V-Belt CVT", score: 78, status: "good", last: "14.000 km lalu", icon: "⚙️", part: "Drive Belt Kit Vario 160", price: 175000 },
-            { name: "Ban Belakang", score: 55, status: "inspect", last: "15.000 km lalu", icon: "🛞", part: "Ban Tubeless 120/70-14", price: 320000 }
-          ],
-          parts: [
-            { id: "p1", name: "AHM Oil SPX 2 Full Synthetic 0.8L", cat: "Oli", brand: "Honda AHM", price: 65000, tier: "budget", tierText: "Budget Disetujui", icon: "🛢️" },
-            { id: "p2", name: "Kampas Rem Depan Cakram Honda", cat: "Pengereman", brand: "Nissin / AHM", price: 48000, tier: "health", tierText: "Perlu Penanganan", icon: "🛑" },
-            { id: "p3", name: "Drive Belt & Roller Kit Vario 160", cat: "Transmisi", brand: "Honda Genuine", price: 175000, tier: "general", tierText: null, icon: "⚙️" },
-            { id: "p4", name: "Busi Iridium CPR9EAIX-9", cat: "Pengapian", brand: "NGK", price: 110000, tier: "general", tierText: null, icon: "⚡" },
-            { id: "p5", name: "Ban Tubeless Maxxis Victra 120/70-14", cat: "Kaki-kaki", brand: "Maxxis", price: 320000, tier: "health", tierText: "Perhatian Kesehatan", icon: "🛞" }
-          ]
-        },
-        {
-          id: 2,
-          nickname: "Aerox Biru Doff",
-          brand: "YAMAHA",
-          model: "Aerox 155 Connected",
-          plate: "B 4912 KFX",
-          odo: 24150,
-          score: 68,
-          statusLabel: "PERLU PERHATIAN",
-          kmWeek: 210,
-          kmMonth: 840,
-          components: [
-            { name: "Oli Mesin", score: 52, status: "inspect", last: "3.100 km lalu", icon: "🛢️", part: "Yamalube Super Matic 10W-40", price: 72000 },
-            { name: "Kampas Rem Belakang", score: 45, status: "replace", last: "18.000 km lalu", icon: "🛑", part: "Brake Shoe Yamalube", price: 55000, isSafety: true },
-            { name: "Roller & V-Belt", score: 70, status: "good", last: "12.000 km lalu", icon: "⚙️", part: "V-Belt Aerox 155", price: 185000 }
-          ],
-          parts: [
-            { id: "p21", name: "Yamalube Super Matic 10W-40 1L", cat: "Oli", brand: "Yamalube", price: 72000, tier: "health", tierText: "Perlu Penanganan", icon: "🛢️" },
-            { id: "p22", name: "Kampas Rem Belakang Tromol Aerox", cat: "Pengereman", brand: "Yamaha", price: 55000, tier: "budget", tierText: "Budget Disetujui", icon: "🛑" }
-          ]
-        },
-        {
-          id: 3,
-          nickname: "Beat Street Putih",
-          brand: "HONDA",
-          model: "Beat Street CBS",
-          plate: "B 6031 ZTA",
-          odo: 8920,
-          score: 92,
-          statusLabel: "SANGAT BAIK",
-          kmWeek: 85,
-          kmMonth: 340,
-          components: [
-            { name: "Oli Mesin", score: 94, status: "good", last: "800 km lalu", icon: "🛢️", part: "AHM MPX 2 10W-30", price: 54000 },
-            { name: "Kampas Rem Depan", score: 88, status: "good", last: "Baru", icon: "🛑", part: "Kampas Rem Beat", price: 42000 }
-          ],
-          parts: [
-            { id: "p31", name: "AHM Oil MPX 2 0.8L", cat: "Oli", brand: "Honda AHM", price: 54000, tier: "general", tierText: null, icon: "🛢️" }
-          ]
-        }
-      ];
-
-      let activeMotorId = 1;
-      let activeCategory = "Semua";
-
-      function getActiveMotor() {
-        return motorcycles.find(m => m.id === activeMotorId) || motorcycles[0];
-      }
-
-      /* ===== RENDER ENGINE ===== */
-      function renderAll() {
-        const motor = getActiveMotor();
-
-        // 1. Carousel
-        const carousel = document.getElementById("motorCarousel");
-        carousel.innerHTML = motorcycles.map(m => `
-          <div class="motor-card-pill ${m.id === motor.id ? 'active' : ''}" onclick="selectMotor(${m.id})">
-            <div class="brand-tag">${m.brand}</div>
-            <b>${m.nickname.split(' ')[0]}</b>
-            <small>${m.odo.toLocaleString('id-ID')} km</small>
+      const views = {
+        home: `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="font-size:11px; font-weight:700; color:var(--muted);">MOTOR AKTIF</div>
+            <span class="m-badge">HARIAN KOTA</span>
           </div>
-        `).join('');
-
-        // 2. Featured Bike Card
-        document.getElementById("bikeBrandTag").textContent = motor.brand;
-        document.getElementById("bikeName").textContent = motor.nickname;
-        document.getElementById("bikePlate").textContent = motor.plate;
-        document.getElementById("bikeOdo").textContent = motor.odo.toLocaleString('id-ID') + " km";
-
-        // 3. Home Health Summary
-        document.getElementById("homeScoreSquare").textContent = motor.score;
-        document.getElementById("homeScoreBar").style.width = motor.score + "%";
-        const color = motor.score >= 75 ? "var(--ok)" : motor.score >= 50 ? "var(--warn)" : "var(--danger)";
-        document.getElementById("homeScoreSquare").style.color = color;
-        document.getElementById("homeScoreBar").style.background = color;
-        document.getElementById("homeScoreDesc").textContent = motor.score >= 75 ? "Baik — semua komponen prima" : "Perlu perhatian — cek komponen kritis";
-
-        // 4. Health Screen
-        document.getElementById("healthMotorBadge").textContent = motor.nickname.split(' ')[0];
-        document.getElementById("healthBigScore").textContent = motor.score;
-        document.getElementById("healthBigScore").style.color = color;
-        document.getElementById("gaugeSvgPath").setAttribute("stroke", color);
-        document.getElementById("gaugeSvgPath").setAttribute("stroke-dasharray", `${motor.score}, 100`);
-        document.getElementById("healthStatusPill").textContent = motor.statusLabel;
-        document.getElementById("kmWeekText").textContent = motor.kmWeek + " km";
-        document.getElementById("kmMonthText").textContent = motor.kmMonth + " km";
-
-        // Component Tiles
-        const compList = document.getElementById("componentTilesList");
-        compList.innerHTML = motor.components.map(c => `
-          <div class="comp-tile" onclick="openPartDetailFromComp('${c.name}')">
-            <div class="comp-tile-head">
-              <div class="comp-icon-box ${c.status === 'inspect' ? 'warn' : c.status === 'replace' ? 'danger' : ''}">${c.icon}</div>
-              <div class="comp-meta">
-                <b>${c.name} ${c.isSafety ? '<span style="font-size:8px;background:var(--danger-bg);color:var(--danger);padding:1px 4px;border-radius:3px;">SAFETY</span>' : ''}</b>
-                <p>Terakhir: ${c.last}</p>
-              </div>
-              <div class="comp-score-box">
-                <div class="comp-score-val" style="color: ${c.score >= 75 ? 'var(--ok)' : c.score >= 50 ? 'var(--warn)' : 'var(--danger)'}">${c.score}</div>
-                <span class="comp-score-badge" style="background: ${c.score >= 75 ? 'var(--ok-bg)' : c.score >= 50 ? 'var(--warn-bg)' : 'var(--danger-bg)'}; color: ${c.score >= 75 ? 'var(--ok)' : c.score >= 50 ? 'var(--warn)' : 'var(--danger)'}">
-                  ${c.status.toUpperCase()}
-                </span>
-              </div>
-            </div>
-            <div class="matched-part-pill">
-              <span>🔧 ${c.part} · Rp ${c.price.toLocaleString('id-ID')}</span>
-              <span style="color:var(--muted); font-size:9px;">Lihat ›</span>
-            </div>
-          </div>
-        `).join('');
-
-        // 5. Parts Grid
-        document.getElementById("catalogSubtitle").textContent = "Rekomendasi untuk " + motor.nickname;
-        renderPartsGrid();
-
-        // 6. History List
-        renderHistoryList();
-
-        // 7. Account Motors
-        renderAccountMotors();
-        document.getElementById("aiChatMotorName").textContent = `${motor.nickname} (${motor.odo.toLocaleString('id-ID')} km)`;
-      }
-
-      function selectMotor(id) {
-        activeMotorId = id;
-        renderAll();
-      }
-
-      function renderPartsGrid() {
-        const motor = getActiveMotor();
-        const search = document.getElementById("partSearchInput").value.toLowerCase();
-        let parts = motor.parts;
-
-        if (activeCategory === "Rekomendasi Budget") {
-          parts = parts.filter(p => p.tier === "budget");
-        } else if (activeCategory === "Perhatian Kesehatan") {
-          parts = parts.filter(p => p.tier === "health");
-        } else if (activeCategory !== "Semua") {
-          parts = parts.filter(p => p.cat.toLowerCase() === activeCategory.toLowerCase());
-        }
-
-        if (search) {
-          parts = parts.filter(p => p.name.toLowerCase().includes(search) || p.brand.toLowerCase().includes(search));
-        }
-
-        const grid = document.getElementById("partsGrid");
-        if (parts.length === 0) {
-          grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: var(--muted); padding: 30px 10px; font-size: 11px;">Tidak ada suku cadang pada filter ini.</div>`;
-          return;
-        }
-
-        grid.innerHTML = parts.map(p => `
-          <div class="part-catalog-card ${p.tier === 'budget' ? 'budget-highlight' : p.tier === 'health' ? 'health-highlight' : ''}" onclick="alert('Detail Suku Cadang: ' + '${p.name}' + ' (HET: Rp ' + '${p.price.toLocaleString('id-ID')})')">
-            <div class="part-img-area">
-              <span>${p.icon}</span>
-              ${p.tierText ? `<div class="part-tier-tag ${p.tier}">${p.tierText}</div>` : ''}
-            </div>
-            <div class="part-body">
-              <div class="part-cat-label">${p.cat}</div>
-              <div class="part-title">${p.name}</div>
-              <div class="part-brand">${p.brand}</div>
-              <div class="part-price-est">Est. Rp ${p.price.toLocaleString('id-ID')}</div>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      function renderHistoryList() {
-        const motor = getActiveMotor();
-        const list = document.getElementById("historyRecordsList");
-        list.innerHTML = `
-          <div class="comp-tile">
-            <div class="comp-tile-head">
-              <div class="comp-icon-box">🛢️</div>
-              <div class="comp-meta">
-                <b>Ganti Oli Mesin & Filter</b>
-                <p>12 Okt 2026 · ${(motor.odo - 1200).toLocaleString('id-ID')} km · Bengkel Resmi AHASS</p>
-              </div>
-              <b style="font-size:12px;color:var(--warn)">Rp 75.000</b>
-            </div>
-          </div>
-          <div class="comp-tile">
-            <div class="comp-tile-head">
-              <div class="comp-icon-box">⚙️</div>
-              <div class="comp-meta">
-                <b>Servis Rutin CVT & Pembersihan</b>
-                <p>15 Agu 2026 · ${(motor.odo - 4500).toLocaleString('id-ID')} km · Sinar Jaya Motor</p>
-              </div>
-              <b style="font-size:12px;color:var(--warn)">Rp 120.000</b>
-            </div>
-          </div>
-          <div class="comp-tile">
-            <div class="comp-tile-head">
-              <div class="comp-icon-box">🛑</div>
-              <div class="comp-meta">
-                <b>Pemeriksaan Kampas Rem Depan</b>
-                <p>04 Jul 2026 · ${(motor.odo - 8500).toLocaleString('id-ID')} km · AHASS Sahabat</p>
-              </div>
-              <b style="font-size:12px;color:var(--warn)">Rp 25.000</b>
-            </div>
-          </div>
-        `;
-      }
-
-      function renderAccountMotors() {
-        const motorList = document.getElementById("accountMotorList");
-        motorList.innerHTML = motorcycles.map(m => `
-          <div class="settings-item" onclick="selectMotor(${m.id}); switchTab('home');">
-            <div class="settings-item-left">
-              <span>🏍️</span>
+          <div class="m-bike-card">
+            <div style="font-size:9.5px; opacity:0.8; font-weight:700; letter-spacing:0.5px;">HONDA</div>
+            <div style="font-size:18px; font-weight:800; margin:2px 0;">Vario 160 Esp+</div>
+            <div style="font-size:10px; opacity:0.75;">B 3829 KLG • 2023</div>
+            <div style="margin-top:14px; display:flex; justify-content:space-between; align-items:flex-end;">
               <div>
-                <b style="font-size:12px; display:block;">${m.nickname}</b>
-                <small style="color:var(--muted); font-size:9.5px;">${m.plate} · ${m.odo.toLocaleString('id-ID')} km</small>
+                <div style="font-size:8.5px; opacity:0.6; text-transform:uppercase;">Odometer</div>
+                <div style="font-size:22px; font-weight:800;">12.480 <span style="font-size:11px; font-weight:500;">km</span></div>
+              </div>
+              <div style="font-size:9.5px; background:rgba(255,255,255,0.15); padding:4px 8px; border-radius:6px; font-weight:700;">+ Catat Odo</div>
+            </div>
+          </div>
+
+          <div class="m-score-card">
+            <div class="m-score-box">82</div>
+            <div>
+              <div style="font-size:12.5px; font-weight:700;">Kondisi Motor Prima</div>
+              <div style="font-size:10.5px; color:var(--muted); margin-top:2px;">Semua komponen vital dalam batas aman pemakaian.</div>
+            </div>
+          </div>
+
+          <div style="font-size:11.5px; font-weight:700; margin:14px 0 8px;">Komponen Utama</div>
+          <div class="m-comp-tile">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span>🛢️</span>
+              <div>
+                <b style="font-size:11px;">Oli Mesin</b>
+                <div style="font-size:9px; color:var(--muted);">1.480 / 3.000 km</div>
               </div>
             </div>
-            ${m.id === activeMotorId ? '<span style="font-size:9px; background:var(--ok-bg); color:var(--ok); padding:2px 8px; border-radius:99px; font-weight:bold;">AKTIF</span>' : '<span style="font-size:11px; color:var(--muted);">Ganti ›</span>'}
+            <span style="font-size:9px; font-weight:800; color:var(--accent); background:rgba(61,169,110,0.15); padding:2px 6px; border-radius:99px;">NORMAL</span>
           </div>
-        `).join('') + `
-          <div class="settings-item" onclick="alert('Buka formulir Tambah Motor Baru...');">
-            <div class="settings-item-left" style="color:var(--ok);">
-              <span>➕</span>
-              <span>Tambah Motor Baru</span>
+          <div class="m-comp-tile">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span>🛑</span>
+              <div>
+                <b style="font-size:11px;">Kampas Rem</b>
+                <div style="font-size:9px; color:var(--muted);">Kondisi fisik aman</div>
+              </div>
             </div>
-            <span style="color:var(--ok); font-size:14px;">›</span>
+            <span style="font-size:9px; font-weight:800; color:var(--accent); background:rgba(61,169,110,0.15); padding:2px 6px; border-radius:99px;">NORMAL</span>
           </div>
-        `;
-      }
+        `,
 
-      function setCategoryFilter(cat, btn) {
-        activeCategory = cat;
-        document.querySelectorAll("#filterChipsRow .filter-chip").forEach(b => b.classList.remove("active", "budget-active", "health-active"));
-        if (cat === "Rekomendasi Budget") btn.classList.add("budget-active");
-        else if (cat === "Perhatian Kesehatan") btn.classList.add("health-active");
-        else btn.classList.add("active");
-        renderPartsGrid();
-      }
+        health: `
+          <div style="font-size:14px; font-weight:800; margin-bottom:12px;">Kesehatan Komponen</div>
+          <div class="m-score-card" style="border-color:rgba(61,169,110,0.3);">
+            <div class="m-score-box" style="width:54px; height:54px; font-size:24px;">82%</div>
+            <div>
+              <b style="font-size:13px;">Skor Keseluruhan</b>
+              <p style="font-size:10px; color:var(--muted); margin-top:2px;">Dihitung dari 14 komponen terpasang pada Vario 160.</p>
+            </div>
+          </div>
 
-      function filterPartsGrid() {
-        renderPartsGrid();
-      }
+          <!-- AI Recommendation Card inside health -->
+          <div style="background:var(--surface2); border:1px solid rgba(61,169,110,0.3); border-radius:14px; padding:12px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-size:10.5px; font-weight:700;">🤖 AI Rekomendasi</span>
+              <span style="font-size:8px; font-weight:800; color:var(--accent); background:rgba(61,169,110,0.18); padding:2px 6px; border-radius:99px;">✨ GEMINI AI</span>
+            </div>
+            <div style="font-size:10.5px; color:var(--muted); line-height:1.4;">
+              ✅ Motor dalam kondisi baik. Siapkan pemeriksaan ruang CVT pada 15.000 km.
+            </div>
+          </div>
 
-      function switchTab(tabId) {
-        closeAiChatModal();
-        document.querySelectorAll(".app-page").forEach(p => p.classList.remove("active"));
-        const target = document.getElementById("tab-" + tabId);
-        if (target) target.classList.add("active");
+          <div style="font-size:11px; font-weight:700; margin-bottom:8px;">Daftar Komponen</div>
+          <div class="m-comp-tile">
+            <div>
+              <b style="font-size:11px;">🛢️ Oli Mesin</b>
+              <div style="font-size:9px; color:var(--muted);">Ganti berkala tiap 3.000 km</div>
+            </div>
+            <b style="font-size:12px; color:var(--accent);">85%</b>
+          </div>
+          <div class="m-comp-tile">
+            <div>
+              <b style="font-size:11px;">⚙️ Transmisi CVT</b>
+              <div style="font-size:9px; color:var(--muted);">V-belt & roller bersih</div>
+            </div>
+            <b style="font-size:12px; color:var(--accent);">80%</b>
+          </div>
+          <div class="m-comp-tile">
+            <div>
+              <b style="font-size:11px;">🔋 Aki (Battery)</b>
+              <div style="font-size:9px; color:var(--muted);">Tegangan 12.4V normal</div>
+            </div>
+            <b style="font-size:12px; color:var(--accent);">90%</b>
+          </div>
+          <div class="m-comp-tile">
+            <div>
+              <b style="font-size:11px;">🛑 Kampas Rem Depan</b>
+              <div style="font-size:9px; color:var(--muted);">Ketebalan masih aman</div>
+            </div>
+            <b style="font-size:12px; color:var(--accent);">75%</b>
+          </div>
+        `,
 
-        document.querySelectorAll(".nav-tab-btn").forEach(b => b.classList.remove("active"));
-        const navBtn = document.getElementById("nav-" + tabId);
-        if (navBtn) navBtn.classList.add("active");
+        chat: `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <b style="font-size:13px;">AI Health Assistant</b>
+            <span style="font-size:8px; font-weight:800; background:rgba(61,169,110,0.18); color:var(--accent); padding:2px 6px; border-radius:99px;">✨ GEMINI 2.5 FLASH</span>
+          </div>
 
-        document.querySelectorAll(".quick-nav button").forEach(b => b.classList.remove("active"));
-      }
+          <div class="m-chat-bubble m-chat-user">
+            Bro, tarikan awal motor gue terasa gredek nih di CVT.
+          </div>
 
-      function openAiChatModal() {
-        document.getElementById("aiOverlayModal").classList.add("active");
-      }
+          <div class="m-chat-bubble m-chat-ai">
+            <b>BuildHaus AI:</b><br/>
+            Waduh, gredek di putaran bawah biasanya karena <b>mangkok ganda berdebu</b> atau <b>roller CVT mulai aus</b> bro.<br/><br/>
+            • <b>Cek dulu:</b> Buka bak CVT dan bersihkan kampas ganda dari debu slip.<br/>
+            • <b>Status:</b> Komponen CVT kamu otomatis gue ubah jadi <b>PERLU CEK</b> ya! 🛵
+          </div>
 
-      function closeAiChatModal() {
-        document.getElementById("aiOverlayModal").classList.remove("active");
-      }
+          <div style="margin-top:14px; font-size:10px; color:var(--muted); text-align:center;">
+            ⚡ Respon 1.2 detik • Gaya santai teman riding
+          </div>
+        `,
 
-      function updateOdometerPrompt() {
-        const motor = getActiveMotor();
-        const res = prompt(`Update Odometer untuk ${motor.nickname}:`, motor.odo);
-        if (res !== null) {
-          const val = parseInt(res.replace(/[^0-9]/g, ''));
-          if (!isNaN(val) && val >= motor.odo) {
-            motor.odo = val;
-            renderAll();
-          } else {
-            alert("Kilometer baru harus lebih besar dari kilometer saat ini!");
-          }
+        budget: `
+          <div style="font-size:14px; font-weight:800; margin-bottom:12px;">Smart Budgeting Servis</div>
+          <div style="background:var(--surface2); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px;">
+            <div style="font-size:10px; color:var(--muted);">Alokasi Anggaran Bulanan</div>
+            <div style="font-size:22px; font-weight:800; color:var(--accent); margin:4px 0;">Rp 250.000</div>
+            <div style="font-size:10px; color:var(--muted);">Terdanai: Rp 165.000 • Sisa: Rp 85.000</div>
+          </div>
+
+          <div style="font-size:11px; font-weight:700; margin-bottom:8px;">Rekomendasi Berdasarkan Prioritas</div>
+          <div class="m-comp-tile" style="border-left:3px solid var(--accent);">
+            <div>
+              <b style="font-size:11px;">Ganti Oli Mesin</b>
+              <div style="font-size:9px; color:var(--muted);">Pertamina Enduro 4T Max</div>
+            </div>
+            <b style="font-size:11px;">Rp 65.000</b>
+          </div>
+          <div class="m-comp-tile" style="border-left:3px solid var(--accent);">
+            <div>
+              <b style="font-size:11px;">Servis CVT & Bersihkan</b>
+              <div style="font-size:9px; color:var(--muted);">Pembersihan ruang CVT</div>
+            </div>
+            <b style="font-size:11px;">Rp 45.000</b>
+          </div>
+        `,
+
+        inspection: `
+          <div style="font-size:14px; font-weight:800; margin-bottom:12px;">Inspeksi Mandiri 10-Titik</div>
+          <div style="background:var(--surface2); border:1px solid var(--line); border-radius:14px; padding:12px; margin-bottom:12px;">
+            <b style="font-size:11.5px;">Pemeriksaan Terakhir: Normal</b>
+            <div style="font-size:10px; color:var(--muted); margin-top:2px;">10 dari 10 parameter keselamatan aman.</div>
+          </div>
+          <div class="m-comp-tile">
+            <div>
+              <b style="font-size:11px;">1. Tuas & Tarikan Rem</b>
+              <div style="font-size:9px; color:var(--muted);">Tidak ambles, pakem</div>
+            </div>
+            <span>✅</span>
+          </div>
+          <div class="m-comp-tile">
+            <div>
+              <b style="font-size:11px;">2. Kebocoran Oli Mesin</b>
+              <div style="font-size:9px; color:var(--muted);">Blok mesin kering</div>
+            </div>
+            <span>✅</span>
+          </div>
+          <div class="m-comp-tile">
+            <div>
+              <b style="font-size:11px;">3. Tekanan & Alur Ban</b>
+              <div style="font-size:9px; color:var(--muted);">Alur masih tebal</div>
+            </div>
+            <span>✅</span>
+          </div>
+        `,
+
+        catalog: `
+          <div style="font-size:14px; font-weight:800; margin-bottom:12px;">Katalog Suku Cadang</div>
+          <div style="font-size:10px; color:var(--muted); margin-bottom:8px;">Terverifikasi untuk Honda Vario 160:</div>
+          <div class="m-comp-tile">
+            <div>
+              <b style="font-size:11px;">AHM Oil MPX2 10W-30 (0.8L)</b>
+              <div style="font-size:9px; color:var(--muted);">Oli Matic Asli Honda</div>
+            </div>
+            <b style="font-size:11px; color:var(--accent);">Rp 55.000</b>
+          </div>
+          <div class="m-comp-tile">
+            <div>
+              <b style="font-size:11px;">Kampas Rem Depan Honda</b>
+              <div style="font-size:9px; color:var(--muted);">Part No: 06455-K84-901</div>
+            </div>
+            <b style="font-size:11px; color:var(--accent);">Rp 48.000</b>
+          </div>
+          <div class="m-comp-tile">
+            <div>
+              <b style="font-size:11px;">V-Belt Kit Honda Genuine</b>
+              <div style="font-size:9px; color:var(--muted);">Termasuk roller & slider</div>
+            </div>
+            <b style="font-size:11px; color:var(--accent);">Rp 145.000</b>
+          </div>
+        `
+      };
+
+      function switchMockup(key) {
+        const screen = document.getElementById('phone-screen');
+        if (views[key]) {
+          screen.innerHTML = views[key];
         }
+
+        // Update phone nav styling
+        document.querySelectorAll('.m-nav-item').forEach(el => el.classList.remove('active'));
+        const tabEl = document.getElementById('tab-' + key);
+        if (tabEl) tabEl.classList.add('active');
+
+        // Update left/right cards styling
+        document.querySelectorAll('.demo-feature-card').forEach(el => el.classList.remove('active'));
       }
 
-      function addServiceRecordPrompt() {
-        alert("Membuka formulir pencatatan servis offline (Drift SQLite)...");
+      function toggleFaq(el) {
+        const item = el.parentElement;
+        item.classList.toggle('open');
       }
 
-      function openPartDetailFromComp(compName) {
-        switchTab('parts');
-        document.getElementById("partSearchInput").value = compName;
-        renderPartsGrid();
-      }
-
-      /* ===== AI CHAT SIMULATION ===== */
-      function sendAiPrompt(text) {
-        const feed = document.getElementById("aiMessageFeed");
-        const userBubble = document.createElement("div");
-        userBubble.className = "ai-chat-bubble user";
-        userBubble.textContent = text;
-        feed.appendChild(userBubble);
-
-        setTimeout(() => {
-          const aiBubble = document.createElement("div");
-          aiBubble.className = "ai-chat-bubble assistant";
-
-          if (text.includes("Rem")) {
-            aiBubble.innerHTML = `
-              ⚠️ <b>Peringatan Keamanan Berkendara:</b><br/>
-              Bunyi berdecit dan panas berlebih pada piringan cakram mengindikasikan <b>kampas rem telah menipis hingga pelat logam</b> atau ada kotoran terselip di kaliper.
-              <div class="safety-alert-box">
-                🚨 RISIKO TINGGI: Piringan cakram dapat tergores parah atau rem terkunci. Sangat disarankan tidak mengendarai motor dalam kecepatan tinggi dan segera periksakan ke bengkel resmi.
-              </div>
-              <br/><b>Rekomendasi Part Terkait:</b> Kampas Rem Depan Cakram AHM (Est. Rp 48.000).
-            `;
-          } else if (text.includes("CVT")) {
-            aiBubble.innerHTML = `
-              Tarikan bawah yang bergetar (gredek) pada motor matik umumnya disebabkan oleh <b>debu kampas ganda yang menumpuk di dalam mangkok kopling</b> atau roller yang sudah mulai peang.<br/><br/>
-              <b>Solusi Rekomendasi:</b> Lakukan servis pembersihan CVT rutin dan cek ketebalan roller serta V-Belt (Est. biaya servis Rp 35.000 - Rp 50.000).
-            `;
-          } else {
-            aiBubble.innerHTML = `
-              Untuk Honda Vario 160 ESP+, batas interval ganti oli mesin yang aman adalah <b>setiap 2.000 - 3.000 km</b> (atau maksimal 2 bulan sekali). Menunda penggantian oli dapat menyebabkan panas berlebih dan memperpendek usia piston mesin.
-            `;
-          }
-          feed.appendChild(aiBubble);
-          feed.scrollTop = feed.scrollHeight;
-        }, 300);
-      }
-
-      /* ===== THEME TOGGLE ===== */
-      function toggleTheme() {
-        document.body.classList.toggle("light");
-        const isLight = document.body.classList.contains("light");
-        document.getElementById("themeBtn").innerHTML = isLight ? "<span>☀️</span> Mode Terang" : "<span>🌙</span> Mode Gelap";
-        document.getElementById("themeModeText").textContent = isLight ? "Mode Terang" : "Mode Gelap";
-      }
-
-      // Initialize
-      renderAll();
+      // Initial load
+      document.addEventListener('DOMContentLoaded', () => {
+        switchMockup('home');
+      });
     </script>
   </body>
 </html>
