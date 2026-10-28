@@ -6,6 +6,7 @@ import '../../core/engines/budget_engine.dart';
 import '../../core/engines/self_inspection_engine.dart';
 import '../ai/ai_chat_service.dart';
 import '../ai/ai_context_retriever.dart';
+import '../ai/gemini_ai_runtime.dart';
 import '../ai/model_download_service.dart';
 import '../ai/model_manifest.dart';
 import '../ai/offline_ai_runtime.dart';
@@ -206,11 +207,23 @@ final modelDownloadStateProvider = StreamProvider<ModelDownloadState>((ref) {
   return service.stateStream;
 });
 
-// Offline AI runtime provider
-final offlineAiRuntimeProvider = Provider<OfflineAiRuntime>((ref) {
-  final runtime = AndroidOfflineAiRuntime();
+// Gemini AI runtime provider
+final geminiAiRuntimeProvider = Provider<GeminiAiRuntime>((ref) {
+  final db = ref.watch(databaseProvider);
+  final runtime = GeminiAiRuntime(db: db);
   ref.onDispose(() => runtime.dispose());
   return runtime;
+});
+
+// Gemini API key provider
+final geminiApiKeyProvider = FutureProvider<String?>((ref) async {
+  final runtime = ref.watch(geminiAiRuntimeProvider);
+  return runtime.getApiKey();
+});
+
+// Offline AI runtime provider
+final offlineAiRuntimeProvider = Provider<OfflineAiRuntime>((ref) {
+  return ref.watch(geminiAiRuntimeProvider);
 });
 
 // AI context retriever provider
@@ -235,12 +248,12 @@ final aiChatServiceProvider = Provider<AiChatService>((ref) {
 
 // AI model status
 final aiModelStatusProvider = FutureProvider<String>((ref) async {
+  final runtime = ref.watch(geminiAiRuntimeProvider);
+  if (await runtime.hasApiKey()) return 'ready';
   final db = ref.watch(databaseProvider);
   final model = await db.getInstalledModel();
   if (model != null) return 'ready';
-  final pending = await db.getPendingModel();
-  if (pending != null) return pending.downloadStatus;
-  return 'not_downloaded';
+  return 'not_configured';
 });
 
 // AI model info

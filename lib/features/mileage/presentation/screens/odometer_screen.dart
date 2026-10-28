@@ -381,6 +381,7 @@ class _OdometerScreenState extends ConsumerState<OdometerScreen> {
       ref.invalidate(mileagePredictorProvider(widget.motorcycleId));
       ref.invalidate(componentStatusesProvider(widget.motorcycleId));
       ref.invalidate(componentStatusesWithNamesProvider(widget.motorcycleId));
+      ref.invalidate(budgetPlanSummaryProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

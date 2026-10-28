@@ -291,6 +291,12 @@ class _EditMotorcycleScreenState extends ConsumerState<EditMotorcycleScreen> {
       );
 
       ref.invalidate(motorcyclesProvider);
+      ref.invalidate(latestOdometerProvider(widget.id));
+      ref.invalidate(odometerLogsProvider(widget.id));
+      ref.invalidate(mileagePredictorProvider(widget.id));
+      ref.invalidate(componentStatusesProvider(widget.id));
+      ref.invalidate(componentStatusesWithNamesProvider(widget.id));
+      ref.invalidate(budgetPlanSummaryProvider);
       await ref.read(activeMotorcycleProvider.notifier).refresh();
 
       if (mounted) {

@@ -53,69 +53,6 @@ class AccountScreen extends ConsumerWidget {
               delegate: SliverChildListDelegate([
                 _ProfileCard(),
                 const SizedBox(height: 16),
-                InkWell(
-                  onTap: () => context.push('/ai-model'),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: context.surface2,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.purple.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.purple.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.smart_toy_outlined,
-                            color: Colors.purple,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'AI Offline Qwen3 (378 MB)',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                  color: context.ink,
-                                ),
-                              ),
-                              Text(
-                                'Kelola & unduh model AI untuk asisten offline',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: context.muted,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(
-                          Icons.chevron_right,
-                          color: Colors.purple,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
                 _QuickStatsSection(),
                 const SizedBox(height: 24),
                 _SectionTitle('Motor Saya'),
@@ -214,7 +151,7 @@ class _ProfileCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Pengguna Offline',
+                  'Smart Rider • Local & Cloud AI',
                   style: TextStyle(fontSize: 12, color: context.muted),
                 ),
                 const SizedBox(height: 8),
@@ -231,13 +168,13 @@ class _ProfileCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        Icons.offline_bolt,
+                        Icons.auto_awesome,
                         size: 12,
                         color: BuildHausTheme.ok,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Offline Mode',
+                        'Gemini Cloud AI Active',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
@@ -803,14 +740,6 @@ class _DataManagementSection extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         _SettingsTile(
-          icon: Icons.smart_toy_outlined,
-          iconColor: Colors.amber.shade700,
-          title: 'Model AI Offline',
-          subtitle: 'Unduh & kelola model Qwen3 0.6B (378 MB)',
-          onTap: () => context.push('/ai-model'),
-        ),
-        const SizedBox(height: 8),
-        _SettingsTile(
           icon: Icons.backup_outlined,
           iconColor: Colors.blue,
           title: 'Backup Data',
@@ -847,7 +776,7 @@ class _AboutSection extends StatelessWidget {
           icon: Icons.info_outline,
           iconColor: context.ink2,
           title: 'Tentang BuildHaus',
-          subtitle: 'Versi 1.0.0 — Offline-first motorcycle care',
+          subtitle: 'Versi 1.0.0 — Smart AI Motorcycle Care',
           onTap: () => _showAbout(context),
         ),
         const SizedBox(height: 8),

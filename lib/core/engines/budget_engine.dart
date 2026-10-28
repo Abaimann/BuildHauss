@@ -184,17 +184,11 @@ class BudgetEngine {
           )
           .firstOrNull;
 
-      // 2. Check for unresolved complaints
-      final compComplaint = complaints
-          ?.where(
-            (c) =>
-                c.closedAt == null &&
-                (c.title.toLowerCase().contains(compName.toLowerCase()) ||
-                    c.description.toLowerCase().contains(
-                      compName.toLowerCase(),
-                    )),
-          )
-          .firstOrNull;
+      // 2. Check for unresolved complaints using semantic & symptom keyword matching
+      final compComplaint = HealthEngine.findMatchingActiveComplaint(
+        compName,
+        complaints,
+      );
 
       // Determine matching sparepart and fitment
       final matchedPartInfo = _findBestSparepartForComponent(

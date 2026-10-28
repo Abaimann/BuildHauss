@@ -444,6 +444,7 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
       ref.invalidate(latestSelfInspectionProvider(widget.motorcycleId));
       ref.invalidate(componentStatusesProvider(widget.motorcycleId));
       ref.invalidate(componentStatusesWithNamesProvider(widget.motorcycleId));
+      ref.invalidate(budgetPlanSummaryProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

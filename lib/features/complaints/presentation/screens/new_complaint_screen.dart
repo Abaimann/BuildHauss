@@ -159,7 +159,7 @@ class _NewComplaintScreenState extends ConsumerState<NewComplaintScreen> {
           motorcycleId: Value(activeMotor.id),
           title: Value(title),
           description: Value(desc),
-          status: const Value(' baru'),
+          status: const Value('perlu_pemeriksaan'),
           odometerKm: Value(odo),
         ),
       );
@@ -190,7 +190,12 @@ class _NewComplaintScreenState extends ConsumerState<NewComplaintScreen> {
         ),
       );
 
+      await db.recalculateComponentStatuses(activeMotor.id);
+
       ref.invalidate(complaintsProvider(activeMotor.id));
+      ref.invalidate(componentStatusesProvider(activeMotor.id));
+      ref.invalidate(componentStatusesWithNamesProvider(activeMotor.id));
+      ref.invalidate(budgetPlanSummaryProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

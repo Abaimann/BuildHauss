@@ -661,6 +661,9 @@ class _AIRecommendationCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final db = ref.watch(databaseProvider);
+    // Watch component statuses and complaints so this card updates reactively
+    ref.watch(componentStatusesWithNamesProvider(motorcycle.id));
+    ref.watch(complaintsProvider(motorcycle.id));
 
     return FutureBuilder<String>(
       future: _getAIRecommendation(db, motorcycle.id),
@@ -682,7 +685,7 @@ class _AIRecommendationCard extends ConsumerWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.indigo.withValues(alpha: 0.15),
+                      color: BuildHausTheme.ok.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Center(
@@ -701,19 +704,19 @@ class _AIRecommendationCard extends ConsumerWidget {
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
+                      horizontal: 8,
+                      vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.indigo.withValues(alpha: 0.15),
+                      color: BuildHausTheme.okBg,
                       borderRadius: BorderRadius.circular(99),
                     ),
-                    child: const Text(
-                      'OFFLINE',
+                    child: Text(
+                      '✨ GEMINI AI',
                       style: TextStyle(
                         fontSize: 8,
                         fontWeight: FontWeight.bold,
-                        color: Colors.indigo,
+                        color: BuildHausTheme.ok,
                       ),
                     ),
                   ),
@@ -729,16 +732,27 @@ class _AIRecommendationCard extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: () => context.push('/ai-chat'),
-                  icon: const Icon(Icons.auto_awesome, size: 16),
-                  label: const Text('Detail Lengkap'),
-                  style: TextButton.styleFrom(
-                    textStyle: const TextStyle(fontSize: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => context.push('/complaints'),
+                    icon: const Icon(Icons.forum_outlined, size: 15),
+                    label: const Text('Riwayat Keluhan'),
+                    style: TextButton.styleFrom(
+                      textStyle: const TextStyle(fontSize: 11),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 4),
+                  TextButton.icon(
+                    onPressed: () => context.push('/ai-chat'),
+                    icon: const Icon(Icons.auto_awesome, size: 16),
+                    label: const Text('Tanya AI'),
+                    style: TextButton.styleFrom(
+                      textStyle: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -750,6 +764,15 @@ class _AIRecommendationCard extends ConsumerWidget {
   Future<String> _getAIRecommendation(AppDatabase db, int motorId) async {
     final statuses = await db.getComponentStatusesWithNames(motorId);
     final reminders = await db.getUpcomingReminders(motorId);
+    final allComplaints = await db.getComplaints(motorId);
+    final openComplaints = allComplaints
+        .where(
+          (c) =>
+              c.closedAt == null &&
+              c.status.trim() != 'selesai' &&
+              c.status.trim() != 'ditangani',
+        )
+        .toList();
 
     final urgent = statuses.where((s) => (s.status.score ?? 100) < 50).toList();
     final warns = statuses
@@ -758,11 +781,24 @@ class _AIRecommendationCard extends ConsumerWidget {
         )
         .toList();
 
+    final parts = <String>[];
     if (urgent.isNotEmpty) {
-      return '⚠️ ${urgent.first.componentName} dalam kondisi kritis. Disarankan untuk segera ditangani di bengkel.';
+      parts.add(
+        '⚠️ ${urgent.map((u) => u.componentName).join(', ')} dalam kondisi kritis dan perlu segera ditangani di bengkel.',
+      );
     }
     if (warns.isNotEmpty) {
-      return '🔧 ${warns.map((w) => w.componentName).join(', ')} perlu perhatian. Periksa di layanan servis terdekat.';
+      parts.add(
+        '🔧 ${warns.map((w) => w.componentName).join(', ')} perlu pengecekan pada jadwal servis terdekat.',
+      );
+    }
+    if (openComplaints.isNotEmpty) {
+      parts.add(
+        '💬 ${openComplaints.length} keluhan aktif tercatat ("${openComplaints.first.title}") ikut mempengaruhi skor kesehatan komponen.',
+      );
+    }
+    if (parts.isNotEmpty) {
+      return parts.join('\n');
     }
     if (reminders.isNotEmpty) {
       return '📅 ${reminders.length} pengingat servis menunggu. Cek jadwal untuk detail.';
@@ -906,6 +942,9 @@ class _ComponentTile extends ConsumerWidget {
     }
 
     final isSafetyIssue = data.status.explanation.contains('KESELAMATAN');
+    final hasActiveComplaint =
+        data.status.explanation.contains('Keluhan aktif') ||
+        data.status.explanation.contains('KELUHAN KRITIS');
 
     final allParts = ref.watch(allSparepartsProvider).value ?? [];
     final allFitments = ref.watch(allSparepartFitmentsProvider).value ?? [];
@@ -988,6 +1027,27 @@ class _ComponentTile extends ConsumerWidget {
                                     fontSize: 8,
                                     fontWeight: FontWeight.bold,
                                     color: BuildHausTheme.danger,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            if (hasActiveComplaint) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: BuildHausTheme.warnBg,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '💬 KELUHAN',
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                    color: BuildHausTheme.warn,
                                   ),
                                 ),
                               ),

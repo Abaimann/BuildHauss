@@ -29,18 +29,6 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     super.initState();
     _activeComplaintId = widget.complaintId;
     _initializeChat();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.invalidate(aiModelStatusProvider);
-      ref.invalidate(aiModelInfoProvider);
-    });
-  }
-
-  Future<void> _openModelManager() async {
-    await context.push('/ai-model');
-    if (mounted) {
-      ref.invalidate(aiModelStatusProvider);
-      ref.invalidate(aiModelInfoProvider);
-    }
   }
 
   Future<void> _initializeChat() async {
@@ -76,11 +64,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       _ChatMessage(
         role: 'system',
         content:
-            'Halo! Saya asisten konsultasi AI BuildHaus.\n\n'
-            'Ceritakan keluhan, bunyi aneh, atau gejala yang Anda rasakan pada motor. '
-            'Saya akan menganalisis data riwayat motor Anda untuk memperkirakan kemungkinan penyebabnya.\n\n'
-            '⚠️ PENTING: Analisis ini bersifat bantuan awal dan BUKAN diagnosis pasti mekanik. '
-            'Untuk indikasi bahaya pada rem, bahan bakar, dan ban, utamakan keselamatan jiwa.',
+            'Halo bro! Ada yang kerasa aneh sama motor kamu? 🏍️\n\n'
+            'Ceritain aja gejalanya (misal bunyi kasar, tarikan loyo, gredek CVT, dll). Gue bantu tebak kemungkinan masalahnya secara cepat & simpel!',
       ),
     );
   }
@@ -94,7 +79,6 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final aiStatus = ref.watch(aiModelStatusProvider);
     final activeMotor = ref.watch(activeMotorcycleProvider);
 
     return Scaffold(
@@ -115,41 +99,17 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           ],
         ),
         actions: [
-          aiStatus.when(
-            data: (status) => status == 'ready'
-                ? GestureDetector(
-                    onTap: _openModelManager,
-                    child: Chip(
-                      label: Text(
-                        '🤖 LLM Offline',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: BuildHausTheme.ok,
-                        ),
-                      ),
-                      backgroundColor: BuildHausTheme.okBg,
-                      side: BorderSide.none,
-                    ),
-                  )
-                : GestureDetector(
-                    onTap: _openModelManager,
-                    child: Chip(
-                      avatar: const Icon(Icons.download, size: 12),
-                      label: Text(
-                        'Unduh AI',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: context.ink,
-                        ),
-                      ),
-                      backgroundColor: context.soft,
-                      side: BorderSide(color: context.line),
-                    ),
-                  ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+          Chip(
+            label: Text(
+              '✨ Gemini 2.5 Flash',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: BuildHausTheme.ok,
+              ),
+            ),
+            backgroundColor: BuildHausTheme.okBg,
+            side: BorderSide.none,
           ),
           const SizedBox(width: 8),
           IconButton(
@@ -160,52 +120,6 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       ),
       body: Column(
         children: [
-          // Informative banner when AI model is not yet downloaded
-          if (aiStatus.valueOrNull != 'ready')
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: context.surface2,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: context.line),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.smart_toy_outlined,
-                    size: 18,
-                    color: Colors.amber.shade700,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'AI offline belum diunduh (Mode Analisis Dasar aktif).',
-                      style: TextStyle(fontSize: 11, color: context.muted),
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: _openModelManager,
-                    icon: const Icon(Icons.download, size: 14),
-                    label: const Text(
-                      'Unduh (378 MB)',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           // Safety alert banner if critical red flag detected
           if (_lastSafetyAlert != null && _lastSafetyAlert!.hasRedFlag)
             Container(
@@ -261,16 +175,44 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
             ),
           ),
 
-          // Input area
+          // Input area with Quick Prompt Chips
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
             decoration: BoxDecoration(
               color: context.surface,
               border: Border(top: BorderSide(color: context.line)),
             ),
             child: SafeArea(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        _buildQuickPromptChip(
+                          label: '🛵 Tarikan awal gredek',
+                          prompt: 'Bro, tarikan awal motor gue terasa gredek nih',
+                        ),
+                        const SizedBox(width: 6),
+                        _buildQuickPromptChip(
+                          label: '🛢️ Cek jadwal oli',
+                          prompt: 'Kapan jadwal ganti oli mesin motor gue bro?',
+                        ),
+                        const SizedBox(width: 6),
+                        _buildQuickPromptChip(
+                          label: '🛑 Rem bunyi berdecit',
+                          prompt: 'Rem motor gue bunyi berdecit pas direm bro',
+                        ),
+                        const SizedBox(width: 6),
+                        _buildQuickPromptChip(
+                          label: '🔋 Starter agak berat',
+                          prompt: 'Starter elektrik motor gue agak berat nyalanya',
+                        ),
+                      ],
+                    ),
+                  ),
                   Row(
                     children: [
                       Expanded(
@@ -296,14 +238,15 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                       IconButton(
                         onPressed: _sending ? null : _send,
                         icon: _sending
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
+                                  color: context.bg,
                                 ),
                               )
-                            : Icon(Icons.send, color: context.ink),
+                            : Icon(Icons.send, color: context.bg),
                         style: IconButton.styleFrom(
                           backgroundColor: context.ink,
                           foregroundColor: context.bg,
@@ -312,15 +255,74 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    '100% Offline • Privasi Terjaga • Data Tersimpan di HP Anda',
-                    style: TextStyle(color: context.muted, fontSize: 9),
+                  Center(
+                    child: Text(
+                      'Powered by Gemini 2.5 Flash • Online Cloud AI • Hemat Memori (0 MB)',
+                      style: TextStyle(color: context.muted, fontSize: 9),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuickPromptChip({
+    required String label,
+    required String prompt,
+  }) {
+    return ActionChip(
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: context.ink,
+        ),
+      ),
+      backgroundColor: context.surface2,
+      side: BorderSide(color: context.line),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
+      visualDensity: VisualDensity.compact,
+      onPressed: _sending
+          ? null
+          : () {
+              _messageController.text = prompt;
+              _send();
+            },
+    );
+  }
+
+  Widget _buildFormattedText(String rawText) {
+    final cleaned = rawText.replaceAll(RegExp(r'^#{1,3}\s+', multiLine: true), '');
+    final spans = <TextSpan>[];
+    final boldRegex = RegExp(r'\*\*(.+?)\*\*');
+    int lastEnd = 0;
+
+    for (final match in boldRegex.allMatches(cleaned)) {
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(text: cleaned.substring(lastEnd, match.start)));
+      }
+      spans.add(
+        TextSpan(
+          text: match.group(1),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      );
+      lastEnd = match.end;
+    }
+
+    if (lastEnd < cleaned.length) {
+      spans.add(TextSpan(text: cleaned.substring(lastEnd)));
+    }
+
+    return Text.rich(
+      TextSpan(
+        style: TextStyle(fontSize: 13, color: context.ink, height: 1.5),
+        children: spans.isEmpty ? [TextSpan(text: cleaned)] : spans,
       ),
     );
   }
@@ -387,7 +389,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    m.analysisMode == 'llm' ? 'LLM' : 'Aturan Dasar',
+                    m.analysisMode == 'llm' ? 'Gemini 2.5 Flash' : 'Aturan Dasar',
                     style: TextStyle(
                       fontSize: 8,
                       fontWeight: FontWeight.bold,
@@ -406,10 +408,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            m.content,
-            style: TextStyle(fontSize: 13, color: context.ink, height: 1.5),
-          ),
+          _buildFormattedText(m.content),
         ],
       ),
     );
@@ -488,6 +487,10 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         });
       }
     } finally {
+      ref.invalidate(complaintsProvider(activeMotor.id));
+      ref.invalidate(componentStatusesProvider(activeMotor.id));
+      ref.invalidate(componentStatusesWithNamesProvider(activeMotor.id));
+      ref.invalidate(budgetPlanSummaryProvider);
       if (mounted) {
         setState(() => _sending = false);
         _scrollToBottom();
@@ -517,38 +520,30 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'BuildHaus AI Assistant bekerja secara 100% offline di smartphone Anda.',
+              'BuildHaus AI Assistant menggunakan Google Gemini 2.5 Flash (Cloud API) secara online sehingga tidak perlu mengunduh file model besar (0 MB penyimpanan) dan hemat RAM.',
               style: TextStyle(fontSize: 13),
             ),
             SizedBox(height: 12),
             Text(
-              '🔒 Privasi Mutlak: Semua percakapan dan analisis keluhan disimpan lokal di database SQLite HP Anda, tidak ada yang dikirim ke cloud.',
+              '🔒 Data Tersimpan Lokal: Riwayat motor, servis, dan percakapan tetap tersimpan aman di database SQLite perangkat Anda.',
               style: TextStyle(fontSize: 12),
             ),
             SizedBox(height: 8),
             Text(
-              '📋 Analisis Dasar: Tersedia otomatis tanpa unduh model sebagai panduan awal.',
+              '📋 Analisis Dasar: Tersedia otomatis sebagai fallback ketika perangkat tidak terhubung ke internet atau API Key belum diatur.',
               style: TextStyle(fontSize: 12),
             ),
             SizedBox(height: 8),
             Text(
-              '🤖 Model Offline Qwen3: Dapat diunduh di Akun > AI Model untuk pemahaman bahasa alami yang lebih mendalam.',
+              '✨ Google Gemini 2.5 Flash: Sudah tertanam dan aktif otomatis sejak awal untuk analisis cepat dan kontekstual.',
               style: TextStyle(fontSize: 12),
             ),
           ],
         ),
         actions: [
-          TextButton(
+          FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Tutup'),
-          ),
-          FilledButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              context.push('/ai-model');
-            },
-            icon: const Icon(Icons.download, size: 16),
-            label: const Text('Kelola Model AI'),
+            child: const Text('Mengerti'),
           ),
         ],
       ),

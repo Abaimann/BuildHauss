@@ -372,9 +372,10 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
     _chatController.clear();
     final chatService = ref.read(aiChatServiceProvider);
 
+    final motorId = _complaint!.motorcycleId;
     try {
       final tokenStream = chatService.sendMessage(
-        motorcycleId: _complaint!.motorcycleId,
+        motorcycleId: motorId,
         complaintId: widget.complaintId,
         userText: text,
         onAnalysisComplete: (_) async {
@@ -385,11 +386,17 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
       await _load();
     } catch (_) {
       await _load();
+    } finally {
+      ref.invalidate(complaintsProvider(motorId));
+      ref.invalidate(componentStatusesProvider(motorId));
+      ref.invalidate(componentStatusesWithNamesProvider(motorId));
+      ref.invalidate(budgetPlanSummaryProvider);
     }
   }
 
   Future<void> _handleAction(String action) async {
     final db = ref.read(databaseProvider);
+    final motorId = _complaint?.motorcycleId;
     if (action == 'close') {
       await db.updateComplaint(
         ComplaintsCompanion(
@@ -399,6 +406,7 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
         ),
         widget.complaintId,
       );
+      if (motorId != null) await db.recalculateComponentStatuses(motorId);
     } else if (action == 'reopen') {
       await db.updateComplaint(
         ComplaintsCompanion(
@@ -408,6 +416,7 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
         ),
         widget.complaintId,
       );
+      if (motorId != null) await db.recalculateComponentStatuses(motorId);
     } else if (action == 'delete') {
       final confirm = await showDialog<bool>(
         context: context,
@@ -431,9 +440,22 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
       );
       if (confirm == true) {
         await db.deleteComplaint(widget.complaintId);
+        if (motorId != null) {
+          await db.recalculateComponentStatuses(motorId);
+          ref.invalidate(complaintsProvider(motorId));
+          ref.invalidate(componentStatusesProvider(motorId));
+          ref.invalidate(componentStatusesWithNamesProvider(motorId));
+          ref.invalidate(budgetPlanSummaryProvider);
+        }
         if (mounted) context.pop();
       }
       return;
+    }
+    if (motorId != null) {
+      ref.invalidate(complaintsProvider(motorId));
+      ref.invalidate(componentStatusesProvider(motorId));
+      ref.invalidate(componentStatusesWithNamesProvider(motorId));
+      ref.invalidate(budgetPlanSummaryProvider);
     }
     await _load();
     if (mounted) {
@@ -465,7 +487,7 @@ class _ComplaintDetailScreenState extends ConsumerState<ComplaintDetailScreen> {
       case ' baru':
         return 'BARU';
       case 'dianalisis':
-        return 'DIANALISIS';
+        return 'PERLU CEK';
       case 'perlu_pemeriksaan':
         return 'PERLU CEK';
       case 'ditangani':

@@ -413,6 +413,82 @@ void main() {
       expect(engine1.calculateHealth(1).status, equals('good'));
       expect(engine2.calculateHealth(1).status, equals('replace'));
     });
+
+    test(
+      '17. Keluhan aktif menurunkan status komponen menjadi inspect dan menurunkan skor',
+      () {
+        final cvtComp = _createComponentType(7, 'CVT', false);
+        final oliComp = _createComponentType(1, 'Oli mesin', false);
+        final rules = [
+          _createRule(1, 1, 3000, 90),
+          _createRule(2, 7, 8000, 365),
+        ];
+
+        final activeComplaint = Complaint(
+          id: 1,
+          motorcycleId: 1,
+          title: 'Tarikan awal gredek',
+          description: 'Saat gas awal dari berhenti terasa getar gredek',
+          status: 'dianalisis',
+          odometerKm: 10500,
+          openedAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          closedAt: null,
+          resolvedByServiceId: null,
+        );
+
+        final engine = HealthEngine(
+          statuses: [],
+          serviceRecords: [_createServiceRecord(1, 1, 10000, DateTime.now())],
+          odometerLogs: [],
+          rules: rules,
+          componentTypes: [oliComp, cvtComp],
+          currentOdometer: 10500,
+          complaints: [activeComplaint],
+        );
+
+        final cvtResult = engine.calculateHealth(7);
+        final oliResult = engine.calculateHealth(1);
+
+        expect(cvtResult.status, equals('inspect'));
+        expect(cvtResult.score, lessThanOrEqualTo(65));
+        expect(cvtResult.explanation, contains('Keluhan aktif'));
+        expect(oliResult.status, equals('good'));
+      },
+    );
+
+    test('18. Keluhan kritis keselamatan langsung memicu status replace', () {
+      final remComp = _createComponentType(2, 'Kampas rem', true);
+      final rules = [_createRule(1, 2, 8000, 365)];
+
+      final criticalComplaint = Complaint(
+        id: 2,
+        motorcycleId: 1,
+        title: 'Rem blong',
+        description: 'Rem blong saat turunan tidak pakem sama sekali',
+        status: 'dianalisis',
+        odometerKm: 10500,
+        openedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        closedAt: null,
+        resolvedByServiceId: null,
+      );
+
+      final engine = HealthEngine(
+        statuses: [],
+        serviceRecords: [_createServiceRecord(1, 1, 10000, DateTime.now())],
+        odometerLogs: [],
+        rules: rules,
+        componentTypes: [remComp],
+        currentOdometer: 10500,
+        complaints: [criticalComplaint],
+      );
+
+      final remResult = engine.calculateHealth(2);
+      expect(remResult.status, equals('replace'));
+      expect(remResult.score, lessThanOrEqualTo(40));
+      expect(remResult.explanation, contains('KELUHAN KRITIS'));
+    });
   });
 }
 

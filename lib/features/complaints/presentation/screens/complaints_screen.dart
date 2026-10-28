@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:drift/drift.dart' hide Column;
+import '../../../../core/database/app_database.dart';
 import '../../../../core/providers/app_providers.dart';
+import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/formatters.dart';
 
@@ -152,12 +155,83 @@ class ComplaintsScreen extends ConsumerWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 6),
-                            Text(
-                              Formatters.date(c.openedAt),
-                              style: TextStyle(
-                                color: context.muted,
-                                fontSize: 10,
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  Formatters.date(c.openedAt),
+                                  style: TextStyle(
+                                    color: context.muted,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                const Spacer(),
+                                if (c.closedAt == null &&
+                                    c.status.trim() != 'selesai' &&
+                                    c.status.trim() != 'ditangani')
+                                  TextButton.icon(
+                                    onPressed: () async {
+                                      final db = ref.read(databaseProvider);
+                                      await db.updateComplaint(
+                                        ComplaintsCompanion(
+                                          status: const Value('selesai'),
+                                          closedAt: Value(DateTime.now()),
+                                          updatedAt: Value(DateTime.now()),
+                                        ),
+                                        c.id,
+                                      );
+                                      await db.recalculateComponentStatuses(
+                                        activeMotor.id,
+                                      );
+                                      ref.invalidate(
+                                        complaintsProvider(activeMotor.id),
+                                      );
+                                      ref.invalidate(
+                                        componentStatusesProvider(
+                                          activeMotor.id,
+                                        ),
+                                      );
+                                      ref.invalidate(
+                                        componentStatusesWithNamesProvider(
+                                          activeMotor.id,
+                                        ),
+                                      );
+                                      ref.invalidate(budgetPlanSummaryProvider);
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Keluhan ditandai selesai & kesehatan diperbarui!',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    icon: Icon(
+                                      Icons.check_circle_outline,
+                                      size: 14,
+                                      color: BuildHausTheme.ok,
+                                    ),
+                                    label: Text(
+                                      'Tandai Selesai',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: BuildHausTheme.ok,
+                                      ),
+                                    ),
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                  ),
+                              ],
                             ),
                           ],
                         ),
@@ -201,7 +275,7 @@ class ComplaintsScreen extends ConsumerWidget {
       case ' baru':
         return 'BARU';
       case 'dianalisis':
-        return 'DIANALISIS';
+        return 'PERLU CEK';
       case 'perlu_pemeriksaan':
         return 'PERLU CEK';
       case 'ditangani':

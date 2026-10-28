@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import '../database/app_database.dart';
 import 'ai_context_retriever.dart';
 import 'ai_safety_guard.dart';
+import 'gemini_ai_runtime.dart';
 import 'model_download_service.dart';
 import 'offline_ai_runtime.dart';
 
@@ -62,19 +63,21 @@ class AiChatService {
     ModelDownloadService? downloadService,
     AiContextRetriever? contextRetriever,
   }) : _db = db,
-       _runtime = runtime ?? AndroidOfflineAiRuntime(),
+       _runtime = runtime ?? GeminiAiRuntime(db: db),
        _downloadService = downloadService ?? ModelDownloadService(db: db),
        _contextRetriever = contextRetriever ?? AiContextRetriever(db: db);
 
   OfflineAiRuntime get runtime => _runtime;
   ModelDownloadService get downloadService => _downloadService;
 
-  /// Checks whether offline LLM is ready for on-device inference.
+  /// Checks whether LLM is ready for inference (either Gemini API key configured or local model installed).
   Future<bool> isLlmReady() async {
+    if (await _runtime.isModelLoaded()) return true;
     final status = await _downloadService.checkCurrentStatus();
-    if (status.status != DownloadStatus.completed) return false;
-    final isSupported = await _runtime.isSupported();
-    return isSupported;
+    if (status.status == DownloadStatus.completed) {
+      return await _runtime.isSupported();
+    }
+    return false;
   }
 
   /// Ensures the offline model is loaded into RAM.
@@ -147,13 +150,16 @@ class AiChatService {
             'Motor ID: $motorcycleId';
 
         final systemPrompt =
-            'Anda adalah BuildHaus AI, asisten konsultasi awal perawatan sepeda motor pribadi di Indonesia.\n'
-            'Tugas Anda: memahami keluhan motor pengguna, mengidentifikasi gejala, memperkirakan komponen terkait, '
-            'mengajukan pertanyaan lanjutan, dan memberikan saran pemeriksaan awal secara sopan dan terstruktur.\n\n'
-            'PENTING:\n'
-            '- Anda BUKAN mekanik profesional dan BUKAN diagnosis pasti.\n'
-            '- Jangan mengarang harga sparepart, part number, atau klaim kepastian 100%.\n'
-            '- Jika ada tanda bahaya rem, bensin, atau ban, utamakan keselamatan jiwa.\n\n'
+            'Kamu adalah BuildHaus AI, teman riding sekaligus teman ngobrol perawatan motor pribadi di Indonesia.\n\n'
+            'ATURAN GAYA BICARA & RESPON:\n'
+            '1. Gaya bahasa: Santai, ramah, dan akrab seperti sesama teman/anak motor (gunakan panggilan "bro/sob/kamu", jangan kaku seperti robot, dan hindari kata formal "Anda").\n'
+            '2. WAJIB SINGKAT & JELAS: Jangan bertele-tele atau membuat paragraf panjang. Cukup 2-3 poin ringkas agar cepat dibaca dan hemat kata.\n'
+            '3. Struktur respon:\n'
+            '   - Tebakan kemungkinan masalah utama secara langsung.\n'
+            '   - 1-2 langkah simpel yang bisa dicek sendiri.\n'
+            '   - 1 pertanyaan singkat bila butuh info tambahan.\n'
+            '4. Jika ada indikasi bahaya kritis (rem blong, oli kering, bensin bocor), ingatkan dengan tegas layaknya teman: "Waduh bahaya bro, jangan dipaksain jalan dulu ya!".\n'
+            '5. Jangan mengarang harga pasti suku cadang atau klaim 100% mutlak mekanik.\n\n'
             '$contextPrompt';
 
         // Fetch conversation history for this complaint thread (multi-turn support)
@@ -216,6 +222,7 @@ class AiChatService {
         );
 
         await _saveAnalysisRecord(activeComplaintId, analysis);
+        await _db.recalculateComponentStatuses(motorcycleId);
         onAnalysisComplete(analysis);
         return;
       } catch (e) {
@@ -249,6 +256,7 @@ class AiChatService {
     );
 
     await _saveAnalysisRecord(activeComplaintId, analysis);
+    await _db.recalculateComponentStatuses(motorcycleId);
     onAnalysisComplete(analysis);
   }
 
@@ -352,7 +360,7 @@ class AiChatService {
         );
       } else {
         buffer.writeln(
-          '  3. Untuk analisis mendalam, unduh model AI offline di Akun > AI Model.',
+          '  3. Untuk analisis mendalam dengan Google Gemini 2.5 Flash (Online tanpa download model), atur API Key di menu Akun > Konfigurasi AI.',
         );
       }
       buffer.writeln(
@@ -440,7 +448,7 @@ class AiChatService {
       uncertainty: mode == 'llm' ? 'medium' : 'high',
       requiresMechanic: reqMechanic,
       mode: mode,
-      modelVersion: mode == 'llm' ? 'Qwen3-0.6B' : null,
+      modelVersion: mode == 'llm' ? 'gemini-2.5-flash' : null,
     );
   }
 
@@ -468,6 +476,13 @@ class AiChatService {
         analysisMode: Value(analysis.mode),
         analyzedAt: Value(DateTime.now()),
       ),
+    );
+    await _db.updateComplaint(
+      ComplaintsCompanion(
+        status: const Value('perlu_pemeriksaan'),
+        updatedAt: Value(DateTime.now()),
+      ),
+      complaintId,
     );
   }
 }

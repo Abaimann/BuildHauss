@@ -136,7 +136,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
     final statsAsync = ref.watch(databaseStatsProvider);
-    final aiStatus = ref.watch(aiModelStatusProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Pengaturan')),
@@ -450,46 +449,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         onTap: _handleClearAllData,
                       ),
                     ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Section: AI Model
-                _SectionTitle('Model AI Asisten'),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: context.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: context.line),
-                  ),
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(
-                      Icons.smart_toy_outlined,
-                      color: Colors.amber,
-                    ),
-                    title: const Text(
-                      'AI Model Manager (Qwen3 0.6B)',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    subtitle: Text(
-                      aiStatus.valueOrNull == 'ready'
-                          ? 'Model offline terpasang dan aktif'
-                          : 'Belum diunduh (378 MB)',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: aiStatus.valueOrNull == 'ready'
-                            ? BuildHausTheme.ok
-                            : context.muted,
-                      ),
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.push('/ai-model'),
                   ),
                 ),
                 const SizedBox(height: 24),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/ai/model_download_service.dart';
+import '../../../../core/ai/gemini_ai_runtime.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -14,57 +14,136 @@ class AiModelManagerScreen extends ConsumerStatefulWidget {
 }
 
 class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
+  final _apiKeyController = TextEditingController();
+  bool _obscureKey = true;
+  bool _isSaving = false;
+  bool _isTesting = false;
+  String? _testMessage;
+  bool? _testSuccess;
+  bool _hasKey = false;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(modelDownloadServiceProvider).checkCurrentStatus().then((_) {
-        if (mounted) setState(() {});
-      });
+    _loadApiKey();
+  }
+
+  Future<void> _loadApiKey() async {
+    final GeminiAiRuntime runtime = ref.read(geminiAiRuntimeProvider);
+    final key = await runtime.getApiKey();
+    if (!mounted) return;
+    setState(() {
+      if (key != null && key.isNotEmpty) {
+        _apiKeyController.text = key;
+        _hasKey = true;
+      } else {
+        _hasKey = false;
+      }
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    final manifest = ref.watch(modelManifestProvider);
-    final downloadService = ref.watch(modelDownloadServiceProvider);
-    final state = downloadService.currentState;
-    final modelInfo = ref.watch(aiModelInfoProvider);
+  void dispose() {
+    _apiKeyController.dispose();
+    super.dispose();
+  }
 
-    // Also listen to stream for reactive UI updates
-    ref.listen(modelDownloadStateProvider, (_, next) {
-      if (mounted) setState(() {});
+  Future<void> _saveApiKey() async {
+    final trimmed = _apiKeyController.text.trim();
+    if (trimmed.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Masukkan API Key terlebih dahulu.')),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      final GeminiAiRuntime runtime = ref.read(geminiAiRuntimeProvider);
+      await runtime.saveApiKey(trimmed);
+      ref.invalidate(aiModelStatusProvider);
+      ref.invalidate(geminiApiKeyProvider);
+      if (!mounted) return;
+      setState(() {
+        _hasKey = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('API Key Gemini 2.5 Flash berhasil disimpan!'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
+  Future<void> _testConnection() async {
+    setState(() {
+      _isTesting = true;
+      _testMessage = null;
+      _testSuccess = null;
     });
+    try {
+      final GeminiAiRuntime runtime = ref.read(geminiAiRuntimeProvider);
+      final (ok, msg) = await runtime.testConnection(
+        overrideApiKey: _apiKeyController.text,
+      );
+      if (!mounted) return;
+      setState(() {
+        _testSuccess = ok;
+        _testMessage = msg;
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isTesting = false);
+      }
+    }
+  }
 
-    final isDownloading = state.status == DownloadStatus.downloading;
-    final isVerifying = state.status == DownloadStatus.verifying;
-    final isPaused = state.status == DownloadStatus.paused;
-    final isCompleted = state.status == DownloadStatus.completed;
-    final isFailed = state.status == DownloadStatus.failed;
+  Future<void> _clearApiKey() async {
+    final GeminiAiRuntime runtime = ref.read(geminiAiRuntimeProvider);
+    await runtime.clearApiKey();
+    _apiKeyController.clear();
+    ref.invalidate(aiModelStatusProvider);
+    ref.invalidate(geminiApiKeyProvider);
+    if (!mounted) return;
+    setState(() {
+      _hasKey = false;
+      _testMessage = null;
+      _testSuccess = null;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('API Key berhasil dihapus.')),
+    );
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: const Text('AI Model Manager'),
+        title: const Text('Konfigurasi AI (Gemini 2.5 Flash)'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            'AI Health Assistant',
+            'Google Gemini 2.5 Flash',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 4),
           Text(
-            'Kelola model AI offline untuk analisis keluhan motor.',
+            'Asisten AI Online Cloud — Cerdas, Cepat, dan Hemat Memori (0 MB).',
             style: TextStyle(color: context.muted, fontSize: 12),
           ),
           const SizedBox(height: 24),
 
-          // Model info card
+          // Card 1: Info Model Cloud
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -85,7 +164,7 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Center(
-                        child: Text('🤖', style: TextStyle(fontSize: 24)),
+                        child: Text('✨', style: TextStyle(fontSize: 24)),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -94,7 +173,7 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            manifest.name,
+                            'Gemini 2.5 Flash (Cloud API)',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -102,7 +181,7 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                             ),
                           ),
                           Text(
-                            'Versi ${manifest.version} • ${manifest.quantization}',
+                            'Model ID: ${GeminiAiRuntime.modelId} • Google Generative AI',
                             style: TextStyle(
                               color: context.muted,
                               fontSize: 11,
@@ -111,471 +190,259 @@ class _AiModelManagerScreenState extends ConsumerState<AiModelManagerScreen> {
                         ],
                       ),
                     ),
-                    _buildStatusChip(state.status),
+                    _hasKey
+                        ? Chip(
+                            label: Text(
+                              '✓ Aktif',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: BuildHausTheme.ok,
+                              ),
+                            ),
+                            backgroundColor: BuildHausTheme.okBg,
+                            side: BorderSide.none,
+                          )
+                        : Chip(
+                            label: Text(
+                              '🔑 Perlu API Key',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: BuildHausTheme.warn,
+                              ),
+                            ),
+                            backgroundColor: BuildHausTheme.warnBg,
+                            side: BorderSide.none,
+                          ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 12),
-                _InfoRow('Ukuran', manifest.formattedSize),
-                _InfoRow('Lisensi', manifest.license),
-                _InfoRow('Repositori', manifest.repository),
-                _InfoRow('Deskripsi', manifest.description),
-                const SizedBox(height: 12),
-                const Divider(),
-                const SizedBox(height: 12),
-                Text(
-                  'Persyaratan perangkat:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
-                    color: context.ink,
-                  ),
+                const _InfoRow(
+                  'Penyimpanan',
+                  '0 MB (Online API — Tanpa Download Model)',
                 ),
-                const SizedBox(height: 6),
-                _InfoRow('RAM minimum', '${manifest.minRamGb} GB'),
-                _InfoRow('Penyimpanan', '~${manifest.minStorageMb} MB bebas'),
-                _InfoRow('Android minimum', 'API ${manifest.minAndroidApi}'),
+                const _InfoRow(
+                  'Penggunaan RAM',
+                  'Sangat Ringan (Inferensi di Cloud)',
+                ),
+                const _InfoRow(
+                  'Konteks Motor',
+                  'Terintegrasi dengan data SQLite motor Anda',
+                ),
               ],
             ),
           ),
 
           const SizedBox(height: 16),
 
-          // Download / Verification progress
-          if (isDownloading || isVerifying || isPaused) ...[
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: context.surface2,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: context.line),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        isVerifying ? '🔍' : '📥',
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          isVerifying
-                              ? 'Memverifikasi integritas SHA-256...'
-                              : isPaused
-                              ? 'Download dijeda'
-                              : 'Mengunduh model dari sumber resmi...',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: context.ink,
+          // Card 2: Konfigurasi Gemini API Key
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: context.surface2,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: context.line),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '🔑 Gemini API Key',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: context.ink,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Masukkan API Key dari Google AI Studio (aistudio.google.com) untuk mengaktifkan analisis Gemini 2.5 Flash.',
+                  style: TextStyle(
+                    color: context.muted,
+                    fontSize: 11,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _apiKeyController,
+                  obscureText: _obscureKey,
+                  decoration: InputDecoration(
+                    hintText: 'AIzaSy...',
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: _obscureKey
+                              ? 'Tampilkan API Key'
+                              : 'Sembunyikan API Key',
+                          icon: Icon(
+                            _obscureKey
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            size: 18,
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: isVerifying
-                        ? const LinearProgressIndicator(minHeight: 8)
-                        : LinearProgressIndicator(
-                            value: state.progressRatio,
-                            backgroundColor: context.soft,
-                            color: BuildHausTheme.ok,
-                            minHeight: 8,
-                          ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${(state.bytesDownloaded / (1024 * 1024)).toStringAsFixed(1)} MB / ${manifest.formattedSize}',
-                        style: TextStyle(color: context.muted, fontSize: 11),
-                      ),
-                      Text(
-                        '${(state.progressRatio * 100).toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          color: context.ink,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      if (isDownloading)
-                        OutlinedButton(
                           onPressed: () {
-                            downloadService.pauseDownload();
-                            setState(() {});
+                            setState(() => _obscureKey = !_obscureKey);
                           },
-                          child: const Text('Jeda'),
-                        )
-                      else if (isPaused)
-                        ElevatedButton(
-                          onPressed: () {
-                            downloadService.startDownload();
-                            setState(() {});
-                          },
-                          child: const Text('Lanjutkan'),
                         ),
-                      const SizedBox(width: 8),
-                      TextButton(
-                        onPressed: isVerifying
-                            ? null
-                            : () async {
-                                await downloadService.cancelDownload();
-                                ref.invalidate(aiModelStatusProvider);
-                                ref.invalidate(aiModelInfoProvider);
-                                setState(() {});
-                              },
-                        child: Text(
-                          'Batal',
+                        IconButton(
+                          tooltip: 'Bersihkan teks',
+                          icon: const Icon(Icons.clear, size: 18),
+                          onPressed: () {
+                            setState(() {
+                              _apiKeyController.clear();
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    FilledButton.icon(
+                      onPressed: _isSaving ? null : _saveApiKey,
+                      icon: _isSaving
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.save_outlined, size: 16),
+                      label: const Text('Simpan API Key'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: _isTesting ? null : _testConnection,
+                      icon: _isTesting
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.wifi_tethering, size: 16),
+                      label: const Text('Tes Koneksi'),
+                    ),
+                    if (_hasKey)
+                      TextButton.icon(
+                        onPressed: _clearApiKey,
+                        icon: Icon(
+                          Icons.delete_outline,
+                          size: 16,
+                          color: BuildHausTheme.danger,
+                        ),
+                        label: Text(
+                          'Hapus API Key',
                           style: TextStyle(color: BuildHausTheme.danger),
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // Error display
-          if (isFailed && state.errorMessage != null) ...[
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: BuildHausTheme.dangerBg,
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: Row(
-                children: [
-                  const Text('❌', style: TextStyle(fontSize: 16)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      state.errorMessage!,
-                      style: TextStyle(
-                        color: BuildHausTheme.danger,
-                        fontSize: 12,
+                  ],
+                ),
+                if (_testMessage != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _testSuccess == true
+                          ? BuildHausTheme.okBg
+                          : BuildHausTheme.dangerBg,
+                      borderRadius: BorderRadius.circular(9),
+                      border: Border.all(
+                        color: (_testSuccess == true
+                                ? BuildHausTheme.ok
+                                : BuildHausTheme.danger)
+                            .withValues(alpha: 0.3),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // Installed model info
-          modelInfo.when(
-            data: (model) {
-              if (model == null && !isCompleted) return const SizedBox.shrink();
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: BuildHausTheme.okBg,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: BuildHausTheme.ok.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
-                          Icons.check_circle,
-                          color: BuildHausTheme.ok,
-                          size: 20,
+                          _testSuccess == true
+                              ? Icons.check_circle_outline
+                              : Icons.error_outline,
+                          size: 18,
+                          color: _testSuccess == true
+                              ? BuildHausTheme.ok
+                              : BuildHausTheme.danger,
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          'Model Terpasang & Terverifikasi',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: BuildHausTheme.ok,
+                        Expanded(
+                          child: Text(
+                            _testMessage!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _testSuccess == true
+                                  ? BuildHausTheme.ok
+                                  : BuildHausTheme.danger,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Model: ${model?.modelName ?? manifest.name}',
-                      style: TextStyle(fontSize: 11, color: context.ink),
-                    ),
-                    Text(
-                      'Versi: ${model?.version ?? manifest.version}',
-                      style: TextStyle(fontSize: 11, color: context.muted),
-                    ),
-                    Text(
-                      'Checksum: SHA-256 Valid',
-                      style: TextStyle(fontSize: 11, color: BuildHausTheme.ok),
-                    ),
-                    if (model?.installedAt != null)
-                      Text(
-                        'Dipasang: ${model!.installedAt.toString().substring(0, 16)}',
-                        style: TextStyle(fontSize: 11, color: context.muted),
-                      ),
-                  ],
-                ),
-              );
-            },
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+                  ),
+                ],
+              ],
+            ),
           ),
 
           const SizedBox(height: 16),
 
-          // Action buttons
-          if (isCompleted) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: context.soft,
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: Row(
-                children: [
-                  const Text('ℹ️', style: TextStyle(fontSize: 14)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Model AI sudah terpasang dan siap digunakan untuk analisis keluhan secara offline.',
-                      style: TextStyle(color: context.muted, fontSize: 11),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () => _deleteModel(context, downloadService),
-              icon: Icon(Icons.delete_outline, color: BuildHausTheme.danger),
-              label: Text(
-                'Hapus Model',
-                style: TextStyle(color: BuildHausTheme.danger),
-              ),
-            ),
-          ] else if (!isDownloading && !isVerifying && !isPaused) ...[
-            ElevatedButton.icon(
-              onPressed: () async {
-                try {
-                  await downloadService.startDownload();
-                  ref.invalidate(aiModelStatusProvider);
-                  ref.invalidate(aiModelInfoProvider);
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error download: $e')),
-                    );
-                  }
-                }
-              },
-              icon: const Icon(Icons.cloud_download),
-              label: Text(
-                isFailed ? 'Coba Unduh Ulang' : 'Unduh Model AI Offline',
-              ),
-            ),
-          ],
-
-          const SizedBox(height: 24),
-
-          // Privacy notice
+          // Card 3: Keunggulan Mode Online & Fallback
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: context.soft,
-              borderRadius: BorderRadius.circular(9),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: context.line),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Text('🔒', style: TextStyle(fontSize: 14)),
+                    const Text('💡', style: TextStyle(fontSize: 16)),
                     const SizedBox(width: 8),
                     Text(
-                      'Privasi & Keamanan',
+                      'Keunggulan Mode Online & Fallback Otomatis',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 11,
+                        fontSize: 12,
                         color: context.ink,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
-                  '• Model AI disimpan di penyimpanan privat aplikasi\n'
-                  '• Tidak ada keluhan atau data yang dikirim ke server cloud\n'
-                  '• Inferensi berjalan 100% lokal pada CPU/GPU perangkat Anda\n'
-                  '• Checksum SHA-256 diverifikasi ketat sebelum model diaktifkan',
+                  '• Menghemat ~378 MB ruang penyimpanan internal dan beban RAM berat karena tidak perlu mengunduh model GGUF lokal.\n'
+                  '• Riwayat motor, servis, odometer, dan percakapan tetap tersimpan aman di database SQLite perangkat Anda.\n'
+                  '• Fallback Otomatis: Jika perangkat sedang tidak memiliki koneksi internet atau API Key belum diatur, asisten tetap bekerja menggunakan Analisis Dasar berbasis aturan.',
                   style: TextStyle(
                     color: context.muted,
-                    fontSize: 10,
+                    fontSize: 11,
                     height: 1.5,
                   ),
                 ),
               ],
             ),
           ),
-
-          const SizedBox(height: 16),
-
-          // Without AI info
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: context.surface2,
-              borderRadius: BorderRadius.circular(9),
-              border: Border.all(color: context.line),
-            ),
-            child: Row(
-              children: [
-                const Text('📋', style: TextStyle(fontSize: 18)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tanpa model AI (Fallback)',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: context.ink,
-                        ),
-                      ),
-                      Text(
-                        'Analisis dasar berbasis aturan tetap aktif otomatis saat model belum diunduh.',
-                        style: TextStyle(color: context.muted, fontSize: 10),
-                      ),
-                    ],
-                  ),
-                ),
-                const Chip(
-                  label: Text('Aktif', style: TextStyle(fontSize: 9)),
-                  backgroundColor: BuildHausTheme.okBg,
-                  side: BorderSide.none,
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
-  }
-
-  Widget _buildStatusChip(DownloadStatus status) {
-    switch (status) {
-      case DownloadStatus.completed:
-        return Chip(
-          label: Text(
-            '✓ Siap',
-            style: TextStyle(fontSize: 10, color: BuildHausTheme.ok),
-          ),
-          backgroundColor: BuildHausTheme.okBg,
-          side: BorderSide.none,
-        );
-      case DownloadStatus.downloading:
-        return Chip(
-          label: Text(
-            '↓ Mengunduh',
-            style: TextStyle(fontSize: 10, color: BuildHausTheme.warn),
-          ),
-          backgroundColor: BuildHausTheme.warnBg,
-          side: BorderSide.none,
-        );
-      case DownloadStatus.verifying:
-        return Chip(
-          label: Text(
-            '🔍 Verifikasi',
-            style: TextStyle(fontSize: 10, color: BuildHausTheme.warn),
-          ),
-          backgroundColor: BuildHausTheme.warnBg,
-          side: BorderSide.none,
-        );
-      case DownloadStatus.paused:
-        return Chip(
-          label: Text(
-            '⏸ Dijeda',
-            style: TextStyle(fontSize: 10, color: context.muted),
-          ),
-          backgroundColor: context.soft,
-          side: BorderSide.none,
-        );
-      case DownloadStatus.failed:
-        return Chip(
-          label: Text(
-            '❌ Gagal',
-            style: TextStyle(fontSize: 10, color: BuildHausTheme.danger),
-          ),
-          backgroundColor: BuildHausTheme.dangerBg,
-          side: BorderSide.none,
-        );
-      case DownloadStatus.idle:
-        return Chip(
-          label: Text(
-            '⏳ Belum',
-            style: TextStyle(fontSize: 10, color: context.muted),
-          ),
-          backgroundColor: context.soft,
-          side: BorderSide.none,
-        );
-    }
-  }
-
-  Future<void> _deleteModel(
-    BuildContext context,
-    ModelDownloadService service,
-  ) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Model AI?'),
-        content: const Text(
-          'File model offline akan dihapus dari penyimpanan perangkat. '
-          'Aplikasi akan kembali menggunakan analisis dasar berbasis aturan.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              'Hapus',
-              style: TextStyle(color: BuildHausTheme.danger),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true && context.mounted) {
-      await service.deleteModel();
-      ref.invalidate(aiModelStatusProvider);
-      ref.invalidate(aiModelInfoProvider);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Model AI berhasil dihapus.')),
-        );
-      }
-      setState(() {});
-    }
   }
 }
 
@@ -592,7 +459,7 @@ class _InfoRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 100,
+            width: 110,
             child: Text(
               label,
               style: TextStyle(color: context.muted, fontSize: 11),

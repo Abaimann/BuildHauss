@@ -467,7 +467,12 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
 
       ref.invalidate(serviceRecordsProvider(motorId));
       ref.invalidate(latestOdometerProvider(motorId));
+      ref.invalidate(odometerLogsProvider(motorId));
+      ref.invalidate(mileagePredictorProvider(motorId));
       ref.invalidate(componentStatusesProvider(motorId));
+      ref.invalidate(componentStatusesWithNamesProvider(motorId));
+      ref.invalidate(complaintsProvider(motorId));
+      ref.invalidate(budgetPlanSummaryProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

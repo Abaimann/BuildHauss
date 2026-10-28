@@ -3,6 +3,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'tables/all_tables.dart';
 import '../engines/self_inspection_engine.dart';
 import '../engines/budget_engine.dart';
+import '../engines/health_engine.dart';
 
 part 'app_database.g.dart';
 
@@ -1445,8 +1446,8 @@ class AppDatabase extends _$AppDatabase {
           ),
         );
       }
-      await recalculateComponentStatuses(motorcycleId);
     }
+    await recalculateComponentStatuses(motorcycleId);
   });
 
   Future<int> deleteMotorcycle(int id) => transaction(() async {
@@ -1687,6 +1688,43 @@ class AppDatabase extends _$AppDatabase {
         );
       }
     }
+
+    // Automatically resolve open complaints that match any serviced component
+    final allTypes = await getAllComponentTypes();
+    final typeNameById = {for (final t in allTypes) t.id: t.name};
+    var openComplaints = (await getComplaints(record.motorcycleId.value))
+        .where(
+          (c) =>
+              c.closedAt == null &&
+              c.status.trim() != 'selesai' &&
+              c.status.trim() != 'ditangani',
+        )
+        .toList();
+
+    for (final item in items) {
+      final compId = item.componentTypeId.value;
+      final compName = compId != null ? typeNameById[compId] : null;
+      if (compName == null || openComplaints.isEmpty) continue;
+
+      while (true) {
+        final matched = HealthEngine.findMatchingActiveComplaint(
+          compName,
+          openComplaints,
+        );
+        if (matched == null) break;
+        await updateComplaint(
+          ComplaintsCompanion(
+            status: const Value('selesai'),
+            closedAt: Value(record.servicedAt.value),
+            resolvedByServiceId: Value(recordId),
+            updatedAt: Value(DateTime.now()),
+          ),
+          matched.id,
+        );
+        openComplaints.removeWhere((c) => c.id == matched.id);
+      }
+    }
+
     await recalculateComponentStatuses(record.motorcycleId.value);
     return recordId;
   });
@@ -2399,13 +2437,15 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Recalculate and persist all component statuses for a motorcycle.
-  /// This should be called after service records are added/updated.
+  /// This should be called after service records, odometer logs, inspections, or complaints are added/updated.
   Future<void> recalculateComponentStatuses(int motorcycleId) async {
     final motor = await getMotorcycle(motorcycleId);
     if (motor == null) return;
     final current = (await getLatestOdometer(motorcycleId))?.odometerKm;
     final history = await getAllServiceItemsForMotorcycle(motorcycleId);
     final components = await getApplicableComponents(motor.usageProfile);
+    final activeComplaints = await getComplaints(motorcycleId);
+    final usageMultiplier = motor.usageProfile == 'jarak_jauh' ? 0.8 : 1.0;
     final now = DateTime.now();
 
     final latestInspection = await getLatestSelfInspection(motorcycleId);
@@ -2445,6 +2485,10 @@ class AppDatabase extends _$AppDatabase {
       double? confidence;
 
       if (rule != null && replaced != null) {
+        final effectiveIntervalKm =
+            (rule.intervalKm != null && rule.intervalKm! > 0)
+            ? rule.intervalKm! * usageMultiplier
+            : null;
         final km = (current != null && replaced.odometerKm != null)
             ? current - replaced.odometerKm!
             : null;
@@ -2452,14 +2496,16 @@ class AppDatabase extends _$AppDatabase {
         final kmValid =
             km != null &&
             km >= 0 &&
-            rule.intervalKm != null &&
-            rule.intervalKm! > 0;
+            effectiveIntervalKm != null &&
+            effectiveIntervalKm > 0;
         final daysValid =
             days >= 0 && rule.intervalDays != null && rule.intervalDays! > 0;
         if (kmValid || daysValid) {
           final kmFraction =
-              (km != null && rule.intervalKm != null && rule.intervalKm! > 0)
-              ? km / rule.intervalKm!
+              (km != null &&
+                  effectiveIntervalKm != null &&
+                  effectiveIntervalKm > 0)
+              ? km / effectiveIntervalKm
               : 0.0;
           final dayFraction = daysValid ? days / rule.intervalDays! : 0.0;
           final progress = kmFraction > dayFraction ? kmFraction : dayFraction;
@@ -2497,17 +2543,53 @@ class AppDatabase extends _$AppDatabase {
         if (finding.isSafetyCritical) {
           state = 'replace';
           score = (score ?? 50.0).clamp(0.0, 40.0);
+          confidence ??= 0.7;
           explanation =
               '⚠️ KESELAMATAN: ${finding.advice} (${finding.answerLabel})';
         } else if (finding.riskLevel == 'high') {
           state = 'replace';
           score = (score ?? 50.0).clamp(0.0, 45.0);
+          confidence ??= 0.7;
           explanation =
               '⚠️ Perhatian: Ditemukan indikasi masalah: ${finding.advice}';
-        } else if (finding.riskLevel == 'medium' && state == 'good') {
+        } else if (finding.riskLevel == 'medium' &&
+            (state == 'good' || state == 'unknown')) {
           state = 'inspect';
-          score = (score ?? 75.0).clamp(50.0, 65.0);
+          score = (score ?? 60.0).clamp(50.0, 65.0);
+          confidence ??= 0.6;
           explanation = 'Pemeriksaan mandiri mencatat: ${finding.advice}';
+        }
+      }
+
+      // Integrate active complaints from AI Chat / Complaint History
+      final activeComplaint = HealthEngine.findMatchingActiveComplaint(
+        component.name,
+        activeComplaints,
+      );
+      if (activeComplaint != null) {
+        // Apply complaint if there was no subsequent replacement after the complaint was opened
+        final isNotResolvedByNewerReplace =
+            replaced == null ||
+            !replaced.servicedAt.isAfter(activeComplaint.openedAt);
+        if (isNotResolvedByNewerReplace) {
+          if (HealthEngine.isCriticalComplaint(activeComplaint)) {
+            state = 'replace';
+            score = (score ?? 40.0).clamp(0.0, 40.0);
+            confidence ??= 0.7;
+            explanation =
+                '⚠️ KELUHAN KRITIS: "${activeComplaint.title}". Segera periksa komponen ini di bengkel.';
+          } else if (state == 'good' || state == 'unknown') {
+            state = 'inspect';
+            score = (score ?? 60.0).clamp(50.0, 65.0);
+            confidence ??= 0.6;
+            explanation =
+                'Keluhan aktif: "${activeComplaint.title}". Perlu pengecekan fisik.';
+          } else if (state == 'inspect' &&
+              !explanation.contains('Keluhan aktif')) {
+            score = ((score ?? 60.0) - 5.0).clamp(45.0, 65.0);
+            explanation =
+                '$explanation (Keluhan aktif: "${activeComplaint.title}")';
+          }
         }
       }
 

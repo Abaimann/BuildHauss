@@ -222,7 +222,30 @@ void main() {
         expect(fullResponse, contains('keausan pada roller CVT'));
         expect(completedAnalysis, isNotNull);
         expect(completedAnalysis!.mode, equals('llm'));
-        expect(completedAnalysis!.modelVersion, equals('Qwen3-0.6B'));
+        expect(completedAnalysis!.modelVersion, equals('gemini-2.5-flash'));
+      },
+    );
+
+    test(
+      '5. Chat routes directly to online LLM runtime when runtime is ready without needing any downloaded GGUF file',
+      () async {
+        mockRuntime.loaded = true;
+
+        ComplaintAnalysisData? completedAnalysis;
+
+        final stream = chatService.sendMessage(
+          motorcycleId: motorcycleId,
+          userText: 'Tarikan motor terasa berat dan boros bensin',
+          onAnalysisComplete: (a) => completedAnalysis = a,
+        );
+
+        final tokens = await stream.toList();
+        final fullResponse = tokens.join();
+
+        expect(fullResponse, contains(mockRuntime.mockedTokenOutput));
+        expect(completedAnalysis, isNotNull);
+        expect(completedAnalysis!.mode, equals('llm'));
+        expect(completedAnalysis!.modelVersion, equals('gemini-2.5-flash'));
       },
     );
   });
