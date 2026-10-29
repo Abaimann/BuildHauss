@@ -830,6 +830,14 @@
         <div class="demo-stage">
           <!-- Left Column Navigation -->
           <div class="demo-col-left">
+            <div class="demo-feature-card" onclick="switchMockup('auth')">
+              <h4>🔐 Layar Login & Register</h4>
+              <p>Autentikasi akun lokal offline-first: Masuk atau buat akun baru dengan aman tanpa ketergantungan server luar.</p>
+            </div>
+            <div class="demo-feature-card" onclick="switchMockup('setup')">
+              <h4>🏍️ Setup Motor & Kesehatan Awal</h4>
+              <p>Formulir wajib terpadu untuk memasukkan identitas motor, riwayat servis terakhir, dan menghitung skor kesehatan awal.</p>
+            </div>
             <div class="demo-feature-card active" onclick="switchMockup('home')">
               <h4>🏠 Beranda & Odometer</h4>
               <p>Ringkasan odometer aktual, estimasi kilometer per minggu, kartu motor aktif, dan skor kesehatan sekilas.</p>
@@ -837,10 +845,6 @@
             <div class="demo-feature-card" onclick="switchMockup('health')">
               <h4>🩺 Status Kesehatan Komponen</h4>
               <p>Skor 0-100% untuk oli, kampas rem, CVT, ban, aki, dan badge "KELUHAN" jika baru dilaporkan di AI.</p>
-            </div>
-            <div class="demo-feature-card" onclick="switchMockup('budget')">
-              <h4>💰 Smart Budget & Estimasi</h4>
-              <p>Alokasi anggaran servis cerdas: mendahulukan keselamatan sebelum perawatan rutin.</p>
             </div>
           </div>
 
@@ -1402,6 +1406,58 @@
             </div>
             <b style="font-size:11px; color:var(--accent);">Rp 145.000</b>
           </div>
+        `,
+
+        auth: `
+          <div style="text-align:center; padding:10px 0 16px;">
+            <div style="width:42px; height:42px; background:var(--surface2); border:1px solid var(--line); border-radius:12px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:20px;">🏍️</div>
+            <b style="font-size:14px; display:block;">Selamat Datang di BuildHaus</b>
+            <div style="font-size:10px; color:var(--muted); margin-top:2px;">Masuk atau buat akun baru untuk merawat motor Anda.</div>
+          </div>
+          <div style="display:flex; background:var(--surface2); border-radius:10px; padding:3px; margin-bottom:14px;">
+            <div style="flex:1; text-align:center; padding:6px; font-size:10.5px; font-weight:800; background:var(--ink); color:var(--bg); border-radius:8px;">Masuk</div>
+            <div style="flex:1; text-align:center; padding:6px; font-size:10.5px; font-weight:600; color:var(--muted);">Daftar Akun</div>
+          </div>
+          <div style="background:var(--surface2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px;">
+            <div style="font-size:10px; font-weight:700; color:var(--muted); margin-bottom:4px;">EMAIL / NOMOR HP</div>
+            <div style="font-size:11.5px; font-weight:600; color:var(--ink);">budi@buildhaus.id</div>
+          </div>
+          <div style="background:var(--surface2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:16px;">
+            <div style="font-size:10px; font-weight:700; color:var(--muted); margin-bottom:4px;">KATA SANDI</div>
+            <div style="font-size:11.5px; font-weight:600; color:var(--ink);">••••••••••••</div>
+          </div>
+          <button style="width:100%; padding:12px; background:var(--accent); color:#0c110d; font-weight:800; font-size:12px; border:none; border-radius:12px; cursor:pointer;" onclick="switchMockup('setup')">Masuk ke Aplikasi →</button>
+        `,
+
+        setup: `
+          <div style="margin-bottom:12px;">
+            <span style="font-size:8px; font-weight:800; color:var(--accent); background:rgba(61,169,110,0.18); padding:2px 6px; border-radius:99px;">LANGKAH 1 DARI 3 • SETUP WAJIB</span>
+            <div style="font-size:13.5px; font-weight:800; margin-top:4px;">Setup Kesehatan Motor Pertama</div>
+            <div style="font-size:10px; color:var(--muted);">Diisi 1x saat pertama masuk untuk menghitung kesehatan motor.</div>
+          </div>
+          <!-- Preview Score Card -->
+          <div class="m-score-card" style="border-color:rgba(61,169,110,0.4); margin-bottom:12px;">
+            <div class="m-score-box" style="width:48px; height:48px; font-size:20px;">84%</div>
+            <div>
+              <div style="font-size:11px; font-weight:800; color:var(--accent);">ESTIMASI KESEHATAN AWAL</div>
+              <div style="font-size:11px; font-weight:700;">Kondisi Baik & Terawat</div>
+            </div>
+          </div>
+          <div class="m-comp-tile" style="margin-bottom:6px;">
+            <div>
+              <b style="font-size:10.5px;">Motor: Honda Vario 160 (2023)</b>
+              <div style="font-size:9px; color:var(--muted);">Odometer: 14.500 km • Plat B 4192 TZX</div>
+            </div>
+            <span>🛵</span>
+          </div>
+          <div class="m-comp-tile" style="margin-bottom:14px;">
+            <div>
+              <b style="font-size:10.5px;">Terakhir Ganti Oli: < 500 km lalu</b>
+              <div style="font-size:9px; color:var(--muted);">Rem: Pakem • CVT: Mulus</div>
+            </div>
+            <span style="color:var(--accent);">✅</span>
+          </div>
+          <button style="width:100%; padding:12px; background:var(--accent); color:#0c110d; font-weight:800; font-size:12px; border:none; border-radius:12px; cursor:pointer;" onclick="switchMockup('home')">Simpan & Masuk Beranda →</button>
         `
       };
 

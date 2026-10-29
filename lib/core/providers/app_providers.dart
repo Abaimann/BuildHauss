@@ -100,16 +100,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
         userEmail: userEmail,
         userInitial: userInitial,
       );
-    } else if (loggedInVal == null && motors.isNotEmpty) {
-      // Existing installation or pre-seeded data
-      state = AuthState(
-        isLoading: false,
-        isLoggedIn: true,
-        isOnboardingCompleted: true,
-        userName: userName,
-        userEmail: userEmail,
-        userInitial: userInitial,
-      );
     } else {
       state = AuthState(
         isLoading: false,

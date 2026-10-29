@@ -43,6 +43,9 @@ void main() {
     testWidgets('2. Multi-Motor & Dashboard tab navigation flow', (
       tester,
     ) async {
+      await db.setSetting('auth_logged_in', 'true');
+      await db.setSetting('onboarding_completed', 'true');
+
       // Pre-populate with a motor
       await db.insertMotorcycle(
         MotorcyclesCompanion.insert(
@@ -228,6 +231,9 @@ void main() {
     testWidgets(
       '4. Account screen: Tapping motorcycle tile navigates to Edit Motorcycle screen without 404',
       (tester) async {
+        await db.setSetting('auth_logged_in', 'true');
+        await db.setSetting('onboarding_completed', 'true');
+
         await db.insertMotorcycle(
           MotorcyclesCompanion.insert(
             nickname: 'Vario Nav Test',
