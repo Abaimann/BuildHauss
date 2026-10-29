@@ -4,75 +4,31 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-  
-  <!-- Garage/House shape -->
+  <!-- Outer Crest Shield / Rounded Square -->
   <path
-    android:fillColor="#1b1b1b"
-    android:pathData="M22,55 L54,25 L86,55 L86,82 L22,82 Z"/>
-  
-  <!-- Roof accent -->
+      android:strokeColor="#00F5A0"
+      android:strokeWidth="1.8"
+      android:strokeAlpha="0.6"
+      android:fillColor="#151F2E"
+      android:pathData="M37,29 h34 a10,10 0 0 1 10,10 v30 a10,10 0 0 1 -10,10 h-34 a10,10 0 0 1 -10,-10 v-30 a10,10 0 0 1 10,-10 z"/>
+
+  <!-- Top-Left Winglet (Titanium Silver Metallic) -->
   <path
-    android:strokeColor="#ffffff"
-    android:strokeWidth="3"
-    android:strokeLineCap="round"
-    android:strokeLineJoin="round"
-    android:fillColor="#00000000"
-    android:pathData="M18,55 L54,22 L90,55"/>
-  
-  <!-- House body -->
+      android:fillColor="#F1F5F9"
+      android:pathData="M43,62 L43,47 L53,39 L59,39 L49,47 L58,47 L52,53 L47,53 Z"/>
+
+  <!-- Bottom-Right Winglet (Cyber Emerald Neon) -->
   <path
-    android:strokeColor="#ffffff"
-    android:strokeWidth="3"
-    android:strokeLineCap="round"
-    android:strokeLineJoin="round"
-    android:fillColor="#00000000"
-    android:pathData="M24,55 L24,82 L84,82 L84,55"/>
-  
-  <!-- Garage door opening -->
+      android:fillColor="#00F5A0"
+      android:pathData="M65,46 L65,61 L55,69 L49,69 L59,61 L50,61 L56,55 L61,55 Z"/>
+
+  <!-- Center Telemetry Diamond -->
   <path
-    android:strokeColor="#ffffff"
-    android:strokeWidth="2.5"
-    android:strokeLineCap="round"
-    android:fillColor="#00000000"
-    android:pathData="M40,82 L40,64 L68,64 L68,82"/>
-  
-  <!-- Motorcycle wheel 1 (front) - using path for circle -->
+      android:fillColor="#00F5A0"
+      android:pathData="M54,49.5 L58.5,54 L54,58.5 L49.5,54 Z"/>
+
+  <!-- Glowing Telemetry Diode Core -->
   <path
-    android:fillColor="#3da96e"
-    android:pathData="M38,77 a5,5 0 1,0 0.001,0"/>
-  
-  <!-- Motorcycle wheel 2 (rear) - using path for circle -->
-  <path
-    android:fillColor="#3da96e"
-    android:pathData="M58,77 a5,5 0 1,0 0.001,0"/>
-  
-  <!-- Motorcycle frame hint -->
-  <path
-    android:strokeColor="#3da96e"
-    android:strokeWidth="2"
-    android:strokeLineCap="round"
-    android:fillColor="#00000000"
-    android:pathData="M36,68 Q48,62 60,68"/>
-  
-  <!-- Wrench tool -->
-  <path
-    android:strokeColor="#c9913a"
-    android:strokeWidth="2"
-    android:strokeLineCap="round"
-    android:fillColor="#00000000"
-    android:pathData="M65,58 L72,65 M70,61 L76,67"/>
-  
-  <!-- Check badge circle - using path -->
-  <path
-    android:fillColor="#3da96e"
-    android:pathData="M80,48 a10,10 0 1,0 0.001,0"/>
-  
-  <!-- Checkmark in badge -->
-  <path
-    android:strokeColor="#ffffff"
-    android:strokeWidth="2"
-    android:strokeLineCap="round"
-    android:strokeLineJoin="round"
-    android:fillColor="#00000000"
-    android:pathData="M76,38 L79,41 L85,35"/>
+      android:fillColor="#FFFFFF"
+      android:pathData="M54,52.5 a1.5,1.5 0 1,0 0.001,0"/>
 </vector>
