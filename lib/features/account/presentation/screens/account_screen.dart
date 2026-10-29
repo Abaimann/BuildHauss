@@ -102,9 +102,11 @@ class _SectionTitle extends StatelessWidget {
       Text(title, style: Theme.of(context).textTheme.titleMedium);
 }
 
-class _ProfileCard extends StatelessWidget {
+class _ProfileCard extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authProvider);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -132,8 +134,15 @@ class _ProfileCard extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(18),
             ),
-            child: const Center(
-              child: Text('🏍️', style: TextStyle(fontSize: 28)),
+            child: Center(
+              child: Text(
+                auth.userInitial,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: context.bg,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -142,7 +151,7 @@ class _ProfileCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Rider BuildHaus',
+                  auth.userName,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
@@ -151,7 +160,9 @@ class _ProfileCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Smart Rider • Local & Cloud AI',
+                  auth.userEmail.isNotEmpty
+                      ? auth.userEmail
+                      : 'Smart Rider • Local & Cloud AI',
                   style: TextStyle(fontSize: 12, color: context.muted),
                 ),
                 const SizedBox(height: 8),
@@ -186,6 +197,41 @@ class _ProfileCard extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            tooltip: 'Keluar Akun',
+            icon: Icon(Icons.logout_rounded, color: BuildHausTheme.danger),
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Keluar dari Akun?'),
+                  content: const Text(
+                    'Anda akan keluar dari sesi saat ini. Data motor dan riwayat servis Anda tetap tersimpan dengan aman di perangkat ini.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Batal'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: BuildHausTheme.danger,
+                        minimumSize: const Size(0, 42),
+                      ),
+                      child: const Text('Keluar'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm == true) {
+                await ref.read(authProvider.notifier).logout();
+                if (context.mounted) {
+                  context.go('/home');
+                }
+              }
+            },
           ),
         ],
       ),

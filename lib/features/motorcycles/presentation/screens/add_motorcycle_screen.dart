@@ -32,6 +32,7 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
   MotorcycleModel? _selectedModel;
   int _selectedYear = DateTime.now().year;
   String _selectedUsage = 'campuran';
+  String _initialCondition = 'baru';
   bool _saving = false;
 
   final _years = List.generate(15, (i) => DateTime.now().year - i);
@@ -40,6 +41,11 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
     'harian_dalam_kota': 'Harian dalam kota',
     'jarak_jauh': 'Jarak jauh',
     'campuran': 'Campuran',
+  };
+  final _conditionLabels = {
+    'baru': 'Baru diservis / Kondisi Prima (~85%)',
+    'sedang': 'Pemakaian Normal / Rutin (~60%)',
+    'lama': 'Sudah lama belum servis (~25%)',
   };
 
   @override
@@ -225,6 +231,23 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                         .toList(),
                     onChanged: (v) => setState(() => _selectedUsage = v!),
                   ),
+                  const SizedBox(height: 8),
+
+                  // Initial condition
+                  _buildLabel('Kondisi kesehatan awal motor'),
+                  DropdownButtonFormField<String>(
+                    initialValue: _initialCondition,
+                    decoration: const InputDecoration(),
+                    items: _conditionLabels.entries
+                        .map(
+                          (e) => DropdownMenuItem(
+                            value: e.key,
+                            child: Text(e.value),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setState(() => _initialCondition = v!),
+                  ),
 
                   const SizedBox(height: 24),
 
@@ -302,8 +325,8 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
       }
       final isFirst = (await db.getAllMotorcycles()).isEmpty;
       final odoText = _odometerController.text.trim();
-      final odo = odoText.isEmpty ? null : double.tryParse(odoText);
-      final motorId = await db.createMotorcycle(
+      final odo = (odoText.isEmpty ? null : double.tryParse(odoText)) ?? 1000.0;
+      final motorId = await db.createMotorcycleWithInitialHealth(
         motorcycle: MotorcyclesCompanion.insert(
           modelId: Value(selected.id),
           nickname: _nicknameController.text.trim(),
@@ -317,6 +340,10 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
           usageProfile: Value(_selectedUsage),
         ),
         initialOdometerKm: odo,
+        oilHistory: _initialCondition,
+        transmissionHistory: _initialCondition,
+        brakeHistory: _initialCondition,
+        generalHistory: _initialCondition,
       );
 
       // Refresh providers

@@ -1399,6 +1399,146 @@ class AppDatabase extends _$AppDatabase {
     return id;
   });
 
+  /// Creates a motorcycle and initializes its baseline odometer, component service
+  /// history, and initial physical self-inspection so that all 14 component health
+  /// statuses are calculated immediately on day 1.
+  Future<int> createMotorcycleWithInitialHealth({
+    required MotorcyclesCompanion motorcycle,
+    required double initialOdometerKm,
+    String oilHistory = 'baru', // 'baru', 'sedang', 'lama', 'belum_tahu'
+    String transmissionHistory = 'baru',
+    String brakeHistory = 'baru',
+    String generalHistory = 'baru',
+    Map<String, String>? initialInspectionAnswers,
+  }) => transaction(() async {
+    final motorId = await createMotorcycle(
+      motorcycle: motorcycle,
+      initialOdometerKm: initialOdometerKm,
+    );
+
+    final now = DateTime.now();
+    if (initialOdometerKm > 300) {
+      await into(odometerLogs).insert(
+        OdometerLogsCompanion.insert(
+          motorcycleId: motorId,
+          odometerKm: (initialOdometerKm - 600).clamp(0.0, initialOdometerKm),
+          recordedAt: now.subtract(const Duration(days: 30)),
+          source: const Value('manual'),
+          note: const Value('Odometer awal baseline'),
+        ),
+      );
+    }
+
+    double wearForLevel(String level) {
+      switch (level) {
+        case 'baru':
+          return 0.15;
+        case 'sedang':
+          return 0.45;
+        case 'lama':
+          return 0.80;
+        case 'belum_tahu':
+          return 0.90;
+        default:
+          return 0.30;
+      }
+    }
+
+    final motor = await getMotorcycle(motorId);
+    final usageMultiplier = motor?.usageProfile == 'jarak_jauh' ? 0.8 : 1.0;
+    final allComponents = await getAllComponentTypes();
+
+    final Map<String, List<(ComponentType, String)>> buckets = {};
+    final Map<String, (DateTime, double)> bucketMeta = {};
+
+    for (final comp in allComponents) {
+      final lowerName = comp.name.toLowerCase();
+      String level = generalHistory;
+      if (lowerName.contains('oli mesin') || lowerName.contains('filter oli')) {
+        level = oilHistory;
+      } else if (lowerName.contains('cvt') ||
+          lowerName.contains('gardan') ||
+          lowerName.contains('rantai')) {
+        level = transmissionHistory;
+      } else if (lowerName.contains('rem')) {
+        level = brakeHistory;
+      }
+
+      final wear = wearForLevel(level);
+      final candidateRules = await getMaintenanceRules(motor?.modelId, comp.id);
+      final specific = candidateRules
+          .where((r) => r.modelId == motor?.modelId && r.modelId != null)
+          .toList();
+      final generic = candidateRules.where((r) => r.modelId == null).toList();
+      final rule = specific.isNotEmpty
+          ? specific.first
+          : (generic.isNotEmpty ? generic.first : null);
+
+      final effKm = (rule?.intervalKm != null && rule!.intervalKm! > 0)
+          ? rule.intervalKm! * usageMultiplier
+          : 4000.0;
+      final effDays = (rule?.intervalDays != null && rule!.intervalDays! > 0)
+          ? rule.intervalDays!
+          : 180;
+
+      final usedKm = effKm * wear;
+      final usedDays = (effDays * wear).round().clamp(1, 1500);
+      final servicedOdo = (initialOdometerKm - usedKm).clamp(
+        0.0,
+        initialOdometerKm,
+      );
+      final servicedDate = now.subtract(Duration(days: usedDays));
+
+      final key = '${usedDays}_${servicedOdo.round()}';
+      buckets.putIfAbsent(key, () => []).add((comp, level));
+      bucketMeta.putIfAbsent(key, () => (servicedDate, servicedOdo));
+    }
+
+    for (final entry in buckets.entries) {
+      final (servicedDate, servicedOdo) = bucketMeta[entry.key]!;
+      final compNames = entry.value.map((e) => e.$1.name).join(', ');
+      final recId = await into(serviceRecords).insert(
+        ServiceRecordsCompanion.insert(
+          motorcycleId: motorId,
+          servicedAt: servicedDate,
+          odometerKm: Value(servicedOdo),
+          workshopName: const Value('Data Kondisi Awal (Onboarding)'),
+          notes: Value('Kondisi awal terdaftar: $compNames'),
+          totalCost: const Value(0),
+        ),
+      );
+
+      for (final (comp, level) in entry.value) {
+        await into(serviceItems).insert(
+          ServiceItemsCompanion.insert(
+            serviceRecordId: recId,
+            componentTypeId: Value(comp.id),
+            action: 'replace',
+            partsCost: const Value(0),
+            laborCost: const Value(0),
+            totalCost: const Value(0),
+            notes: Value('Kondisi awal: $level'),
+          ),
+        );
+      }
+    }
+
+    if (initialInspectionAnswers != null &&
+        initialInspectionAnswers.isNotEmpty) {
+      final eval = SelfInspectionEngine.evaluate(initialInspectionAnswers);
+      await saveCompleteSelfInspection(
+        motorcycleId: motorId,
+        riskLevel: eval.riskLevel,
+        answers: initialInspectionAnswers,
+        notes: 'Pemeriksaan mandiri awal saat pendaftaran motor pertama.',
+      );
+    } else {
+      await recalculateComponentStatuses(motorId);
+    }
+
+    return motorId;
+  });
+
   /// Update profile and optional reading atomically.
   Future<void> updateMotorcycleWithOdometer({
     required int motorcycleId,

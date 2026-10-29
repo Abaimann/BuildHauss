@@ -95,6 +95,9 @@ void main() {
     testWidgets('3. Empty state "Muat 3 Data Motor Contoh" button seeds 3 motorcycles', (
       tester,
     ) async {
+      await db.setSetting('auth_logged_in', 'true');
+      await db.setSetting('onboarding_completed', 'true');
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [databaseProvider.overrideWithValue(db)],
@@ -124,6 +127,103 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(milliseconds: 200));
     });
+
+    testWidgets(
+      '5. First launch shows Login/Register -> Register leads to Mandatory Initial Motor Health Setup -> Computes initial health',
+      (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [databaseProvider.overrideWithValue(db)],
+            child: const BuildHausApp(),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // 1. Verify Login / Register screen is shown on fresh launch
+        expect(find.text('Selamat Datang Kembali'), findsOneWidget);
+        expect(find.text('Daftar Akun'), findsOneWidget);
+
+        // Switch to Register tab
+        await tester.tap(find.text('Daftar Akun'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Buat Akun BuildHaus'), findsOneWidget);
+
+        // Fill registration fields
+        await tester.enterText(
+          find.byKey(const ValueKey('auth_name_field')),
+          'Budi Santoso',
+        );
+        await tester.enterText(
+          find.byKey(const ValueKey('auth_email_field')),
+          'budi@buildhaus.id',
+        );
+        await tester.enterText(
+          find.byKey(const ValueKey('auth_password_field')),
+          'rahasia123',
+        );
+        await tester.enterText(
+          find.byKey(const ValueKey('auth_confirm_password_field')),
+          'rahasia123',
+        );
+
+        // Submit registration
+        final submitBtn = find.byKey(const ValueKey('auth_submit_button'));
+        await tester.ensureVisible(submitBtn);
+        await tester.tap(submitBtn);
+        await tester.pumpAndSettle();
+
+        // 2. Verify Mandatory Initial Motor & Health Setup screen is shown
+        expect(find.text('Data Kesehatan Motor Pertama'), findsOneWidget);
+
+        // Fill Step 1: Motor Identity & Odometer
+        await tester.enterText(
+          find.byKey(const ValueKey('setup_nickname_field')),
+          'Vario Budi',
+        );
+        await tester.enterText(
+          find.byKey(const ValueKey('setup_odometer_field')),
+          '12500',
+        );
+
+        // Proceed to Step 2: Riwayat Servis
+        final nextBtn = find.byKey(
+          const ValueKey('setup_next_or_save_button'),
+        );
+        await tester.tap(nextBtn);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Riwayat Servis & Penggantian Terakhir'),
+          findsOneWidget,
+        );
+
+        // Proceed to Step 3: Cek Fisik & Skor
+        await tester.tap(nextBtn);
+        await tester.pumpAndSettle();
+
+        expect(find.text('ESTIMASI SKOR KESEHATAN AWAL'), findsOneWidget);
+
+        // Submit & Calculate Initial Health
+        await tester.tap(nextBtn);
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pumpAndSettle();
+
+        // 3. Verify motorcycle & all 14 component health statuses were created!
+        final motors = await db.getAllMotorcycles();
+        expect(motors.length, 1);
+        expect(motors.first.nickname, 'Vario Budi');
+
+        final statuses = await db.getComponentStatuses(motors.first.id);
+        expect(statuses.length, 14);
+        expect(statuses.every((s) => s.score != null && s.score! > 0), isTrue);
+
+        // Drain pending timers
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(const Duration(milliseconds: 200));
+      },
+    );
 
     testWidgets(
       '4. Account screen: Tapping motorcycle tile navigates to Edit Motorcycle screen without 404',

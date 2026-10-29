@@ -23,6 +23,8 @@ import '../../features/settings/presentation/screens/restore_screen.dart';
 import '../../features/settings/presentation/screens/licenses_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/coming_soon_screen.dart';
+import '../../features/auth/presentation/screens/auth_screen.dart';
+import '../../features/auth/presentation/screens/initial_motor_setup_screen.dart';
 import '../../shared/widgets/app_shell.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -188,5 +190,16 @@ final appRouter = GoRouter(
 
     // History
     GoRoute(path: '/history/add', builder: (_, __) => const AddServiceScreen()),
+
+    // Auth & Initial Onboarding Setup
+    GoRoute(path: '/login', builder: (_, __) => const AuthScreen()),
+    GoRoute(
+      path: '/register',
+      builder: (_, __) => const AuthScreen(initialIsRegister: true),
+    ),
+    GoRoute(
+      path: '/initial-setup',
+      builder: (_, __) => const InitialMotorSetupScreen(),
+    ),
   ],
 );

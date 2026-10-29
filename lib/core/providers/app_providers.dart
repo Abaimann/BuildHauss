@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/app_database.dart';
@@ -14,6 +15,235 @@ import '../backup/backup_restore_service.dart';
 import '../engines/reminder_engine.dart';
 import '../notifications/notification_service.dart';
 import 'database_provider.dart';
+
+// Auth & Onboarding state
+class AuthState {
+  final bool isLoading;
+  final bool isLoggedIn;
+  final bool isOnboardingCompleted;
+  final String userName;
+  final String userEmail;
+  final String userInitial;
+
+  const AuthState({
+    this.isLoading = true,
+    this.isLoggedIn = false,
+    this.isOnboardingCompleted = false,
+    this.userName = 'Rider BuildHaus',
+    this.userEmail = '',
+    this.userInitial = 'BH',
+  });
+
+  AuthState copyWith({
+    bool? isLoading,
+    bool? isLoggedIn,
+    bool? isOnboardingCompleted,
+    String? userName,
+    String? userEmail,
+    String? userInitial,
+  }) {
+    return AuthState(
+      isLoading: isLoading ?? this.isLoading,
+      isLoggedIn: isLoggedIn ?? this.isLoggedIn,
+      isOnboardingCompleted:
+          isOnboardingCompleted ?? this.isOnboardingCompleted,
+      userName: userName ?? this.userName,
+      userEmail: userEmail ?? this.userEmail,
+      userInitial: userInitial ?? this.userInitial,
+    );
+  }
+}
+
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  return AuthNotifier(ref);
+});
+
+class AuthNotifier extends StateNotifier<AuthState> {
+  final Ref ref;
+
+  AuthNotifier(this.ref) : super(const AuthState()) {
+    _load();
+  }
+
+  static String _computeInitials(String name) {
+    final parts = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return 'BH';
+    if (parts.length == 1) {
+      return parts.first
+          .substring(0, parts.first.length.clamp(1, 2))
+          .toUpperCase();
+    }
+    return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
+  }
+
+  Future<void> _load() async {
+    final db = ref.read(databaseProvider);
+    final loggedInVal = await db.getSetting('auth_logged_in');
+    final onboardingVal = await db.getSetting('onboarding_completed');
+    final userName = await db.getSetting('user_name') ?? 'Rider BuildHaus';
+    final userEmail = await db.getSetting('user_email') ?? '';
+    final userInitial =
+        await db.getSetting('user_initial') ?? _computeInitials(userName);
+    final motors = await db.getAllMotorcycles();
+
+    if (loggedInVal == 'true') {
+      state = AuthState(
+        isLoading: false,
+        isLoggedIn: true,
+        isOnboardingCompleted:
+            (onboardingVal == 'true') || motors.isNotEmpty,
+        userName: userName,
+        userEmail: userEmail,
+        userInitial: userInitial,
+      );
+    } else if (loggedInVal == null && motors.isNotEmpty) {
+      // Existing installation or pre-seeded data
+      state = AuthState(
+        isLoading: false,
+        isLoggedIn: true,
+        isOnboardingCompleted: true,
+        userName: userName,
+        userEmail: userEmail,
+        userInitial: userInitial,
+      );
+    } else {
+      state = AuthState(
+        isLoading: false,
+        isLoggedIn: false,
+        isOnboardingCompleted: false,
+        userName: userName,
+        userEmail: userEmail,
+        userInitial: userInitial,
+      );
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _getRegisteredUsers() async {
+    final db = ref.read(databaseProvider);
+    final raw = await db.getSetting('registered_users_json');
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded
+          .whereType<Map>()
+          .map((m) => Map<String, dynamic>.from(m))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<String?> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final cleanName = name.trim();
+    final cleanEmail = email.trim().toLowerCase();
+    if (cleanName.isEmpty) return 'Nama lengkap wajib diisi.';
+    if (cleanEmail.isEmpty) return 'Email atau nomor HP wajib diisi.';
+    if (password.length < 4) return 'Kata sandi minimal 4 karakter.';
+
+    final db = ref.read(databaseProvider);
+    final users = await _getRegisteredUsers();
+    final existingIdx = users.indexWhere(
+      (u) => (u['email']?.toString().toLowerCase() ?? '') == cleanEmail,
+    );
+    if (existingIdx >= 0) {
+      return 'Email/akun ini sudah terdaftar. Silakan masuk melalui tab Masuk.';
+    }
+
+    final initial = _computeInitials(cleanName);
+    users.add({
+      'name': cleanName,
+      'email': cleanEmail,
+      'password': password,
+      'initial': initial,
+      'createdAt': DateTime.now().toIso8601String(),
+    });
+
+    await db.setSetting('registered_users_json', jsonEncode(users));
+    await db.setSetting('auth_logged_in', 'true');
+    await db.setSetting('user_name', cleanName);
+    await db.setSetting('user_email', cleanEmail);
+    await db.setSetting('user_initial', initial);
+    await db.setSetting('onboarding_completed', 'false');
+
+    state = AuthState(
+      isLoading: false,
+      isLoggedIn: true,
+      isOnboardingCompleted: false,
+      userName: cleanName,
+      userEmail: cleanEmail,
+      userInitial: initial,
+    );
+    return null;
+  }
+
+  Future<String?> login({
+    required String email,
+    required String password,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    if (cleanEmail.isEmpty) return 'Masukkan email atau nomor HP Anda.';
+    if (password.isEmpty) return 'Masukkan kata sandi Anda.';
+
+    final db = ref.read(databaseProvider);
+    final users = await _getRegisteredUsers();
+    final matched = users.where(
+      (u) => (u['email']?.toString().toLowerCase() ?? '') == cleanEmail,
+    );
+
+    if (matched.isEmpty) {
+      return 'Akun belum terdaftar. Silakan buat akun di tab Daftar Akun.';
+    }
+
+    final account = matched.first;
+    if (account['password']?.toString() != password) {
+      return 'Kata sandi yang Anda masukkan salah.';
+    }
+
+    final name = account['name']?.toString() ?? 'Rider BuildHaus';
+    final initial =
+        account['initial']?.toString() ?? _computeInitials(name);
+    final motors = await db.getAllMotorcycles();
+    final hasMotors = motors.isNotEmpty;
+
+    await db.setSetting('auth_logged_in', 'true');
+    await db.setSetting('user_name', name);
+    await db.setSetting('user_email', cleanEmail);
+    await db.setSetting('user_initial', initial);
+    await db.setSetting('onboarding_completed', hasMotors ? 'true' : 'false');
+
+    state = AuthState(
+      isLoading: false,
+      isLoggedIn: true,
+      isOnboardingCompleted: hasMotors,
+      userName: name,
+      userEmail: cleanEmail,
+      userInitial: initial,
+    );
+    return null;
+  }
+
+  Future<void> completeOnboarding() async {
+    final db = ref.read(databaseProvider);
+    await db.setSetting('onboarding_completed', 'true');
+    state = state.copyWith(isOnboardingCompleted: true);
+  }
+
+  Future<void> logout() async {
+    final db = ref.read(databaseProvider);
+    await db.setSetting('auth_logged_in', 'false');
+    state = state.copyWith(isLoggedIn: false);
+  }
+
+  Future<void> refresh() => _load();
+}
 
 // Theme provider
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
