@@ -383,23 +383,29 @@ class _MotorSelector extends ConsumerWidget {
                 .read(activeMotorcycleProvider.notifier)
                 .setActiveMotorcycle(m),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
+              duration: const Duration(milliseconds: 240),
               curve: Curves.easeOutCubic,
-              width: 76,
-              padding: const EdgeInsets.all(10),
+              width: 82,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               decoration: BoxDecoration(
-                color: isActive ? context.ink : context.surface2,
-                borderRadius: BorderRadius.circular(14),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isActive
+                      ? const [Color(0xFF162334), Color(0xFF0F1824)]
+                      : [context.surface2, context.surface],
+                ),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isActive ? context.ink : context.line,
-                  width: isActive ? 2 : 1,
+                  color: isActive ? const Color(0xFF00F5A0) : context.line,
+                  width: isActive ? 1.6 : 1.0,
                 ),
                 boxShadow: isActive
                     ? [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
+                          color: const Color(0xFF00F5A0).withValues(alpha: 0.18),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
                         ),
                       ]
                     : null,
@@ -410,30 +416,39 @@ class _MotorSelector extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _BrandBadge(
-                      modelId: m.modelId,
-                      fontSize: 10,
-                      color: isActive ? context.bg : context.ink,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isActive) ...[
+                          const PulseLed(color: Color(0xFF00F5A0), size: 5),
+                          const SizedBox(width: 4),
+                        ],
+                        _BrandBadge(
+                          modelId: m.modelId,
+                          fontSize: 9,
+                          color: isActive ? const Color(0xFF00F5A0) : context.ink,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       m.nickname.split(' ').first,
                       style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: isActive ? context.bg : context.ink,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 1),
                     Text(
                       m.manufactureYear.toString(),
                       style: TextStyle(
-                        fontSize: 8,
-                        color: isActive
-                            ? context.bg.withValues(alpha: 0.6)
-                            : context.muted,
+                        fontSize: 8.5,
+                        color: context.muted,
+                        fontWeight: FontWeight.w500,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -474,13 +489,31 @@ class _BikeCard extends ConsumerWidget {
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF1a2a1a), Color(0xFF0f1a0f)],
+              colors: [
+                Color(0xFF131D2B),
+                Color(0xFF090D14),
+              ],
             ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: BuildHausTheme.ok.withValues(alpha: 0.2)),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: const Color(0xFF00F5A0).withValues(alpha: 0.3),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF00F5A0).withValues(alpha: 0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(22),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -488,29 +521,28 @@ class _BikeCard extends ConsumerWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                        horizontal: 10,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: BuildHausTheme.ok.withValues(alpha: 0.2),
+                        color: const Color(0xFF00F5A0).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(99),
+                        border: Border.all(
+                          color: const Color(0xFF00F5A0).withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
-                            Icons.star,
-                            size: 12,
-                            color: Color(0xFF3da96e),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
+                          const PulseLed(color: Color(0xFF00F5A0), size: 6.5),
+                          const SizedBox(width: 6),
+                          const Text(
                             'MOTOR UTAMA',
                             style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF3da96e),
-                              letterSpacing: 1,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF00F5A0),
+                              letterSpacing: 1.2,
                             ),
                           ),
                         ],
@@ -520,32 +552,50 @@ class _BikeCard extends ConsumerWidget {
                     Flexible(
                       child: _BrandBadge(
                         modelId: motorcycle.modelId,
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.white,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 Text(
                   motorcycle.nickname,
                   style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
                     color: Colors.white,
+                    letterSpacing: -0.5,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (motorcycle.plateNumber != null)
-                  Text(
-                    motorcycle.plateNumber!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.6),
+                if (motorcycle.plateNumber != null) ...[
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
+                    ),
+                    child: Text(
+                      motorcycle.plateNumber!,
+                      style: TextStyle(
+                        fontSize: 11,
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
                     ),
                   ),
-                const SizedBox(height: 16),
+                ],
+                const SizedBox(height: 20),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -553,14 +603,26 @@ class _BikeCard extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Odometer',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.white.withValues(alpha: 0.5),
-                            ),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.speed_rounded,
+                                size: 12,
+                                color: const Color(0xFF00F5A0),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'TELEMETRI ODOMETER',
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 4),
                           if (odo != null)
                             TweenAnimationBuilder<double>(
                               key: ValueKey('odo_${motorcycle.id}_${odo.odometerKm}'),
@@ -568,8 +630,8 @@ class _BikeCard extends ConsumerWidget {
                                 begin: 0,
                                 end: odo.odometerKm,
                               ),
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.easeOutCubic,
+                              duration: const Duration(milliseconds: 600),
+                              curve: Curves.easeOutQuart,
                               builder: (context, animatedKm, _) {
                                 final formatted = animatedKm
                                     .toStringAsFixed(0)
@@ -577,16 +639,40 @@ class _BikeCard extends ConsumerWidget {
                                       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
                                       (m) => '${m[1]},',
                                     );
-                                return Text(
-                                  '$formatted km',
-                                  style: const TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                    letterSpacing: -0.5,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                return Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    Text(
+                                      formatted,
+                                      style: const TextStyle(
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                        letterSpacing: -1.0,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 1.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF00F5A0).withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Text(
+                                        'km',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF00F5A0),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 );
                               },
                             )
@@ -594,7 +680,7 @@ class _BikeCard extends ConsumerWidget {
                             const Text(
                               'Belum ada data',
                               style: TextStyle(
-                                fontSize: 28,
+                                fontSize: 26,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                                 letterSpacing: -0.5,
@@ -606,14 +692,40 @@ class _BikeCard extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    TextButton.icon(
-                      onPressed: () =>
+                    TapScale(
+                      onTap: () =>
                           context.push('/motor/${motorcycle.id}/odometer'),
-                      icon: const Icon(Icons.edit_outlined, size: 16),
-                      label: const Text('Update'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white.withValues(alpha: 0.7),
-                        textStyle: const TextStyle(fontSize: 12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.15),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(
+                              Icons.edit_outlined,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Update',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -650,27 +762,36 @@ class _QuickActionCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 28,
-            height: 28,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
+              color: color.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: color.withValues(alpha: 0.28),
+                width: 1.0,
+              ),
             ),
-            child: Icon(icon, color: color, size: 14),
+            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 6),
           Text(
             label,
             style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              fontSize: 11,
               color: context.ink,
             ),
             textAlign: TextAlign.center,
           ),
+          const SizedBox(height: 1),
           Text(
             subtitle,
-            style: TextStyle(fontSize: 9, color: context.muted),
+            style: TextStyle(
+              fontSize: 9.5,
+              fontWeight: FontWeight.w500,
+              color: context.muted,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -690,11 +811,25 @@ class _CardWrapper extends StatelessWidget {
     return TapScale(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         decoration: BoxDecoration(
-          color: context.surface2,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: context.line),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              context.surface2,
+              context.surface,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: context.line, width: 1.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: child,
       ),

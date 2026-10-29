@@ -254,44 +254,63 @@ class _HealthScoreCard extends ConsumerWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                color.withValues(alpha: 0.15),
-                color.withValues(alpha: 0.05),
+                Color(0xFF131D2B),
+                Color(0xFF090D14),
               ],
             ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color.withValues(alpha: 0.3)),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: color.withValues(alpha: 0.35),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.08),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.4),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(22),
             child: Column(
               children: [
                 Row(
                   children: [
                     Container(
-                      width: 72,
-                      height: 72,
+                      width: 76,
+                      height: 76,
                       decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(20),
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: color.withValues(alpha: 0.25),
+                        ),
                       ),
                       child: TweenAnimationBuilder<double>(
                         key: ValueKey('health_ring_${motorcycle.id}_$avgScore'),
                         tween: Tween<double>(begin: 0, end: avgScore),
-                        duration: const Duration(milliseconds: 600),
-                        curve: Curves.easeOutCubic,
+                        duration: const Duration(milliseconds: 700),
+                        curve: Curves.easeOutQuart,
                         builder: (context, animatedScore, _) {
                           return Stack(
                             alignment: Alignment.center,
                             children: [
                               SizedBox(
-                                width: 56,
-                                height: 56,
+                                width: 58,
+                                height: 58,
                                 child: CircularProgressIndicator(
                                   value: hasEvidence
                                       ? animatedScore / 100
                                       : null,
-                                  strokeWidth: 6,
-                                  backgroundColor: context.soft,
+                                  strokeWidth: 6.5,
+                                  strokeCap: StrokeCap.round,
+                                  backgroundColor: Colors.white.withValues(alpha: 0.08),
                                   color: color,
                                 ),
                               ),
@@ -300,9 +319,10 @@ class _HealthScoreCard extends ConsumerWidget {
                                     ? '${animatedScore.round()}'
                                     : '?',
                                 style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
                                   color: color,
+                                  letterSpacing: -0.5,
                                 ),
                               ),
                             ],
@@ -310,36 +330,56 @@ class _HealthScoreCard extends ConsumerWidget {
                         },
                       ),
                     ),
-                    const SizedBox(width: 20),
+                    const SizedBox(width: 18),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Skor Kesehatan',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: context.ink,
-                            ),
+                          Row(
+                            children: [
+                              const PulseLed(color: Color(0xFF00F5A0), size: 6),
+                              const SizedBox(width: 6),
+                              Text(
+                                'TELEMETRI KESEHATAN',
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 4),
+                          Text(
+                            'Skor Kesehatan Unit',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 19,
+                              color: context.ink,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
+                              horizontal: 10,
+                              vertical: 3.5,
                             ),
                             decoration: BoxDecoration(
-                              color: color.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(99),
+                              color: color.withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: color.withValues(alpha: 0.35),
+                              ),
                             ),
                             child: Text(
                               statusText.toUpperCase(),
                               style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
                                 color: color,
-                                letterSpacing: 0.5,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 10,
+                                letterSpacing: 0.8,
                               ),
                             ),
                           ),

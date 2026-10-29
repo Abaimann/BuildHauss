@@ -2,28 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class BuildHausTheme {
-  // Dark mode colors
-  static const darkBg = Color(0xFF0D0D0D);
-  static const darkSurface = Color(0xFF161616);
-  static const darkSurface2 = Color(0xFF1E1E1E);
-  static const darkSurface3 = Color(0xFF262626);
-  static const darkInk = Color(0xFFf5f5f5);
-  static const darkInk2 = Color(0xFFc0c0c0);
-  static const darkMuted = Color(0xFF808080);
-  static const darkLine = Color(0xFF2A2A2A);
-  static const darkAccent = Color(0xFFffffff);
-  static const darkSoft = Color(0xFF1a1a1a);
+  // Cyber-Automotive Stealth Dark Palette
+  static const darkBg = Color(0xFF090D14);
+  static const darkSurface = Color(0xFF0F1722);
+  static const darkSurface2 = Color(0xFF151F2E);
+  static const darkSurface3 = Color(0xFF1B283C);
+  static const darkInk = Color(0xFFF8FAFC);
+  static const darkInk2 = Color(0xFFCBD5E1);
+  static const darkMuted = Color(0xFF64748B);
+  static const darkLine = Color(0xFF223249);
+  static const darkAccent = Color(0xFF00F5A0);
+  static const darkSoft = Color(0xFF182335);
 
-  // Status colors
-  static const ok = Color(0xFF3da96e);
-  static const okBg = Color(0xFF0f2e1a);
-  static const okLight = Color(0xFF4ade80);
-  static const warn = Color(0xFFc9913a);
-  static const warnBg = Color(0xFF2e1a08);
-  static const warnLight = Color(0xFFfbbf24);
-  static const danger = Color(0xFFc0544a);
-  static const dangerBg = Color(0xFF2e0f0d);
-  static const dangerLight = Color(0xFFf87171);
+  // Status colors with vibrant automotive accents
+  static const ok = Color(0xFF00E599);
+  static const okBg = Color(0xFF062B1D);
+  static const okLight = Color(0xFF34D399);
+  static const warn = Color(0xFFF59E0B);
+  static const warnBg = Color(0xFF2E1C05);
+  static const warnLight = Color(0xFFFBBF24);
+  static const danger = Color(0xFFEF4444);
+  static const dangerBg = Color(0xFF2E0C0C);
+  static const dangerLight = Color(0xFFF87171);
 
   // Light mode colors
   static const lightBg = Color(0xFFf4f4f5);
@@ -81,34 +81,34 @@ class BuildHausTheme {
       // Bottom Navigation
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: darkSurface,
-        selectedItemColor: darkInk,
+        selectedItemColor: darkAccent,
         unselectedItemColor: darkMuted,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         selectedLabelStyle: GoogleFonts.plusJakartaSans(
           fontSize: 11,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
         unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 11),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: darkSurface,
-        indicatorColor: darkSoft,
+        indicatorColor: darkAccent.withValues(alpha: 0.15),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return GoogleFonts.plusJakartaSans(
               fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: darkInk,
+              fontWeight: FontWeight.w700,
+              color: darkAccent,
             );
           }
           return GoogleFonts.plusJakartaSans(fontSize: 11, color: darkMuted);
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return IconThemeData(color: darkInk, size: 24);
+            return const IconThemeData(color: darkAccent, size: 24);
           }
           return IconThemeData(color: darkMuted, size: 24);
         }),
@@ -131,7 +131,7 @@ class BuildHausTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: darkInk2, width: 1.5),
+          borderSide: const BorderSide(color: darkAccent, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

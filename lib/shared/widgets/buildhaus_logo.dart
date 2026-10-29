@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// BuildHaus Logo SVG-style widget
+/// BuildHaus High-Precision Automotive Engineering Brand Emblem
 class BuildHausLogo extends StatelessWidget {
   final double size;
   final bool showText;
@@ -9,138 +9,49 @@ class BuildHausLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Logo icon
-        Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.white, Colors.grey.shade400],
-            ),
-            borderRadius: BorderRadius.circular(size * 0.28),
-          ),
-          child: Center(
-            child: CustomPaint(
-              size: Size(size * 0.7, size * 0.7),
-              painter: _LogoPainter(),
-            ),
-          ),
-        ),
-        if (showText) ...[
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'BuildHaus',
-                style: TextStyle(
-                  fontSize: size * 0.44,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
+    return RepaintBoundary(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Apex Crest Emblem
+          _ApexBadge(size: size),
+          if (showText) ...[
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'BuildHaus',
+                  style: TextStyle(
+                    fontSize: size * 0.40,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                    height: 1.1,
+                  ),
                 ),
-              ),
-              Text(
-                'Built for every ride',
-                style: TextStyle(
-                  fontSize: size * 0.22,
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontWeight: FontWeight.w500,
+                Text(
+                  'Built for every ride',
+                  style: TextStyle(
+                    fontSize: size * 0.19,
+                    color: const Color(0xFF00F5A0),
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.0,
+                    height: 1.1,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
 
-class _LogoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF101010)
-      ..strokeWidth = size.width * 0.08
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-
-    // House roof
-    final roofPath = Path()
-      ..moveTo(size.width * 0.15, cy + size.height * 0.15)
-      ..lineTo(cx, size.height * 0.1)
-      ..lineTo(size.width * 0.85, cy + size.height * 0.15);
-    canvas.drawPath(roofPath, paint);
-
-    // House body
-    final bodyPath = Path()
-      ..moveTo(size.width * 0.18, cy + size.height * 0.15)
-      ..lineTo(size.width * 0.18, size.height * 0.85)
-      ..lineTo(size.width * 0.82, size.height * 0.85)
-      ..lineTo(size.width * 0.82, cy + size.height * 0.15);
-    canvas.drawPath(bodyPath, paint);
-
-    // Door
-    final doorPaint = Paint()
-      ..color = const Color(0xFF101010)
-      ..strokeWidth = size.width * 0.06
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawLine(
-      Offset(cx * 0.8, size.height * 0.85),
-      Offset(cx * 0.8, cy + size.height * 0.25),
-      doorPaint,
-    );
-    canvas.drawLine(
-      Offset(cx * 1.2, size.height * 0.85),
-      Offset(cx * 1.2, cy + size.height * 0.25),
-      doorPaint,
-    );
-    canvas.drawLine(
-      Offset(cx * 0.8, cy + size.height * 0.25),
-      Offset(cx * 1.2, cy + size.height * 0.25),
-      doorPaint,
-    );
-
-    // Motorcycle wheel (green dot)
-    final wheelPaint = Paint()
-      ..color = const Color(0xFF3da96e)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(
-      Offset(cx * 0.7, cy + size.height * 0.55),
-      size.width * 0.07,
-      wheelPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx * 1.3, cy + size.height * 0.55),
-      size.width * 0.07,
-      wheelPaint,
-    );
-
-    // Checkmark badge
-    canvas.drawCircle(
-      Offset(size.width * 0.82, size.height * 0.2),
-      size.width * 0.12,
-      wheelPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// Compact logo for small spaces
+/// Compact aerodynamic apex crest for app bars and icons
 class BuildHausLogoCompact extends StatelessWidget {
   final double size;
 
@@ -148,23 +59,139 @@ class BuildHausLogoCompact extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: _ApexBadge(size: size),
+    );
+  }
+}
+
+class _ApexBadge extends StatelessWidget {
+  final double size;
+  const _ApexBadge({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Colors.white, Colors.grey.shade400],
+          colors: [
+            Color(0xFF162130),
+            Color(0xFF090D14),
+          ],
         ),
-        borderRadius: BorderRadius.circular(size * 0.25),
+        borderRadius: BorderRadius.circular(size * 0.28),
+        border: Border.all(
+          color: const Color(0xFF00F5A0).withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00F5A0).withValues(alpha: 0.15),
+            blurRadius: size * 0.3,
+            offset: Offset(0, size * 0.08),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.5),
+            blurRadius: size * 0.2,
+            offset: Offset(0, size * 0.1),
+          ),
+        ],
       ),
       child: Center(
         child: CustomPaint(
-          size: Size(size * 0.65, size * 0.65),
-          painter: _LogoPainter(),
+          size: Size(size * 0.68, size * 0.68),
+          painter: const _ApexEmblemPainter(),
         ),
       ),
     );
   }
+}
+
+/// Precision-engineered automotive telemetry emblem (interlocking BH aero-winglets)
+class _ApexEmblemPainter extends CustomPainter {
+  const _ApexEmblemPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final cx = w / 2;
+    final cy = h / 2;
+
+    // Winglet 1: Titanium metallic left chevron (B arc)
+    final leftPath = Path()
+      ..moveTo(w * 0.18, h * 0.72)
+      ..lineTo(w * 0.18, h * 0.28)
+      ..lineTo(cx - w * 0.04, h * 0.12)
+      ..lineTo(cx + w * 0.08, h * 0.24)
+      ..lineTo(w * 0.36, h * 0.40)
+      ..lineTo(w * 0.36, h * 0.62)
+      ..close();
+
+    final leftGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: const [
+        Color(0xFFFFFFFF),
+        Color(0xFFCBD5E1),
+        Color(0xFF64748B),
+      ],
+    ).createShader(Rect.fromLTWH(0, 0, w, h));
+
+    final leftPaint = Paint()
+      ..shader = leftGradient
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(leftPath, leftPaint);
+
+    // Winglet 2: Cyber Emerald dynamic right fin (H apex)
+    final rightPath = Path()
+      ..moveTo(w * 0.82, h * 0.28)
+      ..lineTo(w * 0.82, h * 0.72)
+      ..lineTo(cx + w * 0.04, h * 0.88)
+      ..lineTo(cx - w * 0.08, h * 0.76)
+      ..lineTo(w * 0.64, h * 0.60)
+      ..lineTo(w * 0.64, h * 0.38)
+      ..close();
+
+    final rightGradient = LinearGradient(
+      begin: Alignment.topRight,
+      end: Alignment.bottomLeft,
+      colors: const [
+        Color(0xFF38BDF8),
+        Color(0xFF00F5A0),
+        Color(0xFF059669),
+      ],
+    ).createShader(Rect.fromLTWH(0, 0, w, h));
+
+    final rightPaint = Paint()
+      ..shader = rightGradient
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(rightPath, rightPaint);
+
+    // Center Core: Mechanical Telemetry Apex Diamond
+    final corePath = Path()
+      ..moveTo(cx, cy - h * 0.14)
+      ..lineTo(cx + w * 0.12, cy)
+      ..lineTo(cx, cy + h * 0.14)
+      ..lineTo(cx - w * 0.12, cy)
+      ..close();
+
+    final corePaint = Paint()
+      ..color = const Color(0xFF00F5A0)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(corePath, corePaint);
+
+    // Inner glowing diode point
+    final diodePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(cx, cy), w * 0.045, diodePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
