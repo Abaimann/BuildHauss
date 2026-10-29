@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'tables/all_tables.dart';
@@ -1043,8 +1044,9 @@ class AppDatabase extends _$AppDatabase {
       'odometer_reminder_days': '30',
       'ai_model_name': 'qwen3-0.6b',
       'ai_model_status': 'not_downloaded',
-      'user_name': 'Pengguna BuildHaus',
-      'user_initial': 'BH',
+      'user_name': 'Aiman',
+      'user_email': 'kacangdong2@gmail.com',
+      'user_initial': 'A',
       'backup_last_at': '',
     };
 
@@ -1054,6 +1056,38 @@ class AppDatabase extends _$AppDatabase {
         mode: InsertMode.insertOrIgnore,
       );
     }
+
+    // Pre-seed Aiman's user account
+    final existingUsersRaw = await getSetting('registered_users_json');
+    List<Map<String, dynamic>> users = [];
+    if (existingUsersRaw != null && existingUsersRaw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(existingUsersRaw) as List<dynamic>;
+        users = decoded
+            .whereType<Map>()
+            .map((m) => Map<String, dynamic>.from(m))
+            .toList();
+      } catch (_) {}
+    }
+
+    final aimanIndex = users.indexWhere(
+      (u) =>
+          (u['email']?.toString().toLowerCase() ?? '') ==
+          'kacangdong2@gmail.com',
+    );
+    if (aimanIndex < 0) {
+      users.add({
+        'name': 'Aiman',
+        'email': 'kacangdong2@gmail.com',
+        'password': 'Aiman123',
+        'initial': 'A',
+        'createdAt': DateTime(2026, 1, 1).toIso8601String(),
+      });
+    } else {
+      users[aimanIndex]['password'] = 'Aiman123';
+      users[aimanIndex]['name'] = 'Aiman';
+    }
+    await setSetting('registered_users_json', jsonEncode(users));
   }
 
   /// Seed motorcycle_models table from JSON catalog.

@@ -31,6 +31,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   void initState() {
     super.initState();
     _isRegister = widget.initialIsRegister;
+    _nameController.text = 'Aiman';
+    _emailController.text = 'kacangdong2@gmail.com';
+    _passwordController.text = 'Aiman123';
+    _confirmPasswordController.text = 'Aiman123';
   }
 
   @override
