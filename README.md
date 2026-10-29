@@ -1,159 +1,126 @@
-# BuildHaus
+# BuildHaus 🏍️
 
-**Built for every ride.**
-
-Asisten perawatan motor pribadi untuk Android — offline-first, data tersimpan lokal.
+**Built for every ride.**  
+Asisten perawatan motor pribadi untuk Android — *offline-first*, data tersimpan aman di perangkat lokal, dan ditenagai kecerdasan buatan Google Gemini 2.5 Flash.
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.38.5-blue)
 ![Dart](https://img.shields.io/badge/Dart-3.10.4-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## Fitur Utama
+---
 
-- 🔧 **Multi-Motor** — Kelola beberapa motor dalam satu aplikasi
-- 📊 **Odometer & Prediksi** — Catat kilometer dan estimasi pemakaian
-- ❤️ **Kesehatan Sparepart** — Monitor 8 komponen: oli, rem, aki, ban, filter udara, busi, CVT, knalpot
-- 🔍 **Pemeriksaan Mandiri** — Alur pertanyaan dinamis untuk inspeksi motor sendiri
-- 📝 **Keluhan** — Catat dan analisis keluhan berbahasa Indonesia
-- 🤖 **AI Offline** — Analisis keluhan lokal tanpa internet (rule-based aktif; LLM plan)
-- 🛒 **Katalog Sparepart** — Referensi dari sumber resmi
-- 💰 **Budget Advisor** — Prioritas servis sesuai anggaran
-- 🔔 **Pengingat** — Notifikasi jadwal perawatan
-- 💾 **Backup/Restore** — Ekspor-impor data lokal
-- 🌙 **Dark/Light Theme** — Default gelap
+## ⚡ Perintah Cepat (Tinggal Klik / Ketik)
 
-## Screenshoot Prototipe
+Anda dapat langsung menjalankan file perintah praktis berikut dari File Explorer atau Terminal:
 
-10 layar fungsional: Beranda, Data Motor, Tambah Motor, Kesehatan, Sparepart, Katalog, Budget, Keluhan, Riwayat Servis, Akun.
+| File Perintah | Fungsi | Perintah Asli di Balik Layar |
+| :--- | :--- | :--- |
+| **`jalankan_aplikasi.bat`** | Menjalankan aplikasi ke HP atau Emulator | `flutter run` |
+| **`buat_apk_rilis.bat`** | Membuat file installer APK rilis resmi (`28.3 MB`) | `flutter build apk --release` |
+| **`pasang_ke_hp.bat`** | Memasang langsung APK ke smartphone via kabel data | `adb install -r buildhaus.apk` |
+| **`cek_kode.bat`** | Memeriksa apakah ada kesalahan sintaks atau bug | `flutter analyze` |
+| **`uji_semua_fitur.bat`** | Menjalankan 159 uji coba otomatis fitur aplikasi | `flutter test` |
+| **`update_database.bat`** | Mengupdate skema database SQLite (Drift) | `dart run build_runner build` |
 
-## Teknologi
+---
 
-| Stack | Pilihan |
-|-------|---------|
-| Framework | Flutter 3.38.5 / Dart 3.10.4 |
-| State Management | flutter_riverpod |
-| Navigation | go_router |
-| Database | SQLite + Drift |
-| AI | Qwen3 0.6B GGUF (plan) + rule-based |
-| Notifications | flutter_local_notifications |
+## 🛠️ Panduan Perintah Terminal Lengkap (Bahasa Indonesia)
 
-## Persiapan
-
-### Tanpa Android Studio
-
+### 1. Mempersiapkan & Menjalankan Aplikasi
 ```bash
-# 1. Install Flutter SDK
-# https://docs.flutter.dev/get-started/install
-
-# 2. Verify
-flutter --version
-
-# 3. Clone / extract project
-cd BuildHaus
-
-# 4. Get dependencies
+# Mengunduh seluruh paket dependensi Flutter yang dibutuhkan:
 flutter pub get
 
-# 5. Generate Drift code
+# Memperbarui dan men-generate tabel database SQLite Drift:
 dart run build_runner build --delete-conflicting-outputs
 
-# 6. Build debug APK
-flutter build apk --debug
-
-# 7. Install on device
-flutter install
+# Menjalankan aplikasi pada perangkat HP atau emulator yang terhubung:
+flutter run
 ```
 
-### Build Release APK
-
+### 2. Membuat File Installer (APK)
 ```bash
+# Membuat APK versi Release yang optimal dan siap dibagikan (28.3 MB):
 flutter build apk --release
-# Output: build/app/outputs/flutter-apk/app-release.apk
+
+# Lokasi file output yang dihasilkan:
+# build/app/outputs/flutter-apk/app-release.apk
 ```
 
-## Struktur Project
+### 3. Memasang (Install) ke HP via Kabel Data (ADB)
+```bash
+# Memasang file APK yang sudah dibuild ke HP yang terhubung:
+adb install -r build/app/outputs/flutter-apk/app-release.apk
+
+# Membuka aplikasi secara otomatis di layar HP:
+adb shell am start -n com.buildhaus.buildhaus/.MainActivity
+```
+
+### 4. Menguji & Memeriksa Kualitas Kode
+```bash
+# Memeriksa kesehatan kode dan memastikan 0 error:
+flutter analyze
+
+# Menjalankan seluruh pengujian unit, widget, dan database (159 tes):
+flutter test
+```
+
+### 5. Menyimpan & Mengirim Perubahan ke GitHub (Git)
+```bash
+# Melihat status file apa saja yang telah diubah:
+git status
+
+# Menandai seluruh perubahan untuk disimpan:
+git add .
+
+# Menyimpan perubahan dengan catatan bahasa Indonesia:
+git commit -m "Catatan tentang perubahan yang dilakukan"
+
+# Mengirim commit ke repositori GitHub:
+git push origin main
+```
+
+---
+
+## 🌟 Fitur Utama BuildHaus
+
+- 🔐 **Autentikasi Akun Lokal** — Login & registrasi aman tanpa butuh server luar.
+- 🏍️ **Setup Kesehatan Motor Pertama** — Pengisian kondisi awal saat registrasi untuk langsung mengkalkulasi status kesehatan motor.
+- 🔧 **Multi-Motor** — Kelola beberapa motor harian dan akhir pekan dalam satu akun.
+- 📊 **Telemetri Odometer** — Tampilan instrumen kokpit modern dengan odometer tabular dan estimasi penggunaan mingguan.
+- 🩺 **Skor Kesehatan Deterministik** — Memantau **14 komponen kritis** (oli mesin, rem, CVT, aki, ban, busi, coolant, rantai, oli gardan, filter udara, filter oli, shockbreaker, knalpot, minyak rem) berbasis pedoman resmi pabrikan.
+- 🤖 **AI Teman Riding (Gemini 2.5 Flash)** — Konsultasi gejala motor dengan bahasa santai, respon cepat, dan hemat memori (0 MB unduhan model).
+- 🛒 **Katalog Suku Cadang** — Referensi suku cadang resmi lengkap dengan foto asli WebP offline (Honda & Yamaha terisolasi rapi).
+- 💰 **Budget Advisor** — Alokasi anggaran servis bulanan transparan.
+- 💾 **Backup & Restore Terenkripsi** — Ekspor dan impor data lokal dalam format `.bhb` dengan enkripsi AES-256-GCM.
+- 🌙 **Tema Cyber-Automotive Stealth Dark** — Palet instrumen kokpit superbike modern (`#090D14` obsidian dengan aksen cyber emerald `#00F5A0`).
+
+---
+
+## 📱 Struktur Halaman & Arsitektur
 
 ```
 lib/
-├── main.dart                    # Entry point
-├── app/app.dart               # MaterialApp config
+├── main.dart                  # Titik awal masuk aplikasi
 ├── core/
-│   ├── database/              # Drift 22 tables + DAOs
-│   ├── providers/             # Riverpod providers
-│   ├── engines/               # Domain logic (testable)
-│   ├── router/                # go_router
-│   ├── theme/                 # Design tokens prototype
-│   └── utils/                 # Formatters
-├── features/                   # Feature modules
-│   ├── home/                  # Beranda
-│   ├── motorcycles/            # CRUD motor
-│   ├── health/                # Kesehatan sparepart
-│   ├── spareparts/            # Katalog sparepart
-│   ├── budget/                # Prioritas servis
-│   ├── complaints/            # Keluhan & analisis
-│   ├── service_history/      # Riwayat servis
-│   ├── self_inspection/       # Inspeksi mandiri
-│   ├── ai_assistant/          # Chat AI
-│   ├── mileage/               # Odometer
-│   └── account/               # Akun & pengaturan
-└── shared/widgets/            # Shared scaffold
+│   ├── ai/                    # Integrasi Google Gemini 2.5 Flash & Safety Guard
+│   ├── database/              # SQLite lokal dengan Drift (22 tabel)
+│   ├── engines/               # Logika deterministik kalkulasi kesehatan & odometer
+│   ├── providers/             # Manajemen state global dengan Riverpod
+│   ├── router/                # Rute navigasi aplikasi (GoRouter)
+│   └── theme/                 # Palet tema Cyber-Automotive Stealth Dark
+├── features/
+│   ├── auth/                  # Layar Login, Register, & Setup Motor Wajib
+│   ├── home/                  # Beranda Telemetri Kokpit & Aksi Cepat
+│   ├── health/                # Indikator skor kesehatan 14 komponen motor
+│   ├── ai_assistant/          # Layar chat konsultasi AI Gemini 2.5 Flash
+│   ├── parts/                 # Katalog suku cadang dan rekomendasi budget
+│   ├── service_history/       # Log riwayat servis dan penggantian part
+│   └── account/               # Profil pengguna, motor terdaftar, & pengaturan
+└── shared/widgets/            # Logo Apex Emblem, animasi taktil, & tombol reusable
 ```
 
-## Database — 22 Tabel
+---
 
-**Motor & Kesehatan** (13): motorcycle_models, motorcycles, odometer_logs, component_types, maintenance_rules, component_statuses, service_records, service_items, self_inspections, inspection_answers, complaints, complaint_messages, complaint_analyses
-
-**Katalog & Budget** (7): catalog_sources, spareparts, sparepart_fitments, budget_plans, service_recommendations, recommendation_items, local_reminders
-
-**AI & Settings** (2): ai_model_installs, app_settings
-
-## Menjalankan Tests
-
-```bash
-# Unit tests
-flutter test
-
-# Engine tests (domain logic tanpa Flutter)
-dart test test/engines/
-
-# Widget tests
-flutter test test/widget_test.dart
-
-# Integration tests (butuh emulator/device)
-flutter test integration_test/
-```
-
-## AI Offline
-
-- **Saat ini**: Analisis rule-based aktif — keyword matching + safety rules
-- **Plan**: Model Qwen3 0.6B GGUF via llama.cpp Android
-- **Download**: UI manager tersedia, perlu URL resmi untuk download model
-- **Privasi**: Semua data keluhan TIDAK dikirim ke server manapun
-
-## Dokumentasi
-
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) — Arsitektur aplikasi
-- [ERD.md](docs/ERD.md) — Diagram relasi 22 tabel
-- [DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md) — Deskripsi kolom
-- [OFFLINE_AI.md](docs/OFFLINE_AI.md) — Strategi AI offline
-- [SOURCES_AND_LICENSES.md](docs/SOURCES_AND_LICENSES.md) — Sumber data & lisensi
-- [TEST_REPORT.md](docs/TEST_REPORT.md) — Laporan pengujian
-
-## APK Debug
-
-```
-build/app/outputs/flutter-apk/app-debug.apk (~150 MB)
-```
-
-Install langsung di HP Android (aktifkan "Sumber tidak dikenal").
-
-## Privasi
-
-- Data motor dan keluhan tersimpan di HP saja
-- Tidak ada login, tidak ada cloud
-- Uninstall = data hilang (kecuali sudah backup)
-- AI analisis dilakukan lokal
-
-## Lisensi
-
-MIT License
+## 📄 Lisensi
+Hak Cipta © 2026 BuildHaus Project. Berlisensi di bawah lisensi MIT.
