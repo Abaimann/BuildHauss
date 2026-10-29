@@ -416,25 +416,16 @@ class _MotorSelector extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (isActive) ...[
-                          const PulseLed(color: Color(0xFF00F5A0), size: 5),
-                          const SizedBox(width: 4),
-                        ],
-                        _BrandBadge(
-                          modelId: m.modelId,
-                          fontSize: 9,
-                          color: isActive ? const Color(0xFF00F5A0) : context.ink,
-                        ),
-                      ],
+                    _BrandBadge(
+                      modelId: m.modelId,
+                      fontSize: 9.5,
+                      color: isActive ? const Color(0xFF00F5A0) : context.ink,
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Text(
                       m.nickname.split(' ').first,
-                      style: TextStyle(
-                        fontSize: 11,
+                      style: const TextStyle(
+                        fontSize: 12,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
                       ),
@@ -442,11 +433,11 @@ class _MotorSelector extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 1),
+                    const SizedBox(height: 2),
                     Text(
                       m.manufactureYear.toString(),
                       style: TextStyle(
-                        fontSize: 8.5,
+                        fontSize: 9,
                         color: context.muted,
                         fontWeight: FontWeight.w500,
                       ),
