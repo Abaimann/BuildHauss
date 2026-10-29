@@ -5,6 +5,7 @@ import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/widgets/animated_widgets.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
+import '../../domain/sparepart_image_helper.dart';
 import '../providers/parts_providers.dart';
 
 class PartsCatalogScreen extends ConsumerStatefulWidget {
@@ -652,14 +653,43 @@ class _PartCard extends StatelessWidget {
               child: Stack(
                 children: [
                   Center(
-                    child: Icon(
-                      _getPartIcon(part.name, part.category),
-                      size: 42,
-                      color: item.isBudgetRecommended
-                          ? Colors.green
-                          : (item.isHealthRecommended
-                              ? Colors.deepOrange
-                              : context.ink),
+                    child: Builder(
+                      builder: (ctx) {
+                        final assetPath = SparepartImageHelper.getAssetPath(
+                          part.category,
+                          part.name,
+                        );
+                        if (assetPath != null) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Image.asset(
+                              assetPath,
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.contain,
+                              cacheWidth: 180,
+                              errorBuilder: (ctx, err, stack) => Icon(
+                                _getPartIcon(part.name, part.category),
+                                size: 40,
+                                color: item.isBudgetRecommended
+                                    ? Colors.green
+                                    : (item.isHealthRecommended
+                                        ? Colors.deepOrange
+                                        : context.ink),
+                              ),
+                            ),
+                          );
+                        }
+                        return Icon(
+                          _getPartIcon(part.name, part.category),
+                          size: 42,
+                          color: item.isBudgetRecommended
+                              ? Colors.green
+                              : (item.isHealthRecommended
+                                  ? Colors.deepOrange
+                                  : context.ink),
+                        );
+                      },
                     ),
                   ),
                   if (item.badgeText != null)
@@ -945,24 +975,53 @@ class _PartCard extends StatelessWidget {
                 const SizedBox(height: 14),
               ],
 
-              // Part Icon Header Container
+              // Part Image / Icon Header Container
               Container(
                 width: double.infinity,
-                height: 120,
+                height: 130,
                 decoration: BoxDecoration(
                   color: context.surface2,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: context.line),
                 ),
                 child: Center(
-                  child: Icon(
-                    _getPartIcon(part.name, part.category),
-                    size: 56,
-                    color: item.isBudgetRecommended
-                        ? Colors.green
-                        : (item.isHealthRecommended
-                            ? Colors.deepOrange
-                            : context.ink),
+                  child: Builder(
+                    builder: (ctx) {
+                      final assetPath = SparepartImageHelper.getAssetPath(
+                        part.category,
+                        part.name,
+                      );
+                      if (assetPath != null) {
+                        return Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Image.asset(
+                            assetPath,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.contain,
+                            cacheWidth: 300,
+                            errorBuilder: (ctx, err, stack) => Icon(
+                              _getPartIcon(part.name, part.category),
+                              size: 56,
+                              color: item.isBudgetRecommended
+                                  ? Colors.green
+                                  : (item.isHealthRecommended
+                                      ? Colors.deepOrange
+                                      : context.ink),
+                            ),
+                          ),
+                        );
+                      }
+                      return Icon(
+                        _getPartIcon(part.name, part.category),
+                        size: 56,
+                        color: item.isBudgetRecommended
+                            ? Colors.green
+                            : (item.isHealthRecommended
+                                ? Colors.deepOrange
+                                : context.ink),
+                      );
+                    },
                   ),
                 ),
               ),

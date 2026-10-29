@@ -8,6 +8,7 @@ import '../../../../core/database/app_database.dart';
 import '../../../../shared/widgets/animated_widgets.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../parts/domain/sparepart_image_helper.dart';
 
 class HealthScreen extends ConsumerWidget {
   const HealthScreen({super.key});
@@ -1114,12 +1115,42 @@ class _ComponentTile extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.build_circle_outlined,
-                        size: 13,
-                        color: Theme.of(context).colorScheme.primary,
+                      Builder(
+                        builder: (ctx) {
+                          final asset = SparepartImageHelper.getAssetPath(
+                            matchedParts.first.category,
+                            matchedParts.first.name,
+                          );
+                          if (asset != null) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: Image.asset(
+                                  asset,
+                                  width: 16,
+                                  height: 16,
+                                  fit: BoxFit.contain,
+                                  cacheWidth: 60,
+                                  errorBuilder: (_, __, ___) => Icon(
+                                    Icons.build_circle_outlined,
+                                    size: 13,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: Icon(
+                              Icons.build_circle_outlined,
+                              size: 13,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           '${matchedParts.first.name} · ${Formatters.currency(matchedParts.first.referencePrice ?? 0)}',
@@ -1322,6 +1353,47 @@ class _ComponentTile extends ConsumerWidget {
                         ),
                         child: Row(
                           children: [
+                            Builder(
+                              builder: (ctx) {
+                                final asset = SparepartImageHelper.getAssetPath(
+                                  part.category,
+                                  part.name,
+                                );
+                                return Container(
+                                  width: 44,
+                                  height: 44,
+                                  margin: const EdgeInsets.only(right: 12),
+                                  decoration: BoxDecoration(
+                                    color: context.surface3,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: context.line),
+                                  ),
+                                  child: Center(
+                                    child: asset != null
+                                        ? Padding(
+                                            padding: const EdgeInsets.all(4.0),
+                                            child: Image.asset(
+                                              asset,
+                                              width: 36,
+                                              height: 36,
+                                              fit: BoxFit.contain,
+                                              cacheWidth: 100,
+                                              errorBuilder: (_, __, ___) => Icon(
+                                                Icons.handyman_outlined,
+                                                size: 20,
+                                                color: context.muted,
+                                              ),
+                                            ),
+                                          )
+                                        : Icon(
+                                            Icons.handyman_outlined,
+                                            size: 20,
+                                            color: context.muted,
+                                          ),
+                                  ),
+                                );
+                              },
+                            ),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
