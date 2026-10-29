@@ -9,7 +9,7 @@ import 'gemini_ai_runtime.dart';
 import 'model_download_service.dart';
 import 'offline_ai_runtime.dart';
 
-/// Parsed structured analysis of a motorcycle complaint.
+/// Data analisis terstruktur hasil penguraian keluhan sepeda motor.
 class ComplaintAnalysisData {
   final List<String> symptoms;
   final List<String> componentCandidates;
@@ -19,7 +19,7 @@ class ComplaintAnalysisData {
   final String riskLevel; // 'low', 'medium', 'high'
   final String uncertainty; // 'low', 'medium', 'high'
   final bool requiresMechanic;
-  final String mode; // 'llm' or 'rule_based'
+  final String mode; // 'llm' atau 'rule_based'
   final String? modelVersion;
 
   const ComplaintAnalysisData({
@@ -49,8 +49,8 @@ class ComplaintAnalysisData {
   };
 }
 
-/// Service that coordinates user chat messages, context retrieval from SQLite,
-/// deterministic safety guard validation, offline LLM inference, and fallback handling.
+/// Layanan yang mengkoordinasikan percakapan pengguna, pengambilan konteks motor dari SQLite,
+/// validasi aturan keselamatan deterministik, inferensi AI Gemini/LLM, serta fallback aturan dasar.
 class AiChatService {
   final AppDatabase _db;
   final OfflineAiRuntime _runtime;
@@ -70,7 +70,7 @@ class AiChatService {
   OfflineAiRuntime get runtime => _runtime;
   ModelDownloadService get downloadService => _downloadService;
 
-  /// Checks whether LLM is ready for inference (either Gemini API key configured or local model installed).
+  /// Memeriksa apakah mesin AI siap digunakan (baik lewat API key Gemini maupun model lokal).
   Future<bool> isLlmReady() async {
     if (await _runtime.isModelLoaded()) return true;
     final status = await _downloadService.checkCurrentStatus();
@@ -80,7 +80,7 @@ class AiChatService {
     return false;
   }
 
-  /// Ensures the offline model is loaded into RAM.
+  /// Memastikan model AI telah dimuat ke dalam memori RAM.
   Future<void> ensureModelLoaded() async {
     if (await _runtime.isModelLoaded()) return;
 
@@ -96,23 +96,23 @@ class AiChatService {
     );
   }
 
-  /// Processes a user message in a chat thread.
+  /// Memproses pesan dari pengguna dalam suatu riwayat keluhan (chat thread).
   ///
-  /// Emits streaming tokens and resolves with the final assistant response string.
-  /// Automatically persists messages and structured analysis to SQLite.
+  /// Mengalirkan token teks secara streaming dan menghasilkan jawaban asisten AI.
+  /// Secara otomatis menyimpan riwayat pesan dan hasil analisis terstruktur ke SQLite.
   Stream<String> sendMessage({
     required int motorcycleId,
     int? complaintId,
     required String userText,
     required void Function(ComplaintAnalysisData analysis) onAnalysisComplete,
   }) async* {
-    // 1. Evaluate deterministic safety rules first
+    // 1. Evaluasi aturan keselamatan deterministik terlebih dahulu (Safety Override)
     final safety = AiSafetyGuard.evaluate(userText);
 
-    // 2. Retrieve isolated motorcycle context from SQLite
+    // 2. Ambil konteks terisolasi sepeda motor dari SQLite
     final motorContext = await _contextRetriever.retrieveContext(motorcycleId);
 
-    // 3. Ensure complaint record exists in SQLite
+    // 3. Pastikan data record keluhan sudah tersimpan di tabel SQLite
     int activeComplaintId = complaintId ?? 0;
     if (activeComplaintId <= 0) {
       activeComplaintId = await _db.insertComplaint(
@@ -128,7 +128,7 @@ class AiChatService {
       );
     }
 
-    // 4. Save user message to database
+    // 4. Simpan pesan pengguna ke database SQLite
     await _db.insertComplaintMessage(
       ComplaintMessagesCompanion(
         complaintId: Value(activeComplaintId),
@@ -137,14 +137,14 @@ class AiChatService {
       ),
     );
 
-    // Check if offline LLM is ready
+    // Periksa apakah mesin AI siap digunakan
     final canUseLlm = await isLlmReady();
 
     if (canUseLlm) {
       try {
         await ensureModelLoaded();
 
-        // Build system prompt with isolated motorcycle context
+        // Susun prompt sistem dengan konteks terisolasi sepeda motor ini
         final contextPrompt =
             motorContext?.toPromptContext(currentComplaintText: userText) ??
             'Motor ID: $motorcycleId';
@@ -162,7 +162,7 @@ class AiChatService {
             '5. Jangan mengarang harga pasti suku cadang atau klaim 100% mutlak mekanik.\n\n'
             '$contextPrompt';
 
-        // Fetch conversation history for this complaint thread (multi-turn support)
+        // Ambil riwayat percakapan untuk thread keluhan ini (dukungan multi-turn chat)
         final pastMessages = await _db.getComplaintMessages(activeComplaintId);
         final messages = <RuntimeChatMessage>[
           RuntimeChatMessage(role: 'system', content: systemPrompt),
@@ -182,7 +182,7 @@ class AiChatService {
 
         final fullResponseBuffer = StringBuffer();
 
-        // Stream tokens from native llama.cpp
+        // Streaming token teks jawaban dari model AI
         final tokenStream = _runtime.generateChat(
           messages: messages,
           maxTokens: 512,
@@ -196,14 +196,14 @@ class AiChatService {
 
         final fullResponse = fullResponseBuffer.toString();
 
-        // If safety red flags were detected, append critical warning if not already emphasized
+        // Jika terdeteksi bahaya kritis (red flag), tambahkan peringatan keselamatan jika belum ada
         String finalContent = fullResponse;
         if (safety.hasRedFlag &&
             !finalContent.contains('⚠️ PERINGATAN KESELAMATAN')) {
           finalContent = '${safety.warningMessage}\n\n$finalContent';
         }
 
-        // Save assistant message
+        // Simpan pesan jawaban asisten AI ke database SQLite
         await _db.insertComplaintMessage(
           ComplaintMessagesCompanion(
             complaintId: Value(activeComplaintId),
@@ -213,7 +213,7 @@ class AiChatService {
           ),
         );
 
-        // Build and save structured analysis
+        // Susun dan simpan data analisis terstruktur
         final analysis = _buildStructuredAnalysis(
           userText: userText,
           assistantText: finalContent,
@@ -226,11 +226,11 @@ class AiChatService {
         onAnalysisComplete(analysis);
         return;
       } catch (e) {
-        // Fallback to rule-based analysis on error
+        // Fallback ke analisis berbasis aturan dasar jika terjadi kendala pada model AI
       }
     }
 
-    // Fallback: Transparent Rule-Based Analysis
+    // Fallback: Analisis Berbasis Aturan Dasar yang Transparan
     final fallbackResponse = _generateRuleBasedFallback(
       userText,
       safety,
@@ -260,7 +260,7 @@ class AiChatService {
     onAnalysisComplete(analysis);
   }
 
-  /// Transparent rule-based fallback response generator.
+  /// Generator respon fallback berbasis aturan dasar yang transparan.
   String _generateRuleBasedFallback(
     String input,
     SafetyEvaluationResult safety, {
@@ -371,7 +371,7 @@ class AiChatService {
     return buffer.toString().trim();
   }
 
-  /// Builds structured analysis data for persistence in SQLite.
+  /// Menyusun data analisis terstruktur untuk disimpan di database SQLite.
   ComplaintAnalysisData _buildStructuredAnalysis({
     required String userText,
     required String assistantText,
@@ -452,7 +452,7 @@ class AiChatService {
     );
   }
 
-  /// Saves structured complaint analysis record to SQLite `complaint_analyses` table.
+  /// Menyimpan rekaman analisis keluhan terstruktur ke tabel `complaint_analyses` di SQLite.
   Future<void> _saveAnalysisRecord(
     int complaintId,
     ComplaintAnalysisData analysis,

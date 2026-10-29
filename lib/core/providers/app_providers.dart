@@ -16,7 +16,7 @@ import '../engines/reminder_engine.dart';
 import '../notifications/notification_service.dart';
 import 'database_provider.dart';
 
-// Auth & Onboarding state
+// State Manajemen Autentikasi & Alur Onboarding Pengguna
 class AuthState {
   final bool isLoading;
   final bool isLoggedIn;
@@ -235,7 +235,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> refresh() => _load();
 }
 
-// Theme provider
+// Provider preferensi tema tampilan (Gelap / Terang / Mengikuti Sistem)
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
   ref,
 ) {
@@ -271,7 +271,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   }
 }
 
-// Active motorcycle provider
+// Provider motor aktif yang sedang dipilih pengguna
 final activeMotorcycleProvider =
     StateNotifierProvider<ActiveMotorcycleNotifier, Motorcycle?>((ref) {
       return ActiveMotorcycleNotifier(ref);
@@ -293,7 +293,7 @@ class ActiveMotorcycleNotifier extends StateNotifier<Motorcycle?> {
         state = await db.getMotorcycle(id);
       }
     }
-    // Fallback to primary motor
+    // Jika belum ada motor yang tersimpan aktif, gunakan motor pertama sebagai default
     if (state == null) {
       final motors = await db.getAllMotorcycles();
       if (motors.isNotEmpty) {
@@ -317,13 +317,13 @@ class ActiveMotorcycleNotifier extends StateNotifier<Motorcycle?> {
   }
 }
 
-// Motorcycles list provider
+// Provider daftar seluruh motor yang terdaftar di database
 final motorcyclesProvider = StreamProvider<List<Motorcycle>>((ref) {
   final db = ref.watch(databaseProvider);
   return db.watchAllMotorcycles();
 });
 
-// Odometer provider
+// Provider riwayat dan pembacaan odometer
 final odometerLogsProvider = FutureProvider.family<List<OdometerLog>, int>((
   ref,
   motorcycleId,
@@ -340,14 +340,14 @@ final latestOdometerProvider = FutureProvider.family<OdometerLog?, int>((
   return db.getLatestOdometer(motorcycleId);
 });
 
-// Component statuses provider
+// Provider status kesehatan 14 komponen motor
 final componentStatusesProvider =
     FutureProvider.family<List<ComponentStatus>, int>((ref, motorcycleId) {
       final db = ref.watch(databaseProvider);
       return db.getComponentStatuses(motorcycleId);
     });
 
-// Service records provider
+// Provider riwayat servis berkala
 final serviceRecordsProvider = FutureProvider.family<List<ServiceRecord>, int>((
   ref,
   motorcycleId,
@@ -356,7 +356,7 @@ final serviceRecordsProvider = FutureProvider.family<List<ServiceRecord>, int>((
   return db.getServiceRecords(motorcycleId);
 });
 
-// Complaints provider
+// Provider riwayat keluhan motor
 final complaintsProvider = FutureProvider.family<List<Complaint>, int>((
   ref,
   motorcycleId,
@@ -365,7 +365,7 @@ final complaintsProvider = FutureProvider.family<List<Complaint>, int>((
   return db.getComplaints(motorcycleId);
 });
 
-// Budget plan provider
+// Provider rencana anggaran servis (Budget Plan)
 final activeBudgetPlanProvider = FutureProvider.family<BudgetPlan?, int>((
   ref,
   motorcycleId,
@@ -374,7 +374,7 @@ final activeBudgetPlanProvider = FutureProvider.family<BudgetPlan?, int>((
   return db.getActiveBudgetPlan(motorcycleId);
 });
 
-// Mileage predictor provider
+// Provider mesin prediksi jarak tempuh harian (Mileage Predictor Engine)
 final mileagePredictorProvider = FutureProvider.family<MileagePredictor, int>((
   ref,
   motorcycleId,
@@ -384,14 +384,14 @@ final mileagePredictorProvider = FutureProvider.family<MileagePredictor, int>((
   return MileagePredictor(logs);
 });
 
-// Self inspection provider
+// Provider inspeksi mandiri visual
 final latestSelfInspectionProvider =
     FutureProvider.family<SelfInspection?, int>((ref, motorcycleId) {
       final db = ref.watch(databaseProvider);
       return db.getLatestSelfInspection(motorcycleId);
     });
 
-// Component statuses with names provider
+// Provider status komponen lengkap dengan nama dan detail tipe
 final componentStatusesWithNamesProvider =
     FutureProvider.family<List<ComponentStatusWithName>, int>((
       ref,
@@ -401,18 +401,18 @@ final componentStatusesWithNamesProvider =
       return db.getComponentStatusesWithNames(motorcycleId);
     });
 
-// Settings provider
+// Provider pengaturan aplikasi (Key-Value)
 final settingsProvider = FutureProvider<Map<String, String>>((ref) {
   final db = ref.watch(databaseProvider);
   return db.getAllSettings();
 });
 
-// AI model manifest provider
+// Provider manifes metadata model AI
 final modelManifestProvider = Provider<ModelManifest>((ref) {
   return ModelManifest.defaultManifest;
 });
 
-// AI model download service provider
+// Provider layanan pengunduhan model AI lokal
 final modelDownloadServiceProvider = Provider<ModelDownloadService>((ref) {
   final db = ref.watch(databaseProvider);
   final manifest = ref.watch(modelManifestProvider);
@@ -421,13 +421,13 @@ final modelDownloadServiceProvider = Provider<ModelDownloadService>((ref) {
   return service;
 });
 
-// AI download state stream provider
+// Provider aliran status progres unduhan model AI
 final modelDownloadStateProvider = StreamProvider<ModelDownloadState>((ref) {
   final service = ref.watch(modelDownloadServiceProvider);
   return service.stateStream;
 });
 
-// Gemini AI runtime provider
+// Provider runtime Gemini AI (Google Cloud Generative AI)
 final geminiAiRuntimeProvider = Provider<GeminiAiRuntime>((ref) {
   final db = ref.watch(databaseProvider);
   final runtime = GeminiAiRuntime(db: db);
@@ -435,24 +435,24 @@ final geminiAiRuntimeProvider = Provider<GeminiAiRuntime>((ref) {
   return runtime;
 });
 
-// Gemini API key provider
+// Provider API Key Google Gemini
 final geminiApiKeyProvider = FutureProvider<String?>((ref) async {
   final runtime = ref.watch(geminiAiRuntimeProvider);
   return runtime.getApiKey();
 });
 
-// Offline AI runtime provider
+// Provider runtime Offline AI
 final offlineAiRuntimeProvider = Provider<OfflineAiRuntime>((ref) {
   return ref.watch(geminiAiRuntimeProvider);
 });
 
-// AI context retriever provider
+// Provider pengambil konteks telemetri motor untuk AI (RAG / Context Retriever)
 final aiContextRetrieverProvider = Provider<AiContextRetriever>((ref) {
   final db = ref.watch(databaseProvider);
   return AiContextRetriever(db: db);
 });
 
-// AI chat service provider
+// Provider layanan obrolan cerdas asisten AI (AiChatService)
 final aiChatServiceProvider = Provider<AiChatService>((ref) {
   final db = ref.watch(databaseProvider);
   final runtime = ref.watch(offlineAiRuntimeProvider);
@@ -466,7 +466,7 @@ final aiChatServiceProvider = Provider<AiChatService>((ref) {
   );
 });
 
-// AI model status
+// Provider status kesiapan runtime AI (ready / not_configured)
 final aiModelStatusProvider = FutureProvider<String>((ref) async {
   final runtime = ref.watch(geminiAiRuntimeProvider);
   if (await runtime.hasApiKey()) return 'ready';
@@ -476,45 +476,45 @@ final aiModelStatusProvider = FutureProvider<String>((ref) async {
   return 'not_configured';
 });
 
-// AI model info
+// Provider informasi instalasi model AI
 final aiModelInfoProvider = FutureProvider<AiModelInstall?>((ref) {
   final db = ref.watch(databaseProvider);
   return db.getInstalledModel();
 });
 
-// Component types provider
+// Provider master data tipe komponen motor
 final componentTypesProvider = FutureProvider<List<ComponentType>>((ref) {
   final db = ref.watch(databaseProvider);
   return db.getAllComponentTypes();
 });
 
-// Motorcycle models provider
+// Provider master katalog model sepeda motor
 final motorcycleModelsProvider = FutureProvider<List<MotorcycleModel>>((ref) {
   final db = ref.watch(databaseProvider);
   return db.getAllMotorcycleModels();
 });
 
-// Spareparts by category
+// Provider katalog suku cadang berdasarkan kategori komponen
 final sparepartsByCategoryProvider =
     FutureProvider.family<List<Sparepart>, String>((ref, category) {
       final db = ref.watch(databaseProvider);
       return db.getSparepartsByCategory(category);
     });
 
-// All spareparts provider
+// Provider seluruh katalog suku cadang
 final allSparepartsProvider = FutureProvider<List<Sparepart>>((ref) {
   final db = ref.watch(databaseProvider);
   return db.getAllSpareparts();
 });
 
-// All sparepart fitments provider
+// Provider kecocokan suku cadang dengan model motor (fitments)
 final allSparepartFitmentsProvider =
     FutureProvider<List<SparepartFitment>>((ref) {
   final db = ref.watch(databaseProvider);
   return db.getAllSparepartFitments();
 });
 
-// Dynamic Smart Budget Plan Summary provider
+// Provider ringkasan rencana anggaran servis pintar (Dynamic Smart Budget Plan)
 final budgetPlanSummaryProvider = FutureProvider.family<BudgetPlanSummary, int>(
   (ref, budgetAmount) async {
     final motor = ref.watch(activeMotorcycleProvider);
@@ -576,7 +576,7 @@ final budgetPlanSummaryProvider = FutureProvider.family<BudgetPlanSummary, int>(
   },
 );
 
-// Budget plan history provider
+// Provider riwayat rencana anggaran servis (Budget Plan History)
 final budgetPlanHistoryProvider = FutureProvider.family<List<BudgetPlan>, int>((
   ref,
   motorcycleId,
@@ -585,21 +585,21 @@ final budgetPlanHistoryProvider = FutureProvider.family<List<BudgetPlan>, int>((
   return db.getBudgetPlanHistory(motorcycleId);
 });
 
-// Notification service provider
+// Provider layanan notifikasi sistem lokal
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   final service = NotificationService();
   service.initialize();
   return service;
 });
 
-// Reminder engine provider
+// Provider mesin pengingat jadwal servis (Reminder Engine)
 final reminderEngineProvider = Provider<ReminderEngine>((ref) {
   final db = ref.watch(databaseProvider);
   final notif = ref.watch(notificationServiceProvider);
   return ReminderEngine(db: db, notificationService: notif);
 });
 
-// Reminders for a motorcycle provider
+// Provider daftar pengingat jadwal untuk sepeda motor tertentu
 final remindersProvider = FutureProvider.family<List<LocalReminder>, int>((
   ref,
   motorcycleId,
@@ -608,13 +608,13 @@ final remindersProvider = FutureProvider.family<List<LocalReminder>, int>((
   return db.getReminders(motorcycleId);
 });
 
-// Backup restore service provider
+// Provider layanan backup dan restore database (JSON export/import)
 final backupRestoreServiceProvider = Provider<BackupRestoreService>((ref) {
   final db = ref.watch(databaseProvider);
   return BackupRestoreService(db: db);
 });
 
-// Database stats provider
+// Provider statistik jumlah data database lokal (hitung baris tabel)
 final databaseStatsProvider = FutureProvider<Map<String, int>>((ref) {
   final db = ref.watch(databaseProvider);
   return db.getDatabaseStats();

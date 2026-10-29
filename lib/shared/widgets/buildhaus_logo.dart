@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// BuildHaus High-Precision Automotive Engineering Brand Emblem
+/// Emblem Brand Otomotif Presisi Tinggi BuildHaus (Apex Crest)
 class BuildHausLogo extends StatelessWidget {
   final double size;
   final bool showText;
@@ -13,7 +13,7 @@ class BuildHausLogo extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Apex Crest Emblem
+          // Emblem Puncak Apex
           _ApexBadge(size: size),
           if (showText) ...[
             const SizedBox(width: 12),
@@ -51,7 +51,7 @@ class BuildHausLogo extends StatelessWidget {
   }
 }
 
-/// Compact aerodynamic apex crest for app bars and icons
+/// Emblem Apex versi ringkas untuk AppBar dan Ikon
 class BuildHausLogoCompact extends StatelessWidget {
   final double size;
 
@@ -111,7 +111,7 @@ class _ApexBadge extends StatelessWidget {
   }
 }
 
-/// Precision-engineered automotive telemetry emblem (interlocking BH aero-winglets)
+/// Lukisan CustomPainter untuk Emblem Telemetri Otomotif (Sayap Aerodinamis BH yang Saling Mengait)
 class _ApexEmblemPainter extends CustomPainter {
   const _ApexEmblemPainter();
 
@@ -122,7 +122,7 @@ class _ApexEmblemPainter extends CustomPainter {
     final cx = w / 2;
     final cy = h / 2;
 
-    // Winglet 1: Titanium metallic left chevron (B arc)
+    // Sayap 1: Sayap perak titanium metalik (siluet lengkungan huruf B)
     final leftPath = Path()
       ..moveTo(w * 0.18, h * 0.72)
       ..lineTo(w * 0.18, h * 0.28)
@@ -147,7 +147,7 @@ class _ApexEmblemPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     canvas.drawPath(leftPath, leftPaint);
 
-    // Winglet 2: Cyber Emerald dynamic right fin (H apex)
+    // Sayap 2: Sayap dinamis cyber emerald neon (siluet puncak huruf H)
     final rightPath = Path()
       ..moveTo(w * 0.82, h * 0.28)
       ..lineTo(w * 0.82, h * 0.72)
@@ -172,7 +172,7 @@ class _ApexEmblemPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     canvas.drawPath(rightPath, rightPaint);
 
-    // Center Core: Mechanical Telemetry Apex Diamond
+    // Inti Pusat: Berlian telemetri mekanikal (rotasi 45 derajat)
     final corePath = Path()
       ..moveTo(cx, cy - h * 0.14)
       ..lineTo(cx + w * 0.12, cy)
@@ -185,7 +185,7 @@ class _ApexEmblemPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     canvas.drawPath(corePath, corePaint);
 
-    // Inner glowing diode point
+    // Dioda mikro bercahaya di pusat emblem
     final diodePaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.fill;

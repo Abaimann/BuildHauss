@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class BuildHausTheme {
-  // Cyber-Automotive Stealth Dark Palette
+  // Palet Warna Cyber-Automotive Stealth Dark (Tema Utama Gelap Futuristik)
   static const darkBg = Color(0xFF090D14);
   static const darkSurface = Color(0xFF0F1722);
   static const darkSurface2 = Color(0xFF151F2E);
@@ -14,7 +14,7 @@ class BuildHausTheme {
   static const darkAccent = Color(0xFF00F5A0);
   static const darkSoft = Color(0xFF182335);
 
-  // Status colors with vibrant automotive accents
+  // Warna status indikator komponen dengan aksen otomotif terang
   static const ok = Color(0xFF00E599);
   static const okBg = Color(0xFF062B1D);
   static const okLight = Color(0xFF34D399);
@@ -25,7 +25,7 @@ class BuildHausTheme {
   static const dangerBg = Color(0xFF2E0C0C);
   static const dangerLight = Color(0xFFF87171);
 
-  // Light mode colors
+  // Palet warna untuk mode terang (Light Mode)
   static const lightBg = Color(0xFFf4f4f5);
   static const lightSurface = Color(0xFFffffff);
   static const lightSurface2 = Color(0xFFf0f0f2);
@@ -54,7 +54,7 @@ class BuildHausTheme {
         outline: darkLine,
         outlineVariant: darkSoft,
       ),
-      // AppBar
+      // Konfigurasi AppBar
       appBarTheme: AppBarTheme(
         backgroundColor: darkBg,
         foregroundColor: darkInk,
@@ -68,7 +68,7 @@ class BuildHausTheme {
         ),
         iconTheme: const IconThemeData(color: darkInk),
       ),
-      // Cards
+      // Konfigurasi Kartu (Card)
       cardTheme: CardThemeData(
         color: darkSurface2,
         elevation: 0,
@@ -78,7 +78,7 @@ class BuildHausTheme {
           side: BorderSide(color: darkLine, width: 1),
         ),
       ),
-      // Bottom Navigation
+      // Bilah Navigasi Bawah (Bottom Navigation)
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: darkSurface,
         selectedItemColor: darkAccent,
@@ -113,7 +113,7 @@ class BuildHausTheme {
           return IconThemeData(color: darkMuted, size: 24);
         }),
       ),
-      // Inputs
+      // Form Input & Kolom Teks
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: darkSurface2,
@@ -143,7 +143,7 @@ class BuildHausTheme {
           fontSize: 13,
         ),
       ),
-      // Buttons
+      // Tombol (Buttons)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: darkAccent,
@@ -180,15 +180,15 @@ class BuildHausTheme {
           ),
         ),
       ),
-      // List Tiles
+      // Elemen List Tile
       listTileTheme: ListTileThemeData(
         tileColor: darkSurface2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       ),
-      // Dividers
+      // Garis Pembatas (Dividers)
       dividerTheme: DividerThemeData(color: darkLine, thickness: 1, space: 1),
-      // SnackBars
+      // Notifikasi Melayang (SnackBars)
       snackBarTheme: SnackBarThemeData(
         backgroundColor: darkInk,
         contentTextStyle: GoogleFonts.plusJakartaSans(
@@ -199,24 +199,24 @@ class BuildHausTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
       ),
-      // Dialogs
+      // Kotak Dialog Modal
       dialogTheme: DialogThemeData(
         backgroundColor: darkSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
-      // Bottom Sheet
+      // Lembar Bawah Modal (Bottom Sheet)
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: darkSurface,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
       ),
-      // Progress Indicators
+      // Indikator Progres Loading
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: ok,
         linearTrackColor: darkSoft,
       ),
-      // Text
+      // Tipografi dan Gaya Teks
       textTheme: TextTheme(
         headlineLarge: GoogleFonts.plusJakartaSans(
           color: darkInk,
@@ -455,7 +455,7 @@ class BuildHausTheme {
   }
 }
 
-// Context extensions for easier access
+// Ekstensi BuildContext untuk kemudahan akses token warna tema secara dinamis
 extension BuildHausColors on BuildContext {
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
 

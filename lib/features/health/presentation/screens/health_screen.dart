@@ -51,7 +51,7 @@ class HealthScreen extends ConsumerWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // App Bar
+          // Bilah Aplikasi (AppBar) Layar Kesehatan
           SliverAppBar(
             expandedHeight: 120,
             pinned: true,
@@ -702,7 +702,7 @@ class _AIRecommendationCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final db = ref.watch(databaseProvider);
-    // Watch component statuses and complaints so this card updates reactively
+    // Pantau status komponen dan keluhan agar kartu ini terupdate secara reaktif
     ref.watch(componentStatusesWithNamesProvider(motorcycle.id));
     ref.watch(complaintsProvider(motorcycle.id));
 
@@ -1575,13 +1575,13 @@ class _ComponentTile extends ConsumerWidget {
       nameKeywords = [n];
     }
 
-    // First, strictly match by defined category
+    // 1. Prioritaskan pencocokan ketat berdasarkan kategori resmi suku cadang
     var candidates = allSpareparts.where((p) {
       final cat = p.category.toLowerCase();
       return targetCategories.contains(cat);
     }).toList();
 
-    // If no exact category match found, fallback to name keywords
+    // 2. Jika tidak ada kecocokan kategori langsung, cari berdasarkan kata kunci nama komponen
     if (candidates.isEmpty) {
       candidates = allSpareparts.where((p) {
         final name = p.name.toLowerCase();

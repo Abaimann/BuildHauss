@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Lightweight tactile press-scale micro-interaction widget with spring physics.
-/// Wrapped in [RepaintBoundary] to isolate rendering and maintain 120 FPS.
+/// Widget mikro-interaksi sentuhan (tekan-dan-skala) ringan dengan fisika pegas (spring physics).
+/// Dibungkus dengan [RepaintBoundary] untuk mengisolasi rendering dan menjaga performa mulus 120 FPS.
 class TapScale extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
@@ -79,9 +79,9 @@ class _TapScaleState extends State<TapScale> {
   }
 }
 
-/// Lightweight one-shot fade + subtle upward slide entrance animation.
-/// Uses [TweenAnimationBuilder] with an [Interval] curve (no Future.delayed timers),
-/// ensuring deterministic completion in widget tests (`pumpAndSettle`).
+/// Animasi muncul (fade + geser halus ke atas) satu kali saat pertama kali dirender.
+/// Menggunakan [TweenAnimationBuilder] dengan kurva [Interval] (tanpa Future.delayed),
+/// memastikan penyelesaian deterministik dalam pengujian widget (`pumpAndSettle`).
 class FadeSlideIn extends StatelessWidget {
   final Widget child;
   final int index;
@@ -121,7 +121,7 @@ class FadeSlideIn extends StatelessWidget {
   }
 }
 
-/// Dynamic pulsing status LED diode (e.g. active telemetry indicator)
+/// Dioda LED status dengan animasi denyut bercahaya (indikator telemetri aktif)
 class PulseLed extends StatefulWidget {
   final Color color;
   final double size;
@@ -197,7 +197,7 @@ class _PulseLedState extends State<PulseLed> with SingleTickerProviderStateMixin
   }
 }
 
-/// High-performance dark acrylic cockpit container with 1px hairline border
+/// Kontainer kartu panel gelap kokpit performa tinggi dengan bingkai tipis (hairline border) 1px
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;

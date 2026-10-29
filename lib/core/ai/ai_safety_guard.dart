@@ -1,9 +1,9 @@
 import 'package:equatable/equatable.dart';
 
-/// Severity of safety alerts detected by the deterministic safety guard.
+/// Tingkat keparahan risiko keselamatan yang terdeteksi oleh sistem safety guard deterministik.
 enum SafetyRiskLevel { low, medium, high, critical }
 
-/// Result produced by [AiSafetyGuard] evaluation.
+/// Hasil evaluasi analisis keselamatan yang dihasilkan oleh [AiSafetyGuard].
 class SafetyEvaluationResult extends Equatable {
   final bool hasRedFlag;
   final SafetyRiskLevel riskLevel;
@@ -23,7 +23,7 @@ class SafetyEvaluationResult extends Equatable {
     required this.doNotRideWarning,
   });
 
-  /// Safe default result when no red flags are found.
+  /// Hasil default yang aman ketika tidak ditemukan tanda bahaya (red flag).
   static const SafetyEvaluationResult safe = SafetyEvaluationResult(
     hasRedFlag: false,
     riskLevel: SafetyRiskLevel.low,
@@ -43,10 +43,11 @@ class SafetyEvaluationResult extends Equatable {
   ];
 }
 
-/// Deterministic safety guard that inspects user complaints and motorcycle context.
+/// Penjaga keselamatan deterministik yang memeriksa keluhan pengguna dan konteks motor.
 ///
-/// Ensures critical red-flag safety issues (brakes, fuel leaks, tire damage, steering failure)
-/// ALWAYS produce prominent safety warnings and mechanic referrals, regardless of LLM generation.
+/// Memastikan masalah keselamatan kritis berisiko tinggi (rem blong, kebocoran bensin,
+/// ban sobek/pecah, kemudi macet/oleng) SELALU memicu peringatan keselamatan keras dan rujukan ke bengkel,
+/// terlepas dari hasil inferensi model LLM.
 class AiSafetyGuard {
   static const List<String> _brakeKeywords = [
     'rem blong',
@@ -93,7 +94,7 @@ class AiSafetyGuard {
     'setir goyang',
   ];
 
-  /// Evaluates an input complaint string deterministically.
+  /// Mengevaluasi string teks keluhan secara deterministik berbasis kata kunci bahaya.
   static SafetyEvaluationResult evaluate(String input) {
     final lower = input.toLowerCase();
     final matchedBrake = _brakeKeywords
@@ -113,7 +114,7 @@ class AiSafetyGuard {
     ];
 
     if (allMatches.isEmpty) {
-      // Check for generic high-risk keywords
+      // Periksa kata kunci risiko umum terkait sistem pengereman
       if (lower.contains('rem') || lower.contains('pengereman')) {
         return const SafetyEvaluationResult(
           hasRedFlag: true,
@@ -130,7 +131,7 @@ class AiSafetyGuard {
       return SafetyEvaluationResult.safe;
     }
 
-    // Critical red flag detected!
+    // Tanda bahaya kritis (Critical Red Flag) terdeteksi!
     final warnings = <String>[];
     if (matchedBrake.isNotEmpty) {
       warnings.add(
@@ -169,9 +170,9 @@ class AiSafetyGuard {
     );
   }
 
-  /// Deterministically merges AI inference results with safety guard requirements.
-  /// Enforces that if a safety red flag exists, the output ALWAYS has risk_level = 'high'
-  /// and requires_mechanic = true, preventing the LLM from downplaying safety risks.
+  /// Menggabungkan hasil inferensi AI dengan aturan safety guard secara deterministik.
+  /// Menjamin bahwa jika terdeteksi red flag keselamatan, output SELALU memiliki
+  /// risk_level = 'high' dan requires_mechanic = true, mencegah LLM mengecilkan risiko bahaya.
   static Map<String, dynamic> enforceSafetyOverrides(
     Map<String, dynamic> aiOutput,
     SafetyEvaluationResult safety,
@@ -180,7 +181,7 @@ class AiSafetyGuard {
 
     final updated = Map<String, dynamic>.from(aiOutput);
 
-    // Enforce high or critical risk level
+    // Paksa level risiko tinggi atau kritis jika terdeteksi bahaya keselamatan
     if (safety.riskLevel == SafetyRiskLevel.critical ||
         safety.riskLevel == SafetyRiskLevel.high) {
       updated['risk_level'] = 'high';

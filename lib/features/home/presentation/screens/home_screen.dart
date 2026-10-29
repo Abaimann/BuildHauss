@@ -10,7 +10,7 @@ import '../../../../core/database/sample_data_seeder.dart';
 import '../../../../shared/widgets/animated_widgets.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
 
-// Helper widget to show brand name instead of emoji
+// Widget pembantu untuk menampilkan nama merk motor dalam badge rapi
 class _BrandBadge extends ConsumerWidget {
   final int? modelId;
   final double fontSize;
@@ -129,7 +129,7 @@ class _HomeContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CustomScrollView(
       slivers: [
-        // App Bar with Logo
+        // Bilah Aplikasi (AppBar) dengan Logo BuildHaus
         SliverAppBar(
           expandedHeight: 120,
           floating: true,
@@ -164,19 +164,19 @@ class _HomeContent extends ConsumerWidget {
           ],
         ),
 
-        // Content
+        // Konten Utama Beranda
         SliverPadding(
           padding: const EdgeInsets.all(16),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              // Motor Selector
+              // Pemilih Motor Aktif (Motor Selector)
               FadeSlideIn(
                 index: 0,
                 child: _MotorSelector(motors: motors, activeMotor: activeMotor),
               ),
               const SizedBox(height: 20),
 
-              // Bike Card
+              // Kartu Telemetri Motor Utama (Bike Card)
               if (activeMotor != null) ...[
                 FadeSlideIn(
                   index: 1,
@@ -203,7 +203,7 @@ class _HomeContent extends ConsumerWidget {
                 const SizedBox(height: 24),
               ],
 
-              // Quick Actions
+              // Tombol Menu Aksi Cepat (Quick Actions)
               FadeSlideIn(
                 index: 2,
                 child: Column(
@@ -263,7 +263,7 @@ class _HomeContent extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
 
-              // Health Summary
+              // Ringkasan Kesehatan Komponen (Health Summary)
               FadeSlideIn(
                 index: 3,
                 child: Column(
@@ -285,14 +285,14 @@ class _HomeContent extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
 
-              // Reminder Notice
+              // Notifikasi Pengingat Jadwal Servis (Reminder Notice)
               FadeSlideIn(
                 index: 4,
                 child: _ReminderNotice(),
               ),
               const SizedBox(height: 20),
 
-              // Bottom padding for nav bar
+              // Ruang kosong bawah untuk navigasi bar
               const SizedBox(height: 20),
             ]),
           ),

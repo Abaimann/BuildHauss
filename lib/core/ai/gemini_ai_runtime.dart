@@ -5,10 +5,10 @@ import 'package:dio/dio.dart';
 import '../database/app_database.dart';
 import 'offline_ai_runtime.dart';
 
-/// Online AI runtime powered by Google Gemini 2.5 Flash REST API.
+/// Runtime AI Online yang ditenagai oleh REST API Google Gemini 2.5 Flash.
 ///
-/// Implements [OfflineAiRuntime] so it plugs seamlessly into [AiChatService]
-/// without requiring any heavy on-device GGUF model download.
+/// Mengimplementasikan [OfflineAiRuntime] agar terintegrasi mulus ke dalam [AiChatService]
+/// tanpa perlu mengunduh file bobot model GGUF yang berat ke memori perangkat.
 class GeminiAiRuntime implements OfflineAiRuntime {
   static const String modelId = 'gemini-2.5-flash';
   static const List<String> _candidateModels = [
@@ -20,7 +20,7 @@ class GeminiAiRuntime implements OfflineAiRuntime {
   static final String builtInApiKey = () {
     const fromEnv = String.fromEnvironment('GEMINI_API_KEY');
     if (fromEnv.isNotEmpty) return fromEnv;
-    // Decoded at runtime to protect against scanner false positives on remote push
+    // Didekode saat runtime untuk mencegah false positive scanner rahasia pada git remote push
     return utf8.decode(
       base64.decode(
         'QVEuQWI4Uk42SnZueE1xay1SYnlEM083TWp3UmhrQUluRVZRV1NEbE1FWTVqOTFHQ3ZtMlE=',
@@ -45,8 +45,8 @@ class GeminiAiRuntime implements OfflineAiRuntime {
             ),
           );
 
-  /// Retrieves the configured Gemini API key from SQLite settings,
-  /// `--dart-define=GEMINI_API_KEY=...`, or the built-in default API key.
+  /// Mengambil API key Gemini dari pengaturan SQLite,
+  /// flag `--dart-define=GEMINI_API_KEY=...`, atau API key bawaan aplikasi.
   Future<String?> getApiKey() async {
     final stored = await _db.getSetting(settingKeyApiKey);
     if (stored != null && stored.trim().isNotEmpty) {
@@ -59,23 +59,23 @@ class GeminiAiRuntime implements OfflineAiRuntime {
     return builtInApiKey;
   }
 
-  /// Whether a non-empty Gemini API key is available.
+  /// Mengecek apakah API key Gemini yang valid telah tersedia.
   Future<bool> hasApiKey() async {
     final key = await getApiKey();
     return key != null && key.isNotEmpty;
   }
 
-  /// Saves the Gemini API key into SQLite `app_settings`.
+  /// Menyimpan API key Gemini ke dalam tabel `app_settings` di database SQLite.
   Future<void> saveApiKey(String apiKey) async {
     await _db.setSetting(settingKeyApiKey, apiKey.trim());
   }
 
-  /// Clears the stored Gemini API key from SQLite `app_settings`.
+  /// Menghapus API key Gemini yang tersimpan di tabel `app_settings` SQLite.
   Future<void> clearApiKey() async {
     await _db.setSetting(settingKeyApiKey, '');
   }
 
-  /// Tests connectivity and API key validity against Gemini 2.5 Flash.
+  /// Menguji konektivitas dan kevalidan API key langsung ke server Gemini.
   Future<(bool, String)> testConnection({String? overrideApiKey}) async {
     final key =
         (overrideApiKey != null && overrideApiKey.trim().isNotEmpty)
@@ -139,7 +139,7 @@ class GeminiAiRuntime implements OfflineAiRuntime {
     int threads = 4,
     int contextSize = 2048,
   }) async {
-    // Cloud model does not require loading local GGUF weights into RAM.
+    // Model cloud tidak memerlukan pemuatan bobot file GGUF lokal ke RAM perangkat.
   }
 
   @override
