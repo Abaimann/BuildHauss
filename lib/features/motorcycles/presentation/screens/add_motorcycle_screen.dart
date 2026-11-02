@@ -86,9 +86,13 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
             );
           }
 
-          // Initialize defaults if not set
+          // Inisialisasi nilai awal merek & model default jika belum dipilih
           _selectedBrand ??= brands.first;
           final brandModels = modelsByBrand[_selectedBrand] ?? [];
+          if (_selectedModel == null && brandModels.isNotEmpty) {
+            _selectedModel = brandModels.first;
+            _selectedYear = _selectedModel!.yearStart;
+          }
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -323,7 +327,6 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
       if (selected == null || selected.brand != _selectedBrand) {
         throw StateError('Pilih model motor yang tersedia.');
       }
-      final isFirst = (await db.getAllMotorcycles()).isEmpty;
       final odoText = _odometerController.text.trim();
       final odo = (odoText.isEmpty ? null : double.tryParse(odoText)) ?? 1000.0;
       final motorId = await db.createMotorcycleWithInitialHealth(
@@ -359,15 +362,14 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text(
-              isFirst
-                  ? 'Motor berhasil ditambahkan!'
-                  : 'Motor berhasil ditambahkan!',
+              'Motor berhasil ditambahkan! Silakan lengkapi pemeriksaan fisik awal.',
             ),
           ),
         );
-        context.pop();
+        // Langsung arahkan pengguna ke fitur pemeriksaan fisik mandiri untuk motor yang baru ditambahkan
+        context.pushReplacement('/motor/$motorId/inspection');
       }
     } catch (e) {
       if (mounted) {

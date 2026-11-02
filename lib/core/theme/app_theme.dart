@@ -472,6 +472,8 @@ extension BuildHausColors on BuildContext {
       isDark ? BuildHausTheme.darkMuted : BuildHausTheme.lightMuted;
   Color get line => isDark ? BuildHausTheme.darkLine : BuildHausTheme.lightLine;
   Color get soft => isDark ? BuildHausTheme.darkSoft : BuildHausTheme.lightSoft;
+  Color get accent =>
+      isDark ? BuildHausTheme.darkAccent : BuildHausTheme.lightAccent;
 
   Color get statusOk => BuildHausTheme.ok;
   Color get statusOkBg => BuildHausTheme.okBg;

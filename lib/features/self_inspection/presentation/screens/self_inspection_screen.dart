@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,8 +20,45 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
   int _step = 0;
   final Map<String, String> _answers = {};
   bool _saving = false;
+  Timer? _autoAdvanceTimer;
 
   final List<InspectionQuestion> _questions = SelfInspectionEngine.questions;
+
+  @override
+  void dispose() {
+    _autoAdvanceTimer?.cancel();
+    super.dispose();
+  }
+
+  void _selectOption(String questionCode, String optionCode) {
+    _autoAdvanceTimer?.cancel();
+    setState(() {
+      _answers[questionCode] = optionCode;
+    });
+
+    // Otomatis lanjut ke pertanyaan berikutnya setelah jeda singkat (agar alur responsif)
+    if (_step < _questions.length - 1) {
+      _autoAdvanceTimer = Timer(const Duration(milliseconds: 320), () {
+        if (mounted && _step < _questions.length - 1) {
+          setState(() => _step++);
+        }
+      });
+    }
+  }
+
+  void _nextStep() {
+    _autoAdvanceTimer?.cancel();
+    if (_step < _questions.length) {
+      setState(() => _step++);
+    }
+  }
+
+  void _prevStep() {
+    _autoAdvanceTimer?.cancel();
+    if (_step > 0) {
+      setState(() => _step--);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,18 +72,18 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
         actions: [
           if (_step > 0 && _step < _questions.length)
             TextButton(
-              onPressed: () => setState(() => _step--),
-              child: const Text('← Back'),
+              onPressed: _prevStep,
+              child: const Text('Kembali'),
             ),
         ],
       ),
       body: Column(
         children: [
-          // Progress bar
+          // Indikator progres pemeriksaan
           LinearProgressIndicator(
             value: (_step + 1) / (_questions.length + 1),
             backgroundColor: context.soft,
-            color: context.ink,
+            color: context.accent,
           ),
 
           Expanded(
@@ -104,11 +142,7 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
                   label: opt.label,
                   icon: opt.icon,
                   isSelected: isSelected,
-                  onTap: () {
-                    setState(() {
-                      _answers[q.code] = opt.code;
-                    });
-                  },
+                  onTap: () => _selectOption(q.code, opt.code),
                 );
               },
             ),
@@ -116,24 +150,44 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              if (_step > 0)
-                OutlinedButton(
-                  onPressed: () => setState(() => _step--),
-                  child: const Text('Kembali'),
-                ),
-              const Spacer(),
-              if (currentAnswer != null)
-                ElevatedButton(
-                  onPressed: () => setState(() => _step++),
-                  child: Text(
-                    _step == _questions.length - 1 ? 'Selesai' : 'Lanjut',
+              if (_step > 0) ...[
+                Expanded(
+                  flex: 2,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                    ),
+                    onPressed: _prevStep,
+                    child: const Text('Kembali'),
                   ),
-                )
-              else
-                TextButton(
-                  onPressed: () => setState(() => _step++),
-                  child: const Text('Lewati'),
                 ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                flex: 4,
+                child: ElevatedButton(
+                  key: const ValueKey('inspection_next_button'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    backgroundColor: currentAnswer != null
+                        ? context.accent
+                        : context.surface2,
+                    foregroundColor: currentAnswer != null
+                        ? context.bg
+                        : context.ink,
+                  ),
+                  onPressed: _nextStep,
+                  child: Text(
+                    _step == _questions.length - 1
+                        ? 'Selesai'
+                        : (currentAnswer != null ? 'Lanjut' : 'Lewati'),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: currentAnswer != null ? context.bg : context.ink,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ],
@@ -481,32 +535,54 @@ class _AnswerButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.all(14),
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected ? context.ink : context.surface2,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected
+              ? context.accent.withValues(alpha: 0.16)
+              : context.surface2,
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? context.ink : context.line,
+            color: isSelected ? context.accent : context.line,
             width: isSelected ? 2 : 1,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: context.accent.withValues(alpha: 0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           children: [
-            Text(icon, style: const TextStyle(fontSize: 18)),
-            const SizedBox(width: 12),
+            Text(icon, style: const TextStyle(fontSize: 20)),
+            const SizedBox(width: 14),
             Expanded(
               child: Text(
                 label,
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  color: isSelected ? context.bg : context.ink,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 13,
+                  color: isSelected ? context.accent : context.ink,
                 ),
               ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              isSelected
+                  ? Icons.check_circle_rounded
+                  : Icons.radio_button_unchecked_rounded,
+              color: isSelected
+                  ? context.accent
+                  : context.muted.withValues(alpha: 0.5),
+              size: 20,
             ),
           ],
         ),
