@@ -3,67 +3,70 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>BuildHaus — Aplikasi Perawatan Motor Offline-First (Desain Terkini)</title>
-    <!-- Google Fonts: Plus Jakarta Sans -->
+    <title>BuildHaus — Prototipe Interaktif Aplikasi v2.0 (Gemini 2.5 Flash & 8-Titik Inspeksi)</title>
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+    
     <style>
-      /* ===== BUILDHAUS EXACT DESIGN SYSTEM TOKENS ===== */
+      /* ===== CYBER STEALTH AUTOMOTIVE DESIGN SYSTEM ===== */
       :root {
-        --bg: #0c110d;
-        --surface: #141a15;
-        --surface2: #1b231c;
-        --surface3: #222c24;
-        --ink: #f2f7f3;
-        --ink2: #c4d0c6;
-        --muted: #7e8e81;
-        --line: #263328;
-        --line-subtle: #1c271e;
-        --accent: #3da96e;
-        --accent-hover: #48c380;
-        --accent-glow: rgba(61, 169, 110, 0.22);
-        --accent-gradient: linear-gradient(135deg, #1b3320 0%, #0d1b10 100%);
-        --soft: #232d25;
-        --ok: #3da96e;
-        --ok-bg: rgba(61, 169, 110, 0.16);
-        --warn: #d9822b;
-        --warn-bg: rgba(217, 130, 43, 0.16);
-        --danger: #e04f43;
-        --danger-bg: rgba(224, 79, 67, 0.16);
+        --bg: #090d14;
+        --bg-card: #0e1520;
+        --surface: #121b28;
+        --surface2: #182333;
+        --surface3: #1f2d40;
+        --ink: #f1f5f9;
+        --ink2: #cbd5e1;
+        --muted: #8292a6;
+        --line: #223249;
+        --line-subtle: #172435;
+        --accent: #00f5a0;
+        --accent-hover: #15ffab;
+        --accent-glow: rgba(0, 245, 160, 0.28);
+        --accent-gradient: linear-gradient(135deg, #0e2720 0%, #091314 100%);
+        --soft: #1a2838;
+        --ok: #00f5a0;
+        --ok-bg: rgba(0, 245, 160, 0.14);
+        --warn: #f59e0b;
+        --warn-bg: rgba(245, 158, 11, 0.16);
+        --danger: #ef4444;
+        --danger-bg: rgba(239, 68, 68, 0.16);
         --purple: #8b5cf6;
         --purple-bg: rgba(139, 92, 246, 0.16);
-        --blue: #3b82f6;
-        --blue-bg: rgba(59, 130, 246, 0.16);
-        --r-card: 16px;
-        --r-pill: 99px;
+        --blue: #38bdf8;
+        --blue-bg: rgba(56, 189, 248, 0.14);
+        --r-card: 18px;
+        --r-pill: 999px;
       }
 
       body.light {
-        --bg: #f4f6f3;
+        --bg: #f5f8fa;
+        --bg-card: #ffffff;
         --surface: #ffffff;
-        --surface2: #e9eee8;
-        --surface3: #dde4db;
-        --ink: #141a15;
-        --ink2: #38453a;
-        --muted: #6e7d70;
-        --line: #d1dcd0;
-        --line-subtle: #e2eae1;
-        --accent: #2e8d59;
-        --accent-hover: #26774a;
-        --accent-glow: rgba(46, 141, 89, 0.16);
-        --accent-gradient: linear-gradient(135deg, #e4f3e8 0%, #d1ecd9 100%);
-        --soft: #dfe7de;
-        --ok: #2e8d59;
-        --ok-bg: #d9efe0;
-        --warn: #c2701f;
-        --warn-bg: #faeedd;
-        --danger: #cf3d31;
-        --danger-bg: #fde8e6;
+        --surface2: #e9eff5;
+        --surface3: #dce5ee;
+        --ink: #0f172a;
+        --ink2: #334155;
+        --muted: #64748b;
+        --line: #cbd5e1;
+        --line-subtle: #e2e8f0;
+        --accent: #059669;
+        --accent-hover: #047857;
+        --accent-glow: rgba(5, 150, 105, 0.18);
+        --accent-gradient: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        --soft: #e2e8f0;
+        --ok: #059669;
+        --ok-bg: #d1fae5;
+        --warn: #d97706;
+        --warn-bg: #fef3c7;
+        --danger: #dc2626;
+        --danger-bg: #fee2e2;
         --purple: #7c3aed;
-        --purple-bg: #f1eaff;
-        --blue: #2563eb;
-        --blue-bg: #e8f0fe;
+        --purple-bg: #ede9fe;
+        --blue: #0284c7;
+        --blue-bg: #e0f2fe;
       }
 
       * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -73,100 +76,116 @@
         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
         font-size: 13px;
         line-height: 1.5;
-        transition: background 0.3s ease, color 0.3s ease;
+        transition: background 0.25s ease, color 0.25s ease;
         -webkit-font-smoothing: antialiased;
         overflow-x: hidden;
       }
 
-      /* ===== CONTAINER & STAGE ===== */
-      .wrap { max-width: 1260px; margin: auto; padding: 24px 20px; }
-      .stage {
-        display: grid;
-        grid-template-columns: 1fr 380px 1.1fr;
-        gap: 28px;
-        align-items: center;
-        border: 1px solid var(--line);
-        border-radius: 26px;
-        padding: 24px;
-        background: var(--surface);
-        min-height: 740px;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      /* Ambient Background */
+      .ambient-glow {
+        position: fixed; top: 0; left: 0; right: 0; height: 100vh;
+        pointer-events: none; z-index: 0;
+        background: radial-gradient(circle at 20% 15%, rgba(0, 245, 160, 0.06) 0%, transparent 45%),
+                    radial-gradient(circle at 80% 25%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
       }
 
+      .wrap { max-width: 1360px; margin: auto; padding: 20px 24px; position: relative; z-index: 1; }
+
       /* ===== TOP HEADER ===== */
-      .header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
-      .brand-mark {
-        width: 44px; height: 44px;
-        border-radius: 13px;
-        background: var(--accent);
-        color: #0b140d;
-        display: grid; place-items: center;
-        flex-shrink: 0;
-        box-shadow: 0 4px 16px var(--accent-glow);
+      .header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 22px; padding: 12px 20px;
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: 20px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
       }
-      .brand-mark svg { width: 26px; height: 26px; }
-      .header-info b { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; }
-      .header-info small { display: block; color: var(--muted); font-size: 11.5px; }
-      .theme-btn {
-        margin-left: auto;
-        background: var(--surface2);
-        border: 1px solid var(--line);
-        color: var(--ink);
-        padding: 8px 16px;
-        border-radius: var(--r-pill);
-        cursor: pointer;
-        font-size: 12px;
-        font-weight: 600;
+      .brand-box { display: flex; align-items: center; gap: 14px; }
+      .brand-crest {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        background: #15202e;
+        border: 1.2px solid rgba(0, 245, 160, 0.35);
+        display: grid; place-items: center;
+        box-shadow: 0 4px 18px var(--accent-glow);
+      }
+      .brand-title b { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; display: block; }
+      .brand-title small { color: var(--muted); font-size: 11.5px; }
+      .header-actions { display: flex; align-items: center; gap: 12px; }
+      .theme-btn, .action-btn {
+        background: var(--surface2); border: 1px solid var(--line);
+        color: var(--ink); padding: 8px 16px; border-radius: var(--r-pill);
+        cursor: pointer; font-size: 12px; font-weight: 600;
         display: inline-flex; align-items: center; gap: 8px;
         transition: all 0.2s;
       }
-      .theme-btn:hover { border-color: var(--accent); }
+      .theme-btn:hover, .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+      .action-btn.primary {
+        background: var(--accent); color: #08110b; font-weight: 800; border-color: var(--accent);
+        box-shadow: 0 4px 16px var(--accent-glow);
+      }
+      .action-btn.primary:hover { background: var(--accent-hover); }
 
-      /* ===== LEFT EXPLAIN PANEL ===== */
-      .explain { padding-right: 8px; }
-      .badge-version {
+      /* ===== 3-COLUMN STAGE ===== */
+      .stage {
+        display: grid;
+        grid-template-columns: 340px 375px 1fr;
+        gap: 26px;
+        align-items: flex-start;
+      }
+
+      /* ===== LEFT NAVIGATION & WORKFLOW TRIGGERS ===== */
+      .left-panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 22px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+      }
+      .panel-badge {
         display: inline-flex; align-items: center; gap: 6px;
         background: var(--ok-bg); color: var(--ok);
-        font-size: 10px; font-weight: 700;
-        padding: 4px 10px; border-radius: var(--r-pill);
-        letter-spacing: 0.5px; text-transform: uppercase;
+        font-size: 10px; font-weight: 800; padding: 4px 10px;
+        border-radius: var(--r-pill); text-transform: uppercase; letter-spacing: 0.5px;
         margin-bottom: 12px;
       }
-      .explain h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; line-height: 1.2; margin-bottom: 10px; }
-      .explain h1 span { color: var(--ok); }
-      .explain p { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
-      .feature-list { list-style: none; margin: 18px 0; display: flex; flex-direction: column; gap: 10px; }
-      .feature-list li {
-        display: flex; gap: 10px; align-items: flex-start;
-        font-size: 12.5px; color: var(--ink2);
-      }
-      .feature-list .dot {
-        width: 20px; height: 20px; border-radius: 6px;
-        background: var(--ok-bg); color: var(--ok);
-        display: grid; place-items: center; font-size: 11px;
-        font-weight: bold; flex-shrink: 0; margin-top: 1px;
-      }
+      .left-panel h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.25; margin-bottom: 8px; }
+      .left-panel p { color: var(--muted); font-size: 12px; line-height: 1.6; margin-bottom: 18px; }
 
-      /* Quick switcher pills on left */
-      .quick-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
-      .quick-nav button {
+      .section-label {
+        font-size: 10.5px; font-weight: 800; text-transform: uppercase;
+        color: var(--muted); letter-spacing: 0.7px; margin: 16px 0 8px;
+      }
+      .nav-menu-btn {
+        width: 100%; display: flex; align-items: center; justify-content: space-between;
+        padding: 10px 14px; background: var(--surface2); border: 1px solid var(--line);
+        border-radius: 12px; color: var(--ink); font-size: 12px; font-weight: 600;
+        cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        margin-bottom: 6px; text-align: left;
+      }
+      .nav-menu-btn:hover { background: var(--surface3); border-color: var(--accent); transform: translateX(2px); }
+      .nav-menu-btn.active {
+        background: var(--accent); color: #08110b; font-weight: 800; border-color: var(--accent);
+        box-shadow: 0 4px 14px var(--accent-glow);
+      }
+      .nav-menu-btn.active span.meta { color: #08110b; opacity: 0.8; }
+      .nav-menu-btn span.meta { font-size: 10px; color: var(--muted); font-weight: 500; }
+
+      .workflow-card {
         background: var(--surface2); border: 1px solid var(--line);
-        color: var(--muted); padding: 7px 12px; border-radius: 8px;
-        font-size: 11px; font-weight: 600; cursor: pointer;
-        transition: all 0.18s ease;
+        border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
+        cursor: pointer; transition: all 0.2s;
       }
-      .quick-nav button.active, .quick-nav button:hover {
-        background: var(--ok); color: #0b140d; border-color: var(--ok);
-      }
+      .workflow-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+      .workflow-card b { font-size: 12px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+      .workflow-card small { font-size: 10.5px; color: var(--muted); display: block; margin-top: 3px; line-height: 1.4; }
 
-      /* ===== PHONE FRAME ===== */
+      /* ===== CENTER PHONE SIMULATOR ===== */
       .phone {
-        width: 360px; height: 720px;
-        padding: 10px;
-        background: #060907;
-        border: 2px solid #243126;
-        border-radius: 46px;
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(61, 169, 110, 0.15);
+        width: 375px; height: 750px;
+        background: #06090f;
+        border: 2.5px solid #223249;
+        border-radius: 48px;
+        padding: 11px;
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(0, 245, 160, 0.2);
         position: relative;
         flex-shrink: 0;
       }
@@ -179,876 +198,786 @@
         display: flex; flex-direction: column;
       }
       .dynamic-island {
-        position: absolute; z-index: 20; top: 9px; left: 50%;
+        position: absolute; z-index: 25; top: 10px; left: 50%;
         transform: translateX(-50%);
-        width: 90px; height: 22px;
-        background: #060907; border-radius: var(--r-pill);
+        width: 95px; height: 23px;
+        background: #06090f; border-radius: var(--r-pill);
       }
       .status-bar {
-        position: absolute; top: 11px; left: 22px; right: 22px;
-        font-size: 10px; font-weight: 600;
+        position: absolute; top: 12px; left: 24px; right: 24px;
+        font-size: 10px; font-weight: 700;
         display: flex; justify-content: space-between; align-items: center;
-        z-index: 19; color: var(--ink);
+        z-index: 24; color: var(--ink);
       }
 
-      /* ===== APP PAGES ===== */
+      /* Scrollable Pages inside Screen */
       .page-scroll {
         flex: 1;
         overflow-y: auto;
-        padding: 44px 16px 72px;
+        padding: 46px 16px 72px;
         scrollbar-width: none;
       }
       .page-scroll::-webkit-scrollbar { display: none; }
-      .app-page { display: none; animation: slideUpFade 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
+      .app-page { display: none; animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
       .app-page.active { display: block; }
-
-      @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(8px); }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
         to { opacity: 1; transform: translateY(0); }
       }
 
-      /* ===== APP HEADER BAR ===== */
+      /* App Bar inside Screen */
       .app-bar {
         display: flex; align-items: center; justify-content: space-between;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
       }
       .app-bar-brand { display: flex; align-items: center; gap: 8px; }
       .greeting-chip {
         display: inline-flex; align-items: center; gap: 5px;
         background: var(--surface2); border: 1px solid var(--line);
-        padding: 4px 10px; border-radius: var(--r-pill);
-        font-size: 11px; font-weight: 600; color: var(--ink);
+        padding: 3px 10px; border-radius: var(--r-pill);
+        font-size: 10.5px; font-weight: 700; color: var(--ink);
       }
 
-      /* ===== MOTOR SELECTOR CAROUSEL ===== */
+      /* Motor Selector Carousel */
       .motor-carousel {
         display: flex; gap: 8px; overflow-x: auto;
-        padding-bottom: 4px; margin-bottom: 16px;
+        padding-bottom: 4px; margin-bottom: 14px;
         scrollbar-width: none;
       }
       .motor-carousel::-webkit-scrollbar { display: none; }
-      .motor-card-pill {
-        flex-shrink: 0; width: 84px; padding: 9px 8px;
-        border-radius: 14px; background: var(--surface2);
+      .motor-pill {
+        flex-shrink: 0; width: 88px; padding: 8px 6px;
+        border-radius: 13px; background: var(--surface2);
         border: 1px solid var(--line); text-align: center;
         cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       }
-      .motor-card-pill:active { transform: scale(0.96); }
-      .motor-card-pill.active {
+      .motor-pill.active {
         background: var(--ink); color: var(--bg);
-        border-color: var(--ink);
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+        border-color: var(--ink); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
       }
-      .brand-tag {
-        font-size: 8.5px; font-weight: 800; letter-spacing: 0.5px;
+      .motor-pill .brand-tag {
+        font-size: 8px; font-weight: 800; letter-spacing: 0.5px;
         text-transform: uppercase; opacity: 0.8;
       }
-      .motor-card-pill b { display: block; font-size: 11px; font-weight: 700; margin: 2px 0 1px; }
-      .motor-card-pill small { font-size: 8.5px; opacity: 0.65; }
+      .motor-pill b { display: block; font-size: 11px; font-weight: 700; margin: 1px 0; }
+      .motor-pill small { font-size: 8.5px; opacity: 0.7; }
 
-      /* ===== BIKE CARD (CURRENT GRADIENT CARD) ===== */
+      /* Featured Bike Card */
       .featured-bike-card {
-        background: var(--accent-gradient);
-        border: 1px solid rgba(61, 169, 110, 0.28);
-        border-radius: 20px;
-        padding: 18px;
-        position: relative;
-        overflow: hidden;
-        margin-bottom: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        transition: transform 0.2s ease;
+        background: linear-gradient(135deg, #131f2d 0%, #090e16 100%);
+        border: 1.2px solid rgba(0, 245, 160, 0.45);
+        border-radius: 20px; padding: 16px; margin-bottom: 14px;
+        color: #ffffff; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        position: relative; overflow: hidden;
       }
-      .featured-bike-card:hover { transform: translateY(-1px); }
       .bike-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
       .pill-badge {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 3px 8px; border-radius: var(--r-pill);
-        font-size: 9px; font-weight: 800; letter-spacing: 0.6px;
+        font-size: 8.5px; font-weight: 800; padding: 2px 8px;
+        border-radius: var(--r-pill); display: inline-flex; align-items: center; gap: 4px;
       }
-      .pill-badge.green {
-        background: rgba(61, 169, 110, 0.2);
-        color: #3da96e;
+      .pill-badge.green { background: rgba(0, 245, 160, 0.18); color: var(--accent); border: 1px solid rgba(0, 245, 160, 0.3); }
+      .brand-box-tag {
+        background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 2px 7px; border-radius: 6px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px;
       }
-      .brand-box {
-        font-size: 11px; font-weight: 800; color: #fff;
-        background: rgba(255, 255, 255, 0.12);
-        padding: 2px 8px; border-radius: 6px;
-      }
-      .bike-nickname {
-        font-size: 21px; font-weight: 800; color: #fff;
-        line-height: 1.15; margin-bottom: 2px;
-      }
-      .bike-plate { font-size: 11.5px; color: rgba(255, 255, 255, 0.65); }
+      .bike-nickname { font-size: 17px; font-weight: 800; letter-spacing: -0.4px; }
+      .bike-plate { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 1px; margin-bottom: 12px; }
       .bike-card-bottom {
         display: flex; justify-content: space-between; align-items: flex-end;
-        margin-top: 14px;
+        padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08);
       }
-      .odo-label { font-size: 9.5px; color: rgba(255, 255, 255, 0.55); text-transform: uppercase; }
-      .odo-number {
-        font-size: 26px; font-weight: 800; color: #ffffff;
-        letter-spacing: -0.5px; line-height: 1.1;
-      }
+      .odo-label { font-size: 9px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
+      .odo-number { font-size: 16px; font-weight: 800; color: #ffffff; font-family: 'JetBrains Mono', monospace; }
       .update-odo-btn {
-        background: rgba(255, 255, 255, 0.14);
-        border: 0; color: #fff;
-        padding: 6px 12px; border-radius: 8px;
-        font-size: 11px; font-weight: 700; cursor: pointer;
-        display: inline-flex; align-items: center; gap: 4px;
-        transition: background 0.15s;
+        background: rgba(0, 245, 160, 0.18); border: 1px solid rgba(0, 245, 160, 0.4);
+        color: var(--accent); padding: 4px 10px; border-radius: var(--r-pill);
+        font-size: 10.5px; font-weight: 700; cursor: pointer; transition: all 0.15s;
       }
-      .update-odo-btn:hover { background: rgba(255, 255, 255, 0.22); }
+      .update-odo-btn:hover { background: var(--accent); color: #08110b; }
 
-      /* ===== QUICK ACTIONS 2X2 ===== */
-      .section-heading {
-        display: flex; justify-content: space-between; align-items: center;
-        font-size: 13.5px; font-weight: 800; color: var(--ink);
-        margin: 16px 0 10px;
-      }
+      /* Quick Actions 4 Grid */
       .quick-actions-grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-        margin-bottom: 20px;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;
       }
       .qa-card {
-        background: var(--surface2);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 12px;
-        cursor: pointer;
-        display: flex; flex-direction: column; align-items: center; text-align: center;
-        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        background: var(--surface2); border: 1px solid var(--line);
+        border-radius: 14px; padding: 11px 12px; cursor: pointer;
+        transition: all 0.2s;
       }
-      .qa-card:active { transform: scale(0.96); }
-      .qa-card:hover { border-color: var(--line-subtle); background: var(--surface3); }
+      .qa-card:active { transform: scale(0.97); }
       .qa-icon-wrap {
         width: 32px; height: 32px; border-radius: 9px;
-        display: grid; place-items: center; font-size: 16px; margin-bottom: 6px;
+        display: grid; place-items: center; font-size: 16px; margin-bottom: 7px;
       }
-      .qa-card b { font-size: 11px; font-weight: 700; color: var(--ink); }
-      .qa-card small { font-size: 9.5px; color: var(--muted); }
+      .qa-card b { display: block; font-size: 11.5px; font-weight: 700; color: var(--ink); }
+      .qa-card small { display: block; font-size: 9.5px; color: var(--muted); }
 
-      /* ===== HEALTH SUMMARY CARD ===== */
+      /* Health Summary Box */
       .health-summary-box {
-        background: var(--surface2);
-        border: 1px solid var(--line);
-        border-radius: 16px;
-        padding: 14px;
-        margin-bottom: 16px;
-      }
-      .health-summary-row { display: flex; align-items: center; gap: 12px; }
-      .health-score-square {
-        width: 50px; height: 50px; border-radius: 13px;
-        background: var(--ok-bg); color: var(--ok);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 20px; font-weight: 800; flex-shrink: 0;
-      }
-      .health-summary-info { flex: 1; min-width: 0; }
-      .health-summary-info b { font-size: 13px; font-weight: 700; color: var(--ink); }
-      .health-summary-info p { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
-      .linear-gauge {
-        height: 7px; background: var(--soft);
-        border-radius: var(--r-pill); overflow: hidden; margin-top: 10px;
-      }
-      .linear-gauge-fill { height: 100%; border-radius: var(--r-pill); transition: width 0.5s ease; }
-
-      /* ===== NOTICE / REMINDER ===== */
-      .reminder-notice {
-        background: var(--warn-bg);
-        border: 1px solid rgba(217, 130, 43, 0.35);
-        border-radius: 12px;
-        padding: 11px 13px;
-        display: flex; gap: 10px; align-items: center;
-        margin-bottom: 14px;
-      }
-      .reminder-notice span { font-size: 18px; }
-      .reminder-notice b { display: block; font-size: 11px; color: var(--warn); font-weight: 700; }
-      .reminder-notice p { font-size: 10px; color: var(--muted); margin-top: 1px; }
-
-      /* ===== HEALTH SCREEN SPECIFICS ===== */
-      .circular-gauge-card {
-        background: linear-gradient(135deg, rgba(61, 169, 110, 0.15) 0%, rgba(61, 169, 110, 0.04) 100%);
-        border: 1px solid rgba(61, 169, 110, 0.3);
-        border-radius: 20px; padding: 18px; text-align: center; margin-bottom: 14px;
-      }
-      .gauge-ring-outer {
-        width: 80px; height: 80px; margin: 0 auto 10px; position: relative;
-        display: grid; place-items: center;
-      }
-      .gauge-ring-outer svg { transform: rotate(-90deg); width: 80px; height: 80px; }
-      .gauge-center-text { position: absolute; font-size: 24px; font-weight: 800; color: var(--ok); }
-      .status-pill-big {
-        display: inline-block; padding: 4px 10px; border-radius: var(--r-pill);
-        background: var(--ok-bg); color: var(--ok); font-size: 10px; font-weight: 800;
-        letter-spacing: 0.5px;
-      }
-
-      .mileage-banner {
         background: var(--surface2); border: 1px solid var(--line);
-        border-radius: 14px; padding: 12px; margin-bottom: 12px;
-        display: flex; align-items: center; gap: 10px;
+        border-radius: 16px; padding: 12px 14px; margin-bottom: 12px;
       }
-      .mileage-stats-grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;
+      .health-summary-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+      .health-score-square {
+        width: 44px; height: 44px; border-radius: 12px;
+        background: var(--surface3); border: 1px solid var(--line);
+        display: grid; place-items: center; font-size: 18px; font-weight: 900;
+        color: var(--ok); flex-shrink: 0; font-family: 'JetBrains Mono', monospace;
       }
-      .mileage-stat-card {
-        background: var(--soft); border-radius: 8px; padding: 6px 10px;
+      .linear-gauge {
+        width: 100%; height: 6px; background: var(--surface3);
+        border-radius: var(--r-pill); overflow: hidden;
       }
-      .mileage-stat-card small { font-size: 9px; color: var(--muted); display: block; }
-      .mileage-stat-card b { font-size: 12px; color: var(--ink); }
+      .linear-gauge-fill { height: 100%; border-radius: var(--r-pill); transition: width 0.4s ease; }
 
-      /* Component Tile in Health Screen */
+      /* Component Tiles */
       .comp-tile {
         background: var(--surface2); border: 1px solid var(--line);
-        border-radius: 14px; padding: 12px; margin-bottom: 8px;
+        border-radius: 14px; padding: 11px 13px; margin-bottom: 8px;
         cursor: pointer; transition: transform 0.15s;
       }
       .comp-tile:active { transform: scale(0.98); }
       .comp-tile-head { display: flex; align-items: center; gap: 10px; }
       .comp-icon-box {
-        width: 38px; height: 38px; border-radius: 10px;
-        background: var(--ok-bg); color: var(--ok);
-        display: grid; place-items: center; font-size: 18px; flex-shrink: 0;
+        width: 34px; height: 34px; border-radius: 9px;
+        background: var(--surface3); display: grid; place-items: center; font-size: 17px;
       }
       .comp-icon-box.warn { background: var(--warn-bg); color: var(--warn); }
       .comp-icon-box.danger { background: var(--danger-bg); color: var(--danger); }
-      .comp-meta { flex: 1; min-width: 0; }
-      .comp-meta b { font-size: 12px; color: var(--ink); font-weight: 700; }
+      .comp-meta { flex: 1; }
+      .comp-meta b { font-size: 11.5px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 5px; }
       .comp-meta p { font-size: 9.5px; color: var(--muted); }
       .comp-score-box { text-align: right; }
-      .comp-score-val { font-size: 15px; font-weight: 800; color: var(--ok); }
+      .comp-score-val { font-size: 13px; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
       .comp-score-badge {
-        font-size: 8px; font-weight: 800; padding: 2px 6px; border-radius: var(--r-pill);
-      }
-      .matched-part-pill {
-        background: var(--surface); border: 1px solid var(--line);
-        border-radius: 8px; padding: 5px 8px; margin-top: 8px;
-        display: flex; align-items: center; justify-content: space-between;
-        font-size: 10px; color: var(--ink);
+        font-size: 8px; font-weight: 800; padding: 1px 6px;
+        border-radius: 4px; display: inline-block; text-transform: uppercase;
       }
 
-      /* ===== SPAREPART CATALOG SCREEN ===== */
-      .search-box { position: relative; margin-bottom: 10px; }
-      .search-box input {
-        width: 100%; height: 38px; border-radius: 10px;
+      /* Circular Health Gauge Card in Tab Sehat */
+      .circular-gauge-card {
         background: var(--surface2); border: 1px solid var(--line);
-        padding: 0 12px 0 34px; color: var(--ink); font-size: 12px;
-        font-family: inherit;
+        border-radius: 20px; padding: 18px 14px; text-align: center;
+        margin-bottom: 12px;
       }
-      .search-box input:focus { outline: 1px solid var(--ok); }
-      .search-icon-svg {
-        position: absolute; left: 10px; top: 11px;
-        width: 16px; height: 16px; color: var(--muted);
+      .gauge-ring-outer {
+        width: 110px; height: 110px; margin: 0 auto 10px; position: relative;
+      }
+      .gauge-center-text {
+        position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        font-size: 28px; font-weight: 900; font-family: 'JetBrains Mono', monospace;
+      }
+      .status-pill-big {
+        display: inline-block; font-size: 10px; font-weight: 800;
+        padding: 3px 12px; border-radius: var(--r-pill);
+        background: var(--ok-bg); color: var(--ok); letter-spacing: 0.5px;
       }
 
+      /* Smart Parts Catalog 2-col */
+      .search-box {
+        position: relative; margin-bottom: 10px;
+      }
+      .search-box input {
+        width: 100%; background: var(--surface2); border: 1px solid var(--line);
+        border-radius: 12px; padding: 9px 12px 9px 34px; color: var(--ink);
+        font-family: inherit; font-size: 11.5px; outline: none;
+      }
+      .search-box input:focus { border-color: var(--accent); }
+      .search-icon-svg {
+        position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+        width: 15px; height: 15px; color: var(--muted); pointer-events: none;
+      }
       .filter-chips-scroll {
-        display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px;
+        display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px;
         scrollbar-width: none;
       }
       .filter-chips-scroll::-webkit-scrollbar { display: none; }
       .filter-chip {
-        flex-shrink: 0; padding: 6px 11px; border-radius: var(--r-pill);
+        flex-shrink: 0; background: var(--surface2); border: 1px solid var(--line);
+        padding: 5px 11px; border-radius: var(--r-pill); font-size: 10.5px; font-weight: 600;
+        color: var(--ink); cursor: pointer; transition: all 0.15s;
+      }
+      .filter-chip.active { background: var(--ink); color: var(--bg); font-weight: 800; }
+      .parts-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .part-card {
         background: var(--surface2); border: 1px solid var(--line);
-        font-size: 11px; font-weight: 600; color: var(--ink);
-        cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
-        transition: all 0.15s;
+        border-radius: 13px; overflow: hidden; display: flex; flex-direction: column;
+        cursor: pointer; transition: transform 0.15s;
       }
-      .filter-chip:active { transform: scale(0.96); }
-      .filter-chip.active { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 700; }
-      .filter-chip.budget-active { background: #166534; color: #fff; border-color: #166534; }
-      .filter-chip.health-active { background: #9a3412; color: #fff; border-color: #9a3412; }
+      .part-card:active { transform: scale(0.97); }
+      .part-card-img {
+        height: 64px; background: var(--surface3); display: flex; align-items: center;
+        justify-content: center; font-size: 26px; position: relative;
+      }
+      .part-badge-tag {
+        position: absolute; top: 4px; left: 4px; right: 4px; font-size: 7.5px;
+        font-weight: 800; color: #fff; text-align: center; border-radius: 4px;
+        padding: 1px 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .part-card-body { padding: 8px; flex: 1; display: flex; flex-direction: column; }
+      .part-cat-text { font-size: 8px; font-weight: 800; color: var(--muted); text-transform: uppercase; }
+      .part-name-text { font-size: 10.5px; font-weight: 700; color: var(--ink); line-height: 1.3; margin: 2px 0; }
+      .part-price-text { font-size: 11px; font-weight: 800; color: var(--warn); margin-top: auto; font-family: 'JetBrains Mono', monospace; }
 
-      .parts-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-      .part-catalog-card {
-        background: var(--surface2); border: 1px solid var(--line);
-        border-radius: 14px; overflow: hidden; cursor: pointer;
-        display: flex; flex-direction: column; transition: transform 0.15s;
-      }
-      .part-catalog-card:active { transform: scale(0.97); }
-      .part-catalog-card.budget-highlight { border: 1.5px solid rgba(61, 169, 110, 0.6); }
-      .part-catalog-card.health-highlight { border: 1.5px solid rgba(224, 79, 67, 0.6); }
-      .part-img-area {
-        height: 76px; background: var(--surface3);
-        display: flex; align-items: center; justify-content: center;
-        position: relative; font-size: 32px;
-      }
-      .part-tier-tag {
-        position: absolute; top: 6px; left: 6px; right: 6px;
-        padding: 2px 6px; border-radius: 4px;
-        font-size: 8px; font-weight: 800; color: #fff;
-        text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      }
-      .part-tier-tag.budget { background: #166534; }
-      .part-tier-tag.health { background: #9a3412; }
-      .part-body { padding: 9px; flex: 1; display: flex; flex-direction: column; }
-      .part-cat-label { font-size: 8.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
-      .part-title {
-        font-size: 11px; font-weight: 700; color: var(--ink);
-        line-height: 1.3; margin: 2px 0;
-        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-      }
-      .part-brand { font-size: 9.5px; color: var(--muted); margin-bottom: 4px; }
-      .part-price-est { font-size: 11px; font-weight: 800; color: var(--warn); margin-top: auto; }
-
-      /* ===== AKUN (ACCOUNT SCREEN) - MATCHING FLUTTER EXACT ===== */
-      .profile-card {
-        background: linear-gradient(135deg, var(--surface2) 0%, var(--surface) 100%);
-        border: 1px solid var(--line);
-        border-radius: 20px; padding: 18px;
-        display: flex; align-items: center; gap: 14px;
-        margin-bottom: 14px;
-      }
-      .profile-avatar-box {
-        width: 58px; height: 58px; border-radius: 18px;
-        background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
-        border: 1px solid rgba(255,255,255,0.15);
-        display: grid; place-items: center; font-size: 26px; flex-shrink: 0;
-      }
-      .profile-info b { font-size: 16px; font-weight: 800; color: var(--ink); display: block; }
-      .profile-info small { color: var(--muted); font-size: 11.5px; display: block; margin: 1px 0 6px; }
-      .offline-badge {
-        display: inline-flex; align-items: center; gap: 4px;
-        background: var(--ok-bg); color: var(--ok);
-        font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill);
-      }
-
-      .ai-model-banner {
-        background: var(--surface2);
-        border: 1px solid rgba(139, 92, 246, 0.3);
-        border-radius: 16px; padding: 12px 14px;
-        display: flex; align-items: center; gap: 12px;
-        cursor: pointer; margin-bottom: 14px; transition: transform 0.15s;
-      }
-      .ai-model-banner:active { transform: scale(0.98); }
-      .ai-model-icon {
-        width: 38px; height: 38px; border-radius: 10px;
-        background: var(--purple-bg); color: var(--purple);
-        display: grid; place-items: center; font-size: 20px; flex-shrink: 0;
-      }
-
-      .account-stats-row {
-        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
-        margin-bottom: 18px;
-      }
-      .account-stat-box {
-        background: var(--surface2); border: 1px solid var(--line);
-        border-radius: 14px; padding: 12px 8px; text-align: center;
-      }
-      .account-stat-box span { font-size: 18px; display: block; margin-bottom: 4px; }
-      .account-stat-box b { font-size: 13px; font-weight: 800; color: var(--ink); display: block; }
-      .account-stat-box small { font-size: 9.5px; color: var(--muted); }
-
-      .settings-list {
-        background: var(--surface2); border: 1px solid var(--line);
-        border-radius: 16px; overflow: hidden; margin-bottom: 14px;
-      }
-      .settings-item {
-        padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;
-        border-bottom: 1px solid var(--line-subtle); cursor: pointer; transition: background 0.15s;
-      }
-      .settings-item:last-child { border-bottom: 0; }
-      .settings-item:hover { background: var(--surface3); }
-      .settings-item-left { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; color: var(--ink); }
-
-      /* ===== AI CHAT OVERLAY MODAL (OPENS FROM HOME / HEALTH) ===== */
-      .ai-overlay-modal {
-        position: absolute; inset: 0; background: var(--bg);
-        z-index: 30; display: none; flex-direction: column;
-        padding: 40px 16px 20px;
-        animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .ai-overlay-modal.active { display: flex; }
-      @keyframes slideInRight {
-        from { transform: translateX(100%); }
-        to { transform: translateX(0); }
-      }
-      .ai-overlay-header {
-        display: flex; align-items: center; gap: 10px; padding-bottom: 10px;
-        border-bottom: 1px solid var(--line); margin-bottom: 12px;
-      }
-      .back-circle-btn {
-        width: 32px; height: 32px; border-radius: 50%;
-        background: var(--surface2); border: 1px solid var(--line);
-        color: var(--ink); display: grid; place-items: center; cursor: pointer;
-        font-size: 14px; flex-shrink: 0;
-      }
-      .ai-chat-bubble {
-        padding: 11px 13px; border-radius: 14px; font-size: 11.5px;
-        line-height: 1.45; margin-bottom: 10px;
-      }
-      .ai-chat-bubble.assistant {
-        background: var(--surface2); border: 1px solid var(--line);
-        color: var(--ink); align-self: flex-start;
-      }
-      .ai-chat-bubble.user {
-        background: var(--ok); color: #07130b; font-weight: 600;
-        align-self: flex-end; margin-left: 30px;
-      }
-      .safety-alert-box {
-        background: var(--danger-bg); border: 1px solid rgba(224, 79, 67, 0.4);
-        border-radius: 10px; padding: 9px 11px; margin-top: 6px;
-        color: var(--danger); font-size: 10.5px; font-weight: 600;
-      }
-
-      /* ===== BOTTOM NAVIGATION BAR (5 REAL TABS) ===== */
+      /* Bottom Nav inside Phone */
       .bottom-nav {
-        height: 60px;
-        background: var(--surface);
-        border-top: 1px solid var(--line);
+        height: 60px; background: var(--surface); border-top: 1px solid var(--line);
         display: flex; justify-content: space-around; align-items: center;
-        z-index: 10;
+        z-index: 20; position: absolute; bottom: 0; left: 0; right: 0;
       }
       .nav-tab-btn {
         background: none; border: 0; color: var(--muted);
         font-family: inherit; font-size: 9.5px; font-weight: 600;
         display: flex; flex-direction: column; align-items: center; gap: 3px;
-        cursor: pointer; padding: 6px 12px; transition: color 0.15s;
+        cursor: pointer; padding: 6px 10px; transition: color 0.15s;
       }
-      .nav-tab-btn svg { width: 20px; height: 20px; transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
-      .nav-tab-btn.active { color: var(--ok); font-weight: 800; }
-      .nav-tab-btn.active svg { transform: scale(1.15); stroke-width: 2.5; }
+      .nav-tab-btn svg { width: 19px; height: 19px; }
+      .nav-tab-btn.active { color: var(--accent); font-weight: 800; }
+      .nav-tab-btn.active svg { stroke-width: 2.6; transform: scale(1.1); }
 
-      /* ===== RIGHT DETAILS / STATS PANEL ===== */
-      .right-panel {
-        border-left: 1px solid var(--line);
-        padding-left: 26px;
-        color: var(--muted); font-size: 12px; line-height: 1.6;
+      /* ===== MODAL OVERLAYS (FULL SCREEN INSIDE PHONE) ===== */
+      .screen-modal {
+        position: absolute; inset: 0; background: var(--bg);
+        z-index: 30; display: none; flex-direction: column;
+        padding: 44px 16px 20px;
+        animation: slideInUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
       }
-      .metric-badge {
-        display: inline-flex; align-items: center; gap: 8px;
+      .screen-modal.active { display: flex; }
+      @keyframes slideInUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+      .modal-header-row {
+        display: flex; align-items: center; gap: 10px;
+        padding-bottom: 10px; border-bottom: 1px solid var(--line);
+        margin-bottom: 12px;
+      }
+      .circle-close-btn {
+        width: 30px; height: 30px; border-radius: 50%;
         background: var(--surface2); border: 1px solid var(--line);
-        padding: 8px 14px; border-radius: 12px; margin-bottom: 8px; width: 100%;
+        color: var(--ink); display: grid; place-items: center;
+        cursor: pointer; font-size: 13px; font-weight: bold; flex-shrink: 0;
       }
-      .metric-badge b { font-size: 15px; color: var(--ink); }
-      .metric-badge small { font-size: 11px; color: var(--ok); font-weight: 700; margin-left: auto; }
+
+      /* Inspection Quiz Steps */
+      .quiz-progress-wrap { margin-bottom: 14px; }
+      .quiz-progress-bar {
+        width: 100%; height: 6px; background: var(--surface2);
+        border-radius: var(--r-pill); overflow: hidden; margin-top: 6px;
+      }
+      .quiz-progress-fill {
+        height: 100%; background: var(--accent);
+        border-radius: var(--r-pill); transition: width 0.25s ease;
+      }
+      .quiz-card {
+        background: var(--surface2); border: 1px solid var(--line);
+        border-radius: 16px; padding: 14px; margin-bottom: 12px;
+      }
+      .quiz-opt-btn {
+        width: 100%; text-align: left; padding: 11px 12px;
+        background: var(--surface3); border: 1px solid var(--line);
+        border-radius: 12px; color: var(--ink); margin-bottom: 8px;
+        cursor: pointer; transition: all 0.15s; font-size: 11px;
+        display: flex; align-items: flex-start; gap: 8px;
+      }
+      .quiz-opt-btn:hover { border-color: var(--accent); }
+      .quiz-opt-btn.selected {
+        background: rgba(0, 245, 160, 0.12); border-color: var(--accent);
+        color: var(--accent); font-weight: 700;
+      }
+
+      /* AI Chat Bubbles */
+      .chat-feed { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+      .chat-bubble {
+        padding: 10px 12px; border-radius: 14px; font-size: 11px; line-height: 1.45; max-width: 90%;
+      }
+      .chat-bubble.assistant {
+        background: var(--surface2); border: 1px solid var(--line);
+        color: var(--ink); align-self: flex-start;
+      }
+      .chat-bubble.user {
+        background: var(--accent); color: #08110b; font-weight: 600;
+        align-self: flex-end;
+      }
+      .complaint-tag-pill {
+        display: inline-block; background: var(--danger-bg); color: var(--danger);
+        font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-top: 4px;
+      }
+
+      /* ===== RIGHT TECHNICAL & TELEMETRY PANEL ===== */
+      .right-panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 22px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+      }
+      .right-panel h3 { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+      .telemetry-row {
+        background: var(--surface2); border: 1px solid var(--line);
+        border-radius: 14px; padding: 12px 14px; margin-bottom: 10px;
+      }
+      .telemetry-row small { color: var(--muted); font-size: 10px; text-transform: uppercase; font-weight: 800; display: block; }
+      .telemetry-row b { font-size: 13.5px; color: var(--ink); display: flex; align-items: center; justify-content: space-between; margin-top: 2px; }
+      .tag-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 
       /* Responsive */
-      @media (max-width: 990px) {
-        .stage { grid-template-columns: 1fr 360px; }
+      @media (max-width: 1180px) {
+        .stage { grid-template-columns: 320px 375px; }
         .right-panel { display: none; }
       }
-      @media (max-width: 768px) {
-        .stage { display: flex; flex-direction: column; padding: 12px; }
-        .phone { width: 100%; max-width: 360px; height: 680px; }
+      @media (max-width: 820px) {
+        .stage { display: flex; flex-direction: column; align-items: center; }
+        .left-panel { width: 100%; max-width: 420px; }
       }
     </style>
   </head>
   <body>
+    <div class="ambient-glow"></div>
     <div class="wrap">
-      <!-- HEADER -->
+      
+      <!-- TOP HEADER -->
       <header class="header">
-        <div class="brand-mark">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-          </svg>
-        </div>
-        <div class="header-info">
-          <b>BuildHaus</b>
-          <small>Offline-First Motorcycle Health, Smart Spareparts & AI Assistant</small>
-        </div>
-        <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">
-          <span>🌙</span> Mode Gelap
-        </button>
-      </header>
-
-      <!-- STAGE CONTAINER -->
-      <div class="stage">
-        <!-- LEFT PANEL: EXPLANATION -->
-        <div class="explain">
-          <div class="badge-version">⚡ Rilis Terkini — 100% Persis Flutter Asli</div>
-          <h1>5 Tab Utama Sesuai <span>Aplikasi Asli</span></h1>
-          <p>
-            Menu navigasi bawah sekarang sudah <strong>persis seperti aplikasi BuildHaus asli</strong>: <b>Beranda</b>, <b>Sehat</b>, <b>Sparepart</b>, <b>Riwayat</b>, dan <b>Akun</b>.
-          </p>
-          <p>
-            Fitur <b>Konsultasi AI</b> dapat dibuka langsung dari kartu aksi cepat di Beranda atau tombol di layar Sehat layaknya di aplikasi Flutter aslinya.
-          </p>
-
-          <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-top: 14px;">Pilih Tab Layar:</div>
-          <div class="quick-nav">
-            <button class="active" onclick="switchTab('home')">🏠 Beranda</button>
-            <button onclick="switchTab('health')">💚 Sehat</button>
-            <button onclick="switchTab('parts')">⚙️ Sparepart</button>
-            <button onclick="switchTab('history')">📜 Riwayat</button>
-            <button onclick="switchTab('account')">👤 Akun</button>
+        <div class="brand-box">
+          <div class="brand-crest">
+            <svg viewBox="0 0 38 38" fill="none" width="28" height="28">
+              <path d="M12 25 L12 15 L20 9 L24 9 L17 14 L23 14 L19 18 L15 18 L12 25 Z" fill="#F1F5F9"/>
+              <path d="M26 13 L26 23 L18 29 L14 29 L21 24 L15 24 L19 20 L23 20 L26 13 Z" fill="#00F5A0"/>
+              <rect x="16.5" y="16.5" width="5" height="5" transform="rotate(45 19 19)" fill="#00F5A0"/>
+              <circle cx="19" cy="19" r="1.2" fill="#FFFFFF"/>
+            </svg>
+          </div>
+          <div class="brand-title">
+            <b>BuildHaus Prototipe Interaktif</b>
+            <small>Asisten Pintar Perawatan Motor Offline-First • Gemini 2.5 Flash • 8-Titik Inspeksi</small>
           </div>
         </div>
 
-        <!-- CENTER: INTERACTIVE PHONE FRAME -->
+        <div class="header-actions">
+          <button class="action-btn" onclick="openAddMotorModal()">
+            <span>➕</span> Tambah Motor Baru
+          </button>
+          <button class="action-btn" onclick="openInspectionModal()">
+            <span>🔍</span> Uji Mandiri 8-Titik
+          </button>
+          <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">
+            <span>🌙</span> Mode Gelap
+          </button>
+        </div>
+      </header>
+
+      <!-- 3-COLUMN STAGE -->
+      <div class="stage">
+        
+        <!-- LEFT PANEL: CONTROLS & WORKFLOWS -->
+        <div class="left-panel">
+          <div class="panel-badge">⚡ Simulasi Langsung</div>
+          <h2>Navigasi 5 Tab Flutter</h2>
+          <p>Uji coba setiap layar aplikasi sesuai arsitektur terbaru. Klik tab di bawah atau navigasikan langsung di layar smartphone tengah.</p>
+
+          <div class="section-label">Pilih Layar Tab Utama:</div>
+          <button class="nav-menu-btn active" id="menu-home" onclick="switchTab('home')">
+            <span>🏠 Beranda (Home)</span>
+            <span class="meta">Garasi & Odo</span>
+          </button>
+          <button class="nav-menu-btn" id="menu-health" onclick="switchTab('health')">
+            <span>💚 Sehat (Health)</span>
+            <span class="meta">14 Komponen</span>
+          </button>
+          <button class="nav-menu-btn" id="menu-parts" onclick="switchTab('parts')">
+            <span>⚙️ Sparepart (Catalog)</span>
+            <span class="meta">Brand Sesuai</span>
+          </button>
+          <button class="nav-menu-btn" id="menu-history" onclick="switchTab('history')">
+            <span>📜 Riwayat (History)</span>
+            <span class="meta">Log Servis</span>
+          </button>
+          <button class="nav-menu-btn" id="menu-account" onclick="switchTab('account')">
+            <span>👤 Akun (Settings)</span>
+            <span class="meta">Offline SQLite</span>
+          </button>
+
+          <div class="section-label">Alur Fitur Kunci v2.0:</div>
+          
+          <div class="workflow-card" onclick="openAddMotorModal()">
+            <b><span>🏍️</span> Tambah Motor → Uji Mandiri</b>
+            <small>Input merk & odo, langsung otomatis diarahkan ke 8 pertanyaan pemeriksaan mandiri.</small>
+          </div>
+
+          <div class="workflow-card" onclick="openInspectionModal()">
+            <b><span>🔍</span> Pemeriksaan Mandiri 8-Titik</b>
+            <small>8 soal detil: oli, rem, ban, aki, CVT, shockbreaker, lampu, knalpot. Hitung skor real-time.</small>
+          </div>
+
+          <div class="workflow-card" onclick="openAiChatModal()">
+            <b><span>🤖</span> Gemini 2.5 Flash Biker Buddy</b>
+            <small>Konsultasikan keluhan suara kasar / getar, AI langsung kurangi poin kesehatan komponen.</small>
+          </div>
+
+          <div class="workflow-card" onclick="switchBrandDemo()">
+            <b><span>🔄</span> Ganti Brand (Honda ↔ Yamaha)</b>
+            <small>Katalog sparepart & spesifikasi otomatis berganti sesuai merk motor aktif.</small>
+          </div>
+        </div>
+
+        <!-- CENTER PHONE SIMULATOR -->
         <div class="phone">
           <div class="screen">
             <div class="dynamic-island"></div>
             <div class="status-bar">
               <span>09:41</span>
-              <span>●●● ▰</span>
+              <span>5G • 100% 🔋</span>
             </div>
 
             <!-- SCROLLABLE PAGE CONTAINER -->
             <div class="page-scroll">
 
-              <!-- ==================== 1. BERANDA (HOME SCREEN) ==================== -->
+              <!-- ==================== 1. BERANDA (HOME) ==================== -->
               <div class="app-page active" id="tab-home">
                 <div class="app-bar">
                   <div class="app-bar-brand">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--ok)" stroke-width="2.5">
-                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    <svg viewBox="0 0 38 38" fill="none" width="20" height="20">
+                      <path d="M12 25 L12 15 L20 9 L24 9 L17 14 L23 14 L19 18 L15 18 L12 25 Z" fill="#F1F5F9"/>
+                      <path d="M26 13 L26 23 L18 29 L14 29 L21 24 L15 24 L19 20 L23 20 L26 13 Z" fill="#00F5A0"/>
                     </svg>
-                    <b style="font-size: 16px; font-weight: 800;">BuildHaus</b>
+                    <b style="font-size: 15px; font-weight: 800;">BuildHaus</b>
                   </div>
-                  <div class="greeting-chip">
-                    <span>☀️</span> Pagi
-                  </div>
+                  <div class="greeting-chip">☀️ Siap Riding</div>
                 </div>
 
-                <!-- Motor Selector Carousel -->
+                <!-- Motor Carousel -->
                 <div class="motor-carousel" id="motorCarousel">
-                  <!-- Injected via JS -->
+                  <!-- Rendered via JS -->
                 </div>
 
-                <!-- Featured Bike Card -->
+                <!-- Featured Active Bike Card -->
                 <div class="featured-bike-card" id="featuredBikeCard">
                   <div class="bike-card-top">
-                    <div class="pill-badge green">
-                      <span>★</span> MOTOR UTAMA
-                    </div>
-                    <div class="brand-box" id="bikeBrandTag">HONDA</div>
+                    <div class="pill-badge green">★ MOTOR UTAMA</div>
+                    <div class="brand-box-tag" id="bikeBrandTag">HONDA</div>
                   </div>
                   <div class="bike-nickname" id="bikeName">Vario 160 Hitam</div>
                   <div class="bike-plate" id="bikePlate">B 2841 RDM</div>
                   <div class="bike-card-bottom">
                     <div>
-                      <div class="odo-label">Odometer</div>
+                      <div class="odo-label">Odometer Aktual</div>
                       <div class="odo-number" id="bikeOdo">18.450 km</div>
                     </div>
-                    <button class="update-odo-btn" onclick="updateOdometerPrompt()">
-                      <span>✏️</span> Update
-                    </button>
+                    <button class="update-odo-btn" onclick="updateOdometerPrompt()">✏️ Update</button>
                   </div>
                 </div>
 
-                <!-- Quick Actions Grid -->
-                <div class="section-heading">
-                  <span>Aksi Cepat</span>
-                </div>
+                <!-- Quick Actions 4 Grid -->
+                <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 8px;">Aksi Cepat</div>
                 <div class="quick-actions-grid">
                   <div class="qa-card" onclick="switchTab('health')">
-                    <div class="qa-icon-wrap" style="background: var(--ok-bg); color: var(--ok);">♥</div>
+                    <div class="qa-icon-wrap" style="background: var(--ok-bg); color: var(--ok);">💚</div>
                     <b>Kesehatan</b>
-                    <small>Monitor kondisi</small>
+                    <small>14 Komponen</small>
                   </div>
                   <div class="qa-card" onclick="openAiChatModal()">
-                    <div class="qa-icon-wrap" style="background: var(--purple-bg); color: var(--purple);">🤖</div>
-                    <b>Konsultasi AI</b>
-                    <small>Analisis keluhan</small>
+                    <div class="qa-icon-wrap" style="background: var(--purple-bg); color: var(--purple);">✨</div>
+                    <b>Tanya Gemini</b>
+                    <small>Diagnosa keluhan</small>
+                  </div>
+                  <div class="qa-card" onclick="openInspectionModal()">
+                    <div class="qa-icon-wrap" style="background: var(--warn-bg); color: var(--warn);">🔍</div>
+                    <b>Uji Mandiri</b>
+                    <small>8-Titik fisik</small>
                   </div>
                   <div class="qa-card" onclick="switchTab('parts')">
-                    <div class="qa-icon-wrap" style="background: var(--warn-bg); color: var(--warn);">👛</div>
-                    <b>Atur Budget</b>
-                    <small>Prioritas servis</small>
-                  </div>
-                  <div class="qa-card" onclick="switchTab('parts')">
-                    <div class="qa-icon-wrap" style="background: var(--blue-bg); color: var(--blue);">🔧</div>
-                    <b>Cari Sparepart</b>
-                    <small>Katalog resmi</small>
+                    <div class="qa-icon-wrap" style="background: var(--blue-bg); color: var(--blue);">⚙️</div>
+                    <b>Sparepart</b>
+                    <small>Sesuai motor</small>
                   </div>
                 </div>
 
-                <!-- Health Summary -->
-                <div class="section-heading">
-                  <span>Ringkasan Kesehatan</span>
-                </div>
+                <!-- Health Summary Box -->
+                <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 8px;">Ringkasan Kondisi</div>
                 <div class="health-summary-box">
                   <div class="health-summary-row">
-                    <div class="health-score-square" id="homeScoreSquare">85</div>
-                    <div class="health-summary-info">
-                      <b>Skor Kesehatan</b>
-                      <p id="homeScoreDesc">Baik — semua komponen prima</p>
+                    <div class="health-score-square" id="homeScoreSquare">85%</div>
+                    <div style="flex: 1;">
+                      <b style="font-size: 12px; color: var(--ink); display: block;" id="homeScoreTitle">Kondisi Prima & Terawat</b>
+                      <small style="color: var(--muted); font-size: 10px;" id="homeScoreDesc">Semua komponen safety dalam toleransi aman</small>
                     </div>
-                    <button class="theme-btn" style="padding: 4px 10px; font-size: 10px;" onclick="switchTab('health')">Detail</button>
+                    <button class="theme-btn" style="padding: 4px 8px; font-size: 10px;" onclick="switchTab('health')">Detail ›</button>
                   </div>
                   <div class="linear-gauge">
                     <div class="linear-gauge-fill" id="homeScoreBar" style="width: 85%; background: var(--ok);"></div>
                   </div>
                 </div>
 
-                <!-- Reminder Notice -->
-                <div class="reminder-notice">
-                  <span>🔔</span>
+                <!-- Quick Reminder Notice -->
+                <div style="background: var(--surface2); border: 1px solid var(--line); border-radius: 14px; padding: 11px; display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 18px;">🔔</span>
                   <div>
-                    <b>Pengingat Servis</b>
-                    <p>Periksa kampas rem secara berkala untuk keselamatan berkendara.</p>
+                    <b style="font-size: 11px; display: block;">Jadwal Servis Berkala</b>
+                    <small style="font-size: 9.5px; color: var(--muted);">Interval ganti oli mesin tersisa 800 km lagi.</small>
                   </div>
                 </div>
               </div>
 
-              <!-- ==================== 2. SEHAT (HEALTH SCREEN) ==================== -->
+              <!-- ==================== 2. SEHAT (HEALTH) ==================== -->
               <div class="app-page" id="tab-health">
                 <div class="app-bar">
-                  <b style="font-size: 17px; font-weight: 800;">Kesehatan Motor</b>
-                  <div class="greeting-chip" id="healthMotorBadge">Vario 160</div>
+                  <b style="font-size: 16px; font-weight: 800;">Kesehatan Motor</b>
+                  <button class="action-btn primary" style="padding: 4px 10px; font-size: 10px;" onclick="openInspectionModal()">🔍 Uji Ulang</button>
                 </div>
 
-                <!-- Circular Health Gauge Card -->
+                <!-- Circular Gauge Card -->
                 <div class="circular-gauge-card">
                   <div class="gauge-ring-outer">
-                    <svg viewBox="0 0 36 36">
+                    <svg viewBox="0 0 36 36" style="width: 100%; height: 100%;">
                       <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--soft)" stroke-width="3.2"/>
                       <path id="gaugeSvgPath" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--ok)" stroke-dasharray="85, 100" stroke-width="3.2" stroke-linecap="round"/>
                     </svg>
-                    <div class="gauge-center-text" id="healthBigScore">85</div>
+                    <div class="gauge-center-text" id="healthBigScore">85%</div>
                   </div>
                   <div class="status-pill-big" id="healthStatusPill">BAIK — KONDISI PRIMA</div>
-                  <p style="font-size: 10px; color: var(--muted); margin-top: 8px;">
-                    Estimasi berbasis riwayat servis dan interval pakai aktual.
+                  <p style="font-size: 9.5px; color: var(--muted); margin-top: 6px;">
+                    Dihitung deterministik dari odo aktual & 8-titik inspeksi fisik.
                   </p>
                 </div>
 
-                <!-- Mileage Prediction Card -->
-                <div class="mileage-banner">
-                  <span style="font-size: 22px;">📈</span>
+                <!-- AI Advice Box -->
+                <div style="background: var(--surface2); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 14px; padding: 11px 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                  <div style="font-size: 20px;">🤖</div>
                   <div style="flex: 1;">
-                    <b style="font-size: 11.5px; color: var(--ink);">Estimasi Penggunaan Terkalibrasi</b>
-                    <p style="font-size: 9.5px; color: var(--muted);">Akurasi tinggi dari 3+ periode bulanan</p>
-                    <div class="mileage-stats-grid">
-                      <div class="mileage-stat-card">
-                        <small>Rata-rata/minggu</small>
-                        <b id="kmWeekText">145 km</b>
-                      </div>
-                      <div class="mileage-stat-card">
-                        <small>Rata-rata/bulan</small>
-                        <b id="kmMonthText">580 km</b>
-                      </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                      <b style="font-size: 11px; color: var(--purple);">Gemini 2.5 Flash Biker Buddy</b>
+                      <span style="font-size: 8px; font-weight: 800; background: var(--purple-bg); color: var(--purple); padding: 1px 5px; border-radius: 4px;">ACTIVE</span>
                     </div>
+                    <small style="font-size: 9.5px; color: var(--muted); display: block; margin-top: 2px;" id="aiHealthSnippet">
+                      "Motor aman bro! Tapi pantau terus kampas rem depan kalau udah sering dipakai macet-macetan."
+                    </small>
                   </div>
+                  <button class="theme-btn" style="padding: 4px 8px; font-size: 10px;" onclick="openAiChatModal()">Tanya</button>
                 </div>
 
-                <!-- AI Recommendation Banner with Button to Chat -->
-                <div class="mileage-banner" style="border-color: rgba(139, 92, 246, 0.3); background: var(--surface2);">
-                  <div class="ai-avatar" style="width:34px;height:34px;font-size:16px;">🤖</div>
-                  <div style="flex:1;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;">
-                      <b style="font-size:11.5px;">AI Rekomendasi</b>
-                      <span style="font-size:8px;font-weight:bold;color:var(--purple);background:var(--purple-bg);padding:1px 6px;border-radius:99px;">OFFLINE</span>
-                    </div>
-                    <p style="font-size:10px;color:var(--muted);margin-top:2px;" id="aiHealthSnippet">
-                      Motor dalam kondisi baik. Pastikan cek kampas rem rutin.
-                    </p>
-                  </div>
-                  <button class="theme-btn" style="padding:4px 8px;font-size:10px;" onclick="openAiChatModal()">Tanya AI</button>
-                </div>
-
-                <!-- Component Status List -->
-                <div class="section-heading">
-                  <span>Status Komponen</span>
-                </div>
+                <!-- Component Status Tiles -->
+                <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 8px;">Daftar 14 Komponen Utama</div>
                 <div id="componentTilesList">
-                  <!-- Injected via JS -->
+                  <!-- Rendered via JS -->
                 </div>
               </div>
 
-              <!-- ==================== 3. SPAREPART CATALOG SCREEN ==================== -->
+              <!-- ==================== 3. SPAREPART CATALOG ==================== -->
               <div class="app-page" id="tab-parts">
                 <div class="app-bar">
                   <div>
-                    <b style="font-size: 17px; font-weight: 800;">Katalog Sparepart</b>
-                    <small style="display:block; color: var(--muted); font-size: 10.5px;" id="catalogSubtitle">Rekomendasi untuk Vario 160</small>
+                    <b style="font-size: 16px; font-weight: 800;">Katalog Sparepart</b>
+                    <small style="display: block; color: var(--muted); font-size: 10px;" id="partsBrandSubtitle">Hanya untuk Honda Vario 160</small>
                   </div>
+                  <div class="greeting-chip" id="partsBrandBadge">HONDA GENUINE</div>
                 </div>
 
-                <!-- Search Input -->
+                <!-- Search -->
                 <div class="search-box">
                   <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                  <input type="text" id="partSearchInput" placeholder="Cari suku cadang, merek, atau tipe..." oninput="filterPartsGrid()" />
+                  <input type="text" id="partSearchInput" placeholder="Cari suku cadang, tipe, merek..." oninput="filterPartsGrid()" />
                 </div>
 
-                <!-- Smart Filter Chips -->
-                <div class="filter-chips-scroll" id="filterChipsRow">
-                  <button class="filter-chip active" onclick="setCategoryFilter('Semua', this)">Semua</button>
-                  <button class="filter-chip" onclick="setCategoryFilter('Rekomendasi Budget', this)">👛 Rekomendasi Budget</button>
-                  <button class="filter-chip" onclick="setCategoryFilter('Perhatian Kesehatan', this)">⚠️ Perhatian Kesehatan</button>
-                  <button class="filter-chip" onclick="setCategoryFilter('Oli', this)">Oli</button>
-                  <button class="filter-chip" onclick="setCategoryFilter('Pengereman', this)">Pengereman</button>
-                  <button class="filter-chip" onclick="setCategoryFilter('Transmisi', this)">Transmisi</button>
+                <!-- Filter Chips -->
+                <div class="filter-chips-scroll" id="partsFilterRow">
+                  <button class="filter-chip active" onclick="setPartFilter('Semua', this)">Semua</button>
+                  <button class="filter-chip" onclick="setPartFilter('Oli', this)">Oli</button>
+                  <button class="filter-chip" onclick="setPartFilter('Rem', this)">Pengereman</button>
+                  <button class="filter-chip" onclick="setPartFilter('Transmisi', this)">CVT & Rantai</button>
+                  <button class="filter-chip" onclick="setPartFilter('Kelistrikan', this)">Aki & Busi</button>
+                  <button class="filter-chip" onclick="setPartFilter('Ban', this)">Kaki-Kaki</button>
                 </div>
 
-                <!-- 2-Column Product Grid -->
+                <!-- 2-col Parts Grid -->
                 <div class="parts-grid-2col" id="partsGrid">
-                  <!-- Injected via JS -->
+                  <!-- Rendered via JS -->
                 </div>
               </div>
 
-              <!-- ==================== 4. RIWAYAT (HISTORY SCREEN) ==================== -->
+              <!-- ==================== 4. RIWAYAT (HISTORY) ==================== -->
               <div class="app-page" id="tab-history">
                 <div class="app-bar">
-                  <b style="font-size: 17px; font-weight: 800;">Riwayat Servis</b>
-                  <button class="theme-btn" style="padding: 4px 10px; font-size: 11px;" onclick="addServiceRecordPrompt()">+ Catat Servis</button>
+                  <b style="font-size: 16px; font-weight: 800;">Riwayat Servis</b>
+                  <button class="action-btn primary" style="padding: 4px 10px; font-size: 10px;" onclick="openRecordServiceModal()">+ Catat Servis</button>
                 </div>
 
                 <div class="filter-chips-scroll">
-                  <button class="filter-chip active">Semua Servis</button>
-                  <button class="filter-chip">Odometer Log</button>
-                  <button class="filter-chip">Pengingat</button>
+                  <button class="filter-chip active">Semua Catatan</button>
+                  <button class="filter-chip">Oli & Mesin</button>
+                  <button class="filter-chip">CVT & Transmisi</button>
+                  <button class="filter-chip">Pemeriksaan Mandiri</button>
                 </div>
 
-                <div id="historyRecordsList" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-                  <!-- Injected via JS -->
+                <div id="serviceHistoryList" style="margin-top: 6px;">
+                  <!-- Rendered via JS -->
                 </div>
               </div>
 
-              <!-- ==================== 5. AKUN (ACCOUNT SCREEN) ==================== -->
+              <!-- ==================== 5. AKUN (SETTINGS) ==================== -->
               <div class="app-page" id="tab-account">
                 <div class="app-bar">
-                  <b style="font-size: 17px; font-weight: 800;">Akun & Pengaturan</b>
-                  <div class="greeting-chip">⚙️ v1.0.0</div>
+                  <b style="font-size: 16px; font-weight: 800;">Akun & Pengaturan</b>
+                  <div class="greeting-chip">v2.0 Stable</div>
                 </div>
 
-                <!-- Profile Card -->
-                <div class="profile-card">
-                  <div class="profile-avatar-box">🏍️</div>
-                  <div class="profile-info">
-                    <b>Rider BuildHaus</b>
-                    <small>Pengguna Offline</small>
-                    <div class="offline-badge">⚡ Offline Mode Aktif</div>
+                <!-- User Card -->
+                <div style="background: linear-gradient(135deg, var(--surface2) 0%, var(--surface3) 100%); border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 46px; height: 46px; border-radius: 14px; background: rgba(0, 245, 160, 0.15); border: 1px solid rgba(0, 245, 160, 0.3); display: grid; place-items: center; font-size: 20px;">
+                    👤
                   </div>
-                </div>
-
-                <!-- AI Offline Model Management Banner -->
-                <div class="ai-model-banner" onclick="openAiChatModal()">
-                  <div class="ai-model-icon">🤖</div>
-                  <div style="flex:1;">
-                    <b style="font-size:12px; color:var(--ink);">AI Offline Qwen3 (378 MB)</b>
-                    <p style="font-size:9.5px; color:var(--muted); margin-top:1px;">Model AI on-device aktif & terkalibrasi</p>
-                  </div>
-                  <span style="color:var(--purple); font-size:14px;">›</span>
-                </div>
-
-                <!-- Quick Stats Section -->
-                <div class="account-stats-row">
-                  <div class="account-stat-box">
-                    <span>🔧</span>
-                    <b id="accTotalService">3</b>
-                    <small>Total Servis</small>
-                  </div>
-                  <div class="account-stat-box">
-                    <span>💵</span>
-                    <b id="accTotalCost">Rp 220rb</b>
-                    <small>Total Biaya</small>
-                  </div>
-                  <div class="account-stat-box">
-                    <span>🔔</span>
-                    <b>2</b>
-                    <small>Reminders</small>
-                  </div>
-                </div>
-
-                <!-- Motor Saya List -->
-                <div class="section-heading">
-                  <span>Motor Saya</span>
-                </div>
-                <div class="settings-list" id="accountMotorList">
-                  <!-- Injected via JS -->
-                </div>
-
-                <!-- Tampilan & Tema -->
-                <div class="section-heading">
-                  <span>Tampilan</span>
-                </div>
-                <div class="settings-list">
-                  <div class="settings-item" onclick="toggleTheme()">
-                    <div class="settings-item-left">
-                      <span>🌓</span>
-                      <span>Ganti Mode (Gelap / Terang)</span>
+                  <div style="flex: 1;">
+                    <b style="font-size: 13.5px; color: var(--ink); display: block;">Aiman (Rider)</b>
+                    <small style="color: var(--muted); font-size: 10px;">kacangdong2@gmail.com</small>
+                    <div style="margin-top: 4px;">
+                      <span style="font-size: 8.5px; font-weight: 800; background: var(--ok-bg); color: var(--ok); padding: 1px 6px; border-radius: 4px;">OFFLINE-FIRST SQLITE</span>
                     </div>
-                    <span style="font-size:10px; color:var(--muted);" id="themeModeText">Mode Gelap</span>
                   </div>
                 </div>
 
-                <!-- Cadangan & Data -->
-                <div class="section-heading">
-                  <span>Manajemen Data</span>
+                <!-- Garage List -->
+                <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Daftar Motor di Garasi</div>
+                <div id="accountMotorList" style="margin-bottom: 14px;">
+                  <!-- Rendered via JS -->
                 </div>
-                <div class="settings-list">
-                  <div class="settings-item" onclick="alert('Mengekspor database lokal terenkripsi AES-256-GCM...')">
-                    <div class="settings-item-left">
-                      <span>🔒</span>
-                      <span>Ekspor Cadangan Terenkripsi</span>
-                    </div>
-                    <span style="font-size:11px; color:var(--ok);">AES-256</span>
+
+                <!-- AI Model Engine Card -->
+                <div style="background: var(--surface2); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 14px; padding: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 34px; height: 34px; border-radius: 9px; background: var(--purple-bg); color: var(--purple); display: grid; place-items: center; font-size: 16px;">
+                    ✨
                   </div>
-                  <div class="settings-item" onclick="alert('Memulihkan database dari file cadangan...')">
-                    <div class="settings-item-left">
-                      <span>📥</span>
-                      <span>Pulihkan Data dari Berkas</span>
-                    </div>
-                    <span style="font-size:11px; color:var(--muted);">Import</span>
+                  <div>
+                    <b style="font-size: 11.5px; color: var(--ink); display: block;">Mesin AI: Google Gemini 2.5 Flash</b>
+                    <small style="color: var(--muted); font-size: 9.5px;">Biker Buddy Persona • Safety Deduction Rules</small>
                   </div>
                 </div>
 
-                <!-- Tentang -->
-                <div class="section-heading">
-                  <span>Tentang Aplikasi</span>
-                </div>
-                <div class="settings-list">
-                  <div class="settings-item">
-                    <div class="settings-item-left">
-                      <span>📱</span>
-                      <span>BuildHaus Mobile App</span>
-                    </div>
-                    <span style="font-size:11px; color:var(--muted);">v1.0.0 (Release)</span>
-                  </div>
-                  <div class="settings-item">
-                    <div class="settings-item-left">
-                      <span>💾</span>
-                      <span>Basis Data Lokal</span>
-                    </div>
-                    <span style="font-size:11px; color:var(--ok);">Drift SQLite</span>
-                  </div>
-                  <div class="settings-item">
-                    <div class="settings-item-left">
-                      <span>⚙️</span>
-                      <span>Mesin AI Native</span>
-                    </div>
-                    <span style="font-size:11px; color:var(--purple);">llama.cpp NDK</span>
-                  </div>
-                </div>
+                <!-- Quick Action Buttons -->
+                <button class="nav-menu-btn" style="margin-bottom: 8px;" onclick="openAddMotorModal()">
+                  <span>➕ Tambah Motor Baru ke Garasi</span>
+                  <span>›</span>
+                </button>
+                <button class="nav-menu-btn" onclick="openInspectionModal()">
+                  <span>🔍 Uji Mandiri 8-Titik Motor Aktif</span>
+                  <span>›</span>
+                </button>
               </div>
 
             </div>
 
-            <!-- AI CHAT MODAL OVERLAY (Opened from Home / Sehat) -->
-            <div class="ai-overlay-modal" id="aiOverlayModal">
-              <div class="ai-overlay-header">
-                <button class="back-circle-btn" onclick="closeAiChatModal()">←</button>
-                <div style="flex:1;">
-                  <b style="font-size:13px; color:var(--ink);">AI Mekanik BuildHaus</b>
-                  <small style="display:flex;align-items:center;gap:4px;color:var(--ok);font-size:9.5px;font-weight:700;">
-                    <span style="width:6px;height:6px;background:var(--ok);border-radius:50%;"></span>
-                    OFFLINE · ON-DEVICE (QWEN3 GGUF)
+            <!-- ==================== SCREEN MODAL 1: ADD MOTOR MODAL ==================== -->
+            <div class="screen-modal" id="addMotorModal">
+              <div class="modal-header-row">
+                <button class="circle-close-btn" onclick="closeModal('addMotorModal')">✕</button>
+                <div style="flex: 1;">
+                  <b style="font-size: 13px;">Tambah Motor Baru</b>
+                  <small style="display: block; color: var(--accent); font-size: 9.5px; font-weight: 700;">Langkah 1: Profil Motor</small>
+                </div>
+              </div>
+
+              <div style="flex: 1; overflow-y: auto;">
+                <div style="margin-bottom: 12px;">
+                  <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Merek Pabrikan</label>
+                  <select id="newMotorBrand" style="width: 100%; margin-top: 4px; padding: 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: inherit; font-size: 12px;">
+                    <option value="HONDA">HONDA</option>
+                    <option value="YAMAHA">YAMAHA</option>
+                  </select>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                  <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Tipe / Model Motor</label>
+                  <input type="text" id="newMotorModel" placeholder="Contoh: Vario 160 / NMAX 155" value="NMAX 155 Connected" style="width: 100%; margin-top: 4px; padding: 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: inherit; font-size: 12px;" />
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                  <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Nama Panggilan Motor</label>
+                  <input type="text" id="newMotorNick" placeholder="Contoh: NMAX Maxi Hitam" value="NMAX Maxi Hitam" style="width: 100%; margin-top: 4px; padding: 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: inherit; font-size: 12px;" />
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                  <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Nomor Polisi (Plat)</label>
+                  <input type="text" id="newMotorPlate" placeholder="Contoh: B 3182 KZX" value="B 3182 KZX" style="width: 100%; margin-top: 4px; padding: 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 12px;" />
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                  <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Odometer Terakhir (KM)</label>
+                  <input type="number" id="newMotorOdo" placeholder="Contoh: 12500" value="12500" style="width: 100%; margin-top: 4px; padding: 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 12px;" />
+                </div>
+
+                <!-- Info Note -->
+                <div style="background: rgba(0, 245, 160, 0.1); border: 1px solid rgba(0, 245, 160, 0.3); border-radius: 12px; padding: 10px; font-size: 10px; color: var(--ink2); margin-bottom: 16px;">
+                  ⚡ <b>Otomatis Diarahkan:</b> Setelah menekan tombol simpan, Anda akan <b>langsung dialihkan ke Pemeriksaan Mandiri 8-Titik</b> untuk menghitung skor kesehatan awal motor baru ini secara akurat.
+                </div>
+              </div>
+
+              <button class="action-btn primary" style="width: 100%; justify-content: center; padding: 12px;" onclick="saveNewMotorAndRedirect()">
+                Simpan & Mulai Uji Mandiri →
+              </button>
+            </div>
+
+            <!-- ==================== SCREEN MODAL 2: 8-QUESTION INSPECTION WIZARD ==================== -->
+            <div class="screen-modal" id="inspectionModal">
+              <div class="modal-header-row">
+                <button class="circle-close-btn" onclick="closeModal('inspectionModal')">✕</button>
+                <div style="flex: 1;">
+                  <b style="font-size: 13px;">Uji Mandiri 8-Titik Fisik</b>
+                  <small style="display: block; color: var(--accent); font-size: 9.5px; font-weight: 700;" id="quizStepText">Pertanyaan 1 dari 8</small>
+                </div>
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="quiz-progress-wrap">
+                <div class="quiz-progress-bar">
+                  <div class="quiz-progress-fill" id="quizProgressBar" style="width: 12.5%;"></div>
+                </div>
+              </div>
+
+              <div style="flex: 1; overflow-y: auto;" id="quizContainer">
+                <!-- Dynamically injected via JS -->
+              </div>
+
+              <!-- Nav Buttons -->
+              <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button class="action-btn" id="quizPrevBtn" style="padding: 10px 14px;" onclick="prevQuizStep()">← Kembali</button>
+                <button class="action-btn primary" id="quizNextBtn" style="flex: 1; justify-content: center; padding: 10px 14px;" onclick="nextQuizStep()">Lanjut ke Pertanyaan Berikutnya →</button>
+              </div>
+            </div>
+
+            <!-- ==================== SCREEN MODAL 3: GEMINI AI CHAT ==================== -->
+            <div class="screen-modal" id="aiOverlayModal">
+              <div class="modal-header-row">
+                <button class="circle-close-btn" onclick="closeModal('aiOverlayModal')">✕</button>
+                <div style="flex: 1;">
+                  <b style="font-size: 13px; color: var(--ink);">AI Teman Riding BuildHaus</b>
+                  <small style="display: flex; align-items: center; gap: 4px; color: var(--purple); font-size: 9px; font-weight: 700;">
+                    <span style="width: 5px; height: 5px; background: var(--purple); border-radius: 50%;"></span>
+                    GOOGLE GEMINI 2.5 FLASH • SAFETY ENGINE
                   </small>
                 </div>
               </div>
 
-              <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px;" id="aiMessageFeed">
-                <div class="ai-chat-bubble assistant">
-                  Halo! Saya asisten mekanik offline BuildHaus. Motor aktif kamu saat ini adalah <b id="aiChatMotorName">Honda Vario 160 (18.450 km)</b>. Ada keluhan motor atau komponen yang ingin ditanyakan?
+              <div class="chat-feed" id="aiChatFeed">
+                <div class="chat-bubble assistant">
+                  Yo bro! Gue AI Teman Riding BuildHaus. Motor aktif kamu sekarang <b id="aiActiveBikeName">Honda Vario 160 (18.450 km)</b>.<br/><br/>
+                  Ada suara aneh, getar, atau keluhan rem? Ceritain aja, nanti gue bantu diagnosa dan langsung kalkulasi kesehatan sparepartnya!
                 </div>
               </div>
 
-              <div style="margin-top:10px;">
-                <div style="font-size:9.5px; font-weight:700; color:var(--muted); margin-bottom:6px;">PILIH KELUHAN CEPAT:</div>
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                  <button class="theme-btn" style="width:100%; justify-content:flex-start; font-size:10.5px; padding:6px 10px;" onclick="sendAiPrompt('Rem depan berdecit dan piringan terasa panas')">
-                    🛑 "Rem depan berdecit dan piringan panas"
-                  </button>
-                  <button class="theme-btn" style="width:100%; justify-content:flex-start; font-size:10.5px; padding:6px 10px;" onclick="sendAiPrompt('Tarikan motor berat saat tanjakan / getar CVT')">
-                    ⚙️ "Tarikan berat & getar pada CVT"
-                  </button>
-                  <button class="theme-btn" style="width:100%; justify-content:flex-start; font-size:10.5px; padding:6px 10px;" onclick="sendAiPrompt('Kapan batas maksimal ganti oli mesin?')">
-                    🛢️ "Kapan batas maksimal ganti oli mesin?"
-                  </button>
-                </div>
+              <div style="font-size: 9.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Pilih Kasus Keluhan:</div>
+              <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px;">
+                <button class="nav-menu-btn" style="padding: 7px 10px; font-size: 10px; margin: 0;" onclick="triggerAiComplaint('gredek')">
+                  ⚙️ "Tarikan awal gas bergetar / gredek parah di tanjakan"
+                </button>
+                <button class="nav-menu-btn" style="padding: 7px 10px; font-size: 10px; margin: 0;" onclick="triggerAiComplaint('rem')">
+                  🛑 "Rem depan berdecit bunyi gesekan pelat besi"
+                </button>
+                <button class="nav-menu-btn" style="padding: 7px 10px; font-size: 10px; margin: 0;" onclick="triggerAiComplaint('oli')">
+                  🛢️ "Mesin cepat panas dan tarikan gas agak berat"
+                </button>
               </div>
             </div>
 
-            <!-- BOTTOM NAVIGATION BAR (EXACT 5 FLUTTER TABS) -->
+            <!-- BOTTOM NAVIGATION BAR (5 REAL TABS) -->
             <nav class="bottom-nav">
               <button class="nav-tab-btn active" id="nav-home" onclick="switchTab('home')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
@@ -1074,124 +1003,223 @@
           </div>
         </div>
 
-        <!-- RIGHT PANEL: TECHNICAL SPEC & COMPARISON -->
+        <!-- RIGHT PANEL: TELEMETRY & SYSTEM DETAILS -->
         <div class="right-panel">
-          <div class="badge-version">Perbandingan Desain Terkini</div>
-          <div style="font-size: 20px; font-weight: 800; color: var(--ink); margin-bottom: 8px;">
-            Struktur 5 Menu Asli
-          </div>
-          <p>
-            Struktur navigasi bawah sekarang sudah sinkron 100% dengan kode Flutter:
+          <div class="panel-badge">📊 Telemetri & Status Sistem</div>
+          <h3>Spesifikasi Prototipe v2.0</h3>
+          <p style="color: var(--muted); font-size: 11.5px; margin-bottom: 14px;">
+            Sinkron 100% dengan kode Flutter BuildHaus Capstone Project.
           </p>
 
-          <div class="metric-badge">
-            <span>🏠 Tab 1:</span>
-            <b>Beranda</b>
-            <small>Garasi & Aksi</small>
-          </div>
-          <div class="metric-badge">
-            <span>💚 Tab 2:</span>
-            <b>Sehat</b>
-            <small>Health Score</small>
-          </div>
-          <div class="metric-badge">
-            <span>⚙️ Tab 3:</span>
-            <b>Sparepart</b>
-            <small>Smart Catalog</small>
-          </div>
-          <div class="metric-badge">
-            <span>📜 Tab 4:</span>
-            <b>Riwayat</b>
-            <small>Log Servis</small>
-          </div>
-          <div class="metric-badge">
-            <span>👤 Tab 5:</span>
-            <b>Akun</b>
-            <small>Data & Setting</small>
+          <div class="telemetry-row">
+            <small>Motor Aktif Terpilih</small>
+            <b>
+              <span id="telBikeName">Honda Vario 160</span>
+              <span class="tag-val" style="color: var(--accent);" id="telBikeBrand">HONDA</span>
+            </b>
           </div>
 
-          <div style="margin-top: 18px;">
-            <b style="color: var(--ink); font-size: 13px;">Asisten AI Mekanik:</b>
-            <p style="font-size: 11.5px; margin-top: 4px;">
-              Diakses melalui kartu <b>"Konsultasi AI"</b> di Beranda atau tombol <b>"Tanya AI"</b> di layar Sehat, membuka dialog cerdas on-device tanpa memakan slot menu navigasi bawah.
-            </p>
+          <div class="telemetry-row">
+            <small>Kalkulasi Skor Kesehatan</small>
+            <b>
+              <span id="telBikeScore">85% (Kondisi Baik)</span>
+              <span class="tag-val" style="color: var(--ok);">DETERMINISTIK</span>
+            </b>
+          </div>
+
+          <div class="telemetry-row">
+            <small>Intervensi Keluhan AI</small>
+            <b>
+              <span id="telAiStatus">Belum ada komplain</span>
+              <span class="tag-val" style="color: var(--purple);" id="telAiBadge">GEMINI 2.5</span>
+            </b>
+          </div>
+
+          <div class="telemetry-row">
+            <small>Penyaringan Sparepart</small>
+            <b>
+              <span id="telPartsMode">Kompatibel Honda Resmi</span>
+              <span class="tag-val" style="color: var(--warn);">STRICT FILTER</span>
+            </b>
+          </div>
+
+          <div class="telemetry-row">
+            <small>Penyimpanan Data Garasi</small>
+            <b>
+              <span>Drift SQLite + Backup .bhb</span>
+              <span class="tag-val" style="color: var(--blue);">100% OFFLINE</span>
+            </b>
+          </div>
+
+          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line);">
+            <b style="font-size: 12px; display: block; margin-bottom: 6px;">💡 Tips Evaluasi Dosen / Reviewer:</b>
+            <ul style="padding-left: 16px; font-size: 11.5px; color: var(--muted); line-height: 1.6;">
+              <li>Coba klik tombol <b>"Tambah Motor"</b> di header untuk melihat otomatis diarahkan ke 8 soal inspeksi fisik.</li>
+              <li>Buka <b>"Tanya Gemini"</b> dan laporkan keluhan gredek CVT untuk melihat pengurangan skor kesehatan secara interaktif.</li>
+              <li>Perhatikan bahwa suku cadang Honda tidak akan pernah tertukar dengan suku cadang Yamaha.</li>
+            </ul>
           </div>
         </div>
+
       </div>
     </div>
 
+    <!-- JAVASCRIPT STATE ENGINE -->
     <script>
-      /* ===== MOCK STATE CORRESPONDING TO CURRENT BUILDHAUS APP ===== */
+      /* ===== MOTORCYCLES REPOSITORY (HONDA & YAMAHA) ===== */
       const motorcycles = [
         {
           id: 1,
           nickname: "Vario 160 Hitam",
           brand: "HONDA",
-          model: "Vario 160 ESP+",
+          model: "Honda Vario 160 ESP+",
           plate: "B 2841 RDM",
           odo: 18450,
           score: 85,
-          statusLabel: "BAIK — PRIMA",
-          kmWeek: 145,
-          kmMonth: 580,
+          statusLabel: "BAIK — KONDISI PRIMA",
+          aiComplaint: null,
           components: [
-            { name: "Oli Mesin", score: 88, status: "good", last: "1.200 km lalu", icon: "🛢️", part: "AHM SPX 2 10W-30", price: 65000 },
-            { name: "Kampas Rem Depan", score: 62, status: "inspect", last: "8.500 km lalu", icon: "🛑", part: "Kampas Rem Cakram AHM", price: 48000, isSafety: true },
-            { name: "V-Belt CVT", score: 78, status: "good", last: "14.000 km lalu", icon: "⚙️", part: "Drive Belt Kit Vario 160", price: 175000 },
-            { name: "Ban Belakang", score: 55, status: "inspect", last: "15.000 km lalu", icon: "🛞", part: "Ban Tubeless 120/70-14", price: 320000 }
+            { id: "c1", name: "Oli Mesin", score: 88, status: "good", last: "1.200 km lalu", icon: "🛢️", part: "AHM SPX 2 10W-30", price: 65000 },
+            { id: "c2", name: "Kampas Rem Depan", score: 62, status: "inspect", last: "8.500 km lalu", icon: "🛑", part: "Kampas Rem Cakram AHM", price: 48000, isSafety: true },
+            { id: "c3", name: "V-Belt & Roller CVT", score: 80, status: "good", last: "14.000 km lalu", icon: "⚙️", part: "Drive Belt Kit Vario 160", price: 175000 },
+            { id: "c4", name: "Aki & Kelistrikan", score: 92, status: "good", last: "Aki Kering Normal", icon: "🔋", part: "Aki GS Astra GTZ6V", price: 265000 },
+            { id: "c5", name: "Ban Belakang", score: 75, status: "good", last: "15.000 km lalu", icon: "🛞", part: "Ban Tubeless 120/70-14", price: 320000 },
+            { id: "c6", name: "Suspensi Shockbreaker", score: 90, status: "good", last: "Empuk & Bersih", icon: "🛴", part: "Oli Shock Depan Honda", price: 25000 },
+            { id: "c7", name: "Lampu & Sinyal", score: 98, status: "good", last: "LED Berfungsi Penuh", icon: "💡", part: "Bohlam LED / Sein", price: 35000 },
+            { id: "c8", name: "Knalpot & Emisi", score: 94, status: "good", last: "Suara Kering Halus", icon: "💨", part: "Gasket Knalpot", price: 15000 }
           ],
           parts: [
-            { id: "p1", name: "AHM Oil SPX 2 Full Synthetic 0.8L", cat: "Oli", brand: "Honda AHM", price: 65000, tier: "budget", tierText: "Budget Disetujui", icon: "🛢️" },
-            { id: "p2", name: "Kampas Rem Depan Cakram Honda", cat: "Pengereman", brand: "Nissin / AHM", price: 48000, tier: "health", tierText: "Perlu Penanganan", icon: "🛑" },
-            { id: "p3", name: "Drive Belt & Roller Kit Vario 160", cat: "Transmisi", brand: "Honda Genuine", price: 175000, tier: "general", tierText: null, icon: "⚙️" },
-            { id: "p4", name: "Busi Iridium CPR9EAIX-9", cat: "Pengapian", brand: "NGK", price: 110000, tier: "general", tierText: null, icon: "⚡" },
-            { id: "p5", name: "Ban Tubeless Maxxis Victra 120/70-14", cat: "Kaki-kaki", brand: "Maxxis", price: 320000, tier: "health", tierText: "Perhatian Kesehatan", icon: "🛞" }
+            { name: "AHM Oil SPX 2 Full Synthetic 0.8L", cat: "Oli", brand: "Honda AHM", price: 65000, tier: "budget", tierText: "Sesuai Interval", icon: "🛢️" },
+            { name: "Kampas Rem Depan Cakram Honda AHM", cat: "Rem", brand: "Honda Genuine", price: 48000, tier: "health", tierText: "Perlu Cek", icon: "🛑" },
+            { name: "Drive Belt & Roller Kit Vario 160", cat: "Transmisi", brand: "Honda Genuine", price: 175000, tier: "general", tierText: null, icon: "⚙️" },
+            { name: "Busi NGK Laser Iridium CPR9EAIX-9", cat: "Kelistrikan", brand: "NGK", price: 110000, tier: "general", tierText: null, icon: "⚡" },
+            { name: "Aki Kering GS Astra GTZ6V Honda", cat: "Kelistrikan", brand: "GS Astra", price: 265000, tier: "general", tierText: null, icon: "🔋" },
+            { name: "Ban Tubeless Maxxis Victra 120/70-14", cat: "Ban", brand: "Maxxis", price: 320000, tier: "general", tierText: null, icon: "🛞" }
           ]
         },
         {
           id: 2,
           nickname: "Aerox Biru Doff",
           brand: "YAMAHA",
-          model: "Aerox 155 Connected",
+          model: "Yamaha Aerox 155 Connected",
           plate: "B 4912 KFX",
           odo: 24150,
           score: 68,
           statusLabel: "PERLU PERHATIAN",
-          kmWeek: 210,
-          kmMonth: 840,
+          aiComplaint: null,
           components: [
-            { name: "Oli Mesin", score: 52, status: "inspect", last: "3.100 km lalu", icon: "🛢️", part: "Yamalube Super Matic 10W-40", price: 72000 },
-            { name: "Kampas Rem Belakang", score: 45, status: "replace", last: "18.000 km lalu", icon: "🛑", part: "Brake Shoe Yamalube", price: 55000, isSafety: true },
-            { name: "Roller & V-Belt", score: 70, status: "good", last: "12.000 km lalu", icon: "⚙️", part: "V-Belt Aerox 155", price: 185000 }
+            { id: "c21", name: "Oli Mesin", score: 55, status: "inspect", last: "3.200 km lalu", icon: "🛢️", part: "Yamalube Super Matic 10W-40", price: 72000 },
+            { id: "c22", name: "Kampas Rem Belakang", score: 45, status: "replace", last: "18.000 km lalu", icon: "🛑", part: "Brake Shoe Yamalube", price: 55000, isSafety: true },
+            { id: "c23", name: "V-Belt & Roller CVT", score: 70, status: "good", last: "12.000 km lalu", icon: "⚙️", part: "V-Belt Aerox 155", price: 185000 },
+            { id: "c24", name: "Aki & Kelistrikan", score: 88, status: "good", last: "Starter 1x Tokcer", icon: "🔋", part: "Aki Yuasa YTZ7V", price: 310000 },
+            { id: "c25", name: "Ban Belakang", score: 60, status: "inspect", last: "18.000 km lalu", icon: "🛞", part: "Ban IRC SCT-005 140/70-14", price: 385000 }
           ],
           parts: [
-            { id: "p21", name: "Yamalube Super Matic 10W-40 1L", cat: "Oli", brand: "Yamalube", price: 72000, tier: "health", tierText: "Perlu Penanganan", icon: "🛢️" },
-            { id: "p22", name: "Kampas Rem Belakang Tromol Aerox", cat: "Pengereman", brand: "Yamaha", price: 55000, tier: "budget", tierText: "Budget Disetujui", icon: "🛑" }
+            { name: "Yamalube Super Matic 10W-40 SL 1L", cat: "Oli", brand: "Yamalube", price: 72000, tier: "health", tierText: "Harus Ganti", icon: "🛢️" },
+            { name: "Kampas Rem Belakang Tromol Yamalube", cat: "Rem", brand: "Yamaha Genuine", price: 55000, tier: "health", tierText: "Menipis", icon: "🛑" },
+            { name: "V-Belt & Roller Kit Aerox 155 Original", cat: "Transmisi", brand: "Yamaha Genuine", price: 185000, tier: "general", tierText: null, icon: "⚙️" },
+            { name: "Busi Denso U24EPR9 Yamaha", cat: "Kelistrikan", brand: "Denso", price: 35000, tier: "general", tierText: null, icon: "⚡" },
+            { name: "Oli Gardan Yamalube Gear Oil 150ml", cat: "Oli", brand: "Yamalube", price: 18000, tier: "general", tierText: null, icon: "🧴" }
+          ]
+        }
+      ];
+
+      /* ===== 8-QUESTION SELF INSPECTION QUESTIONS ===== */
+      const inspectionQuestions = [
+        {
+          id: 1,
+          comp: "Oli Mesin",
+          icon: "🛢️",
+          q: "Bagaimana kondisi warna & volume oli mesin saat dicek dipstick?",
+          options: [
+            { text: "Bening kecoklatan / keemasan, volume tepat di batas maksimal", score: 15 },
+            { text: "Cokelat gelap keruh, pemakaian sudah di atas 2.000 km", score: 8 },
+            { text: "Hitam pekat, kental/encer ekstrim, atau ada aroma gosong", score: 2 }
+          ]
+        },
+        {
+          id: 2,
+          comp: "Sistem Pengereman",
+          icon: "🛑",
+          q: "Bagaimana rasa kepakeman tuas rem depan & belakang?",
+          options: [
+            { text: "Sangat pakem, tuas empuk, tidak ada bunyi gesekan", score: 15 },
+            { text: "Kepakeman terasa agak berkurang, tuas ditarik agak dalam", score: 8 },
+            { text: "Bunyi berdecit tajam logam, tuas keras/ambles (BAHAYA)", score: 0 }
           ]
         },
         {
           id: 3,
-          nickname: "Beat Street Putih",
-          brand: "HONDA",
-          model: "Beat Street CBS",
-          plate: "B 6031 ZTA",
-          odo: 8920,
-          score: 92,
-          statusLabel: "SANGAT BAIK",
-          kmWeek: 85,
-          kmMonth: 340,
-          components: [
-            { name: "Oli Mesin", score: 94, status: "good", last: "800 km lalu", icon: "🛢️", part: "AHM MPX 2 10W-30", price: 54000 },
-            { name: "Kampas Rem Depan", score: 88, status: "good", last: "Baru", icon: "🛑", part: "Kampas Rem Beat", price: 42000 }
-          ],
-          parts: [
-            { id: "p31", name: "AHM Oil MPX 2 0.8L", cat: "Oli", brand: "Honda AHM", price: 54000, tier: "general", tierText: null, icon: "🛢️" }
+          comp: "Kondisi Ban",
+          icon: "🛞",
+          q: "Bagaimana ketebalan alur kembangan ban depan dan belakang?",
+          options: [
+            { text: "Alur masih tebal jauh di atas tonjolan TWI, karet kenyal", score: 10 },
+            { text: "Alur mulai sejajar dengan TWI, tanda sudah aus wajar", score: 5 },
+            { text: "Ban gundul/botak licin, atau ada retakan rambut di samping", score: 1 }
+          ]
+        },
+        {
+          id: 4,
+          comp: "Aki & Kelistrikan",
+          icon: "🔋",
+          q: "Bagaimana respon starter elektrik di pagi hari?",
+          options: [
+            { text: "Sekali tekan tombol langsung menyala mantap & klakson nyaring", score: 10 },
+            { text: "Kadang agak seret butuh 2-3 kali pencet, klakson agak serak", score: 5 },
+            { text: "Starter elektrik mati total / bunyi cetek-cetek aki drop", score: 0 }
+          ]
+        },
+        {
+          id: 5,
+          comp: "Transmisi CVT / Rantai",
+          icon: "⚙️",
+          q: "Bagaimana respon tarikan motor saat buka gas di tanjakan?",
+          options: [
+            { text: "Tarikan responsif dan halus tanpa ada getaran getar", score: 15 },
+            { text: "Ada getar (gredek) sesaat di rpm rendah lalu normal", score: 7 },
+            { text: "Getaran parah berisik, bunyi mendesing atau tarikan loyo", score: 2 }
+          ]
+        },
+        {
+          id: 6,
+          comp: "Suspensi Shockbreaker",
+          icon: "🛴",
+          q: "Bagaimana redaman suspensi saat melibas polisi tidur?",
+          options: [
+            { text: "Ayunan empuk dan stabil tanpa ada bunyi aneh", score: 10 },
+            { text: "Terasa agak kaku/mengayun berlebih (rebound menurun)", score: 6 },
+            { text: "Ada rembesan oli basah di batang as atau berbunyi jeduk keras", score: 1 }
+          ]
+        },
+        {
+          id: 7,
+          comp: "Lampu & Sinyal",
+          icon: "💡",
+          q: "Apakah seluruh lampu utama, sein, rem, dan speedometer normal?",
+          options: [
+            { text: "Semua lampu berfungsi terang dan sein berkedip teratur", score: 10 },
+            { text: "Salah satu lampu sein atau lampu senja mati", score: 5 },
+            { text: "Lampu utama mati atau indikator MIL mesin berkedip", score: 1 }
+          ]
+        },
+        {
+          id: 8,
+          comp: "Suara Mesin & Knalpot",
+          icon: "💨",
+          q: "Bagaimana suara mesin saat stasioner (idle) dan warna knalpot?",
+          options: [
+            { text: "Suara mesin halus kering berirama, knalpot bersih jernih", score: 15 },
+            { text: "Terdengar suara ketukan klep halus saat mesin panas", score: 8 },
+            { text: "Suara menggelitik kasar atau keluar asap putih/hitam", score: 2 }
           ]
         }
       ];
 
       let activeMotorId = 1;
-      let activeCategory = "Semua";
+      let currentPartFilter = "Semua";
+      let quizCurrentIndex = 0;
+      let quizAnswers = {};
 
       function getActiveMotor() {
         return motorcycles.find(m => m.id === activeMotorId) || motorcycles[0];
@@ -1204,7 +1232,7 @@
         // 1. Carousel
         const carousel = document.getElementById("motorCarousel");
         carousel.innerHTML = motorcycles.map(m => `
-          <div class="motor-card-pill ${m.id === motor.id ? 'active' : ''}" onclick="selectMotor(${m.id})">
+          <div class="motor-pill ${m.id === motor.id ? 'active' : ''}" onclick="selectMotor(${m.id})">
             <div class="brand-tag">${m.brand}</div>
             <b>${m.nickname.split(' ')[0]}</b>
             <small>${m.odo.toLocaleString('id-ID')} km</small>
@@ -1217,58 +1245,60 @@
         document.getElementById("bikePlate").textContent = motor.plate;
         document.getElementById("bikeOdo").textContent = motor.odo.toLocaleString('id-ID') + " km";
 
-        // 3. Home Health Summary
-        document.getElementById("homeScoreSquare").textContent = motor.score;
+        // 3. Home Score
+        document.getElementById("homeScoreSquare").textContent = motor.score + "%";
         document.getElementById("homeScoreBar").style.width = motor.score + "%";
         const color = motor.score >= 75 ? "var(--ok)" : motor.score >= 50 ? "var(--warn)" : "var(--danger)";
         document.getElementById("homeScoreSquare").style.color = color;
         document.getElementById("homeScoreBar").style.background = color;
-        document.getElementById("homeScoreDesc").textContent = motor.score >= 75 ? "Baik — semua komponen prima" : "Perlu perhatian — cek komponen kritis";
+        document.getElementById("homeScoreTitle").textContent = motor.score >= 75 ? "Kondisi Prima & Terawat" : "Perlu Perhatian Servis";
 
-        // 4. Health Screen
-        document.getElementById("healthMotorBadge").textContent = motor.nickname.split(' ')[0];
-        document.getElementById("healthBigScore").textContent = motor.score;
+        // 4. Sehat Screen
+        document.getElementById("healthBigScore").textContent = motor.score + "%";
         document.getElementById("healthBigScore").style.color = color;
         document.getElementById("gaugeSvgPath").setAttribute("stroke", color);
         document.getElementById("gaugeSvgPath").setAttribute("stroke-dasharray", `${motor.score}, 100`);
         document.getElementById("healthStatusPill").textContent = motor.statusLabel;
-        document.getElementById("kmWeekText").textContent = motor.kmWeek + " km";
-        document.getElementById("kmMonthText").textContent = motor.kmMonth + " km";
+        document.getElementById("healthStatusPill").style.color = color;
+        document.getElementById("healthStatusPill").style.background = motor.score >= 75 ? "var(--ok-bg)" : motor.score >= 50 ? "var(--warn-bg)" : "var(--danger-bg)";
 
-        // Component Tiles
+        // 5. Component Tiles
         const compList = document.getElementById("componentTilesList");
         compList.innerHTML = motor.components.map(c => `
-          <div class="comp-tile" onclick="openPartDetailFromComp('${c.name}')">
+          <div class="comp-tile" onclick="openPartsForComp('${c.name}')">
             <div class="comp-tile-head">
               <div class="comp-icon-box ${c.status === 'inspect' ? 'warn' : c.status === 'replace' ? 'danger' : ''}">${c.icon}</div>
               <div class="comp-meta">
                 <b>${c.name} ${c.isSafety ? '<span style="font-size:8px;background:var(--danger-bg);color:var(--danger);padding:1px 4px;border-radius:3px;">SAFETY</span>' : ''}</b>
-                <p>Terakhir: ${c.last}</p>
+                <p>Status: ${c.last}</p>
               </div>
               <div class="comp-score-box">
-                <div class="comp-score-val" style="color: ${c.score >= 75 ? 'var(--ok)' : c.score >= 50 ? 'var(--warn)' : 'var(--danger)'}">${c.score}</div>
+                <div class="comp-score-val" style="color: ${c.score >= 75 ? 'var(--ok)' : c.score >= 50 ? 'var(--warn)' : 'var(--danger)'}">${c.score}%</div>
                 <span class="comp-score-badge" style="background: ${c.score >= 75 ? 'var(--ok-bg)' : c.score >= 50 ? 'var(--warn-bg)' : 'var(--danger-bg)'}; color: ${c.score >= 75 ? 'var(--ok)' : c.score >= 50 ? 'var(--warn)' : 'var(--danger)'}">
                   ${c.status.toUpperCase()}
                 </span>
               </div>
             </div>
-            <div class="matched-part-pill">
-              <span>🔧 ${c.part} · Rp ${c.price.toLocaleString('id-ID')}</span>
-              <span style="color:var(--muted); font-size:9px;">Lihat ›</span>
-            </div>
           </div>
         `).join('');
 
-        // 5. Parts Grid
-        document.getElementById("catalogSubtitle").textContent = "Rekomendasi untuk " + motor.nickname;
+        // 6. Parts Grid & Subtitle
+        document.getElementById("partsBrandSubtitle").textContent = `Suku Cadang Resmi Terverifikasi untuk ${motor.nickname}`;
+        document.getElementById("partsBrandBadge").textContent = `${motor.brand} GENUINE`;
         renderPartsGrid();
 
-        // 6. History List
+        // 7. History
         renderHistoryList();
 
-        // 7. Account Motors
+        // 8. Account Garasi List
         renderAccountMotors();
-        document.getElementById("aiChatMotorName").textContent = `${motor.nickname} (${motor.odo.toLocaleString('id-ID')} km)`;
+
+        // 9. Telemetry Panel
+        document.getElementById("telBikeName").textContent = motor.nickname;
+        document.getElementById("telBikeBrand").textContent = motor.brand;
+        document.getElementById("telBikeScore").textContent = `${motor.score}% (${motor.statusLabel})`;
+        document.getElementById("telPartsMode").textContent = `Kompatibel ${motor.brand} (${motor.parts.length} item)`;
+        document.getElementById("aiActiveBikeName").textContent = `${motor.nickname} (${motor.odo.toLocaleString('id-ID')} km)`;
       }
 
       function selectMotor(id) {
@@ -1276,121 +1306,12 @@
         renderAll();
       }
 
-      function renderPartsGrid() {
-        const motor = getActiveMotor();
-        const search = document.getElementById("partSearchInput").value.toLowerCase();
-        let parts = motor.parts;
-
-        if (activeCategory === "Rekomendasi Budget") {
-          parts = parts.filter(p => p.tier === "budget");
-        } else if (activeCategory === "Perhatian Kesehatan") {
-          parts = parts.filter(p => p.tier === "health");
-        } else if (activeCategory !== "Semua") {
-          parts = parts.filter(p => p.cat.toLowerCase() === activeCategory.toLowerCase());
-        }
-
-        if (search) {
-          parts = parts.filter(p => p.name.toLowerCase().includes(search) || p.brand.toLowerCase().includes(search));
-        }
-
-        const grid = document.getElementById("partsGrid");
-        if (parts.length === 0) {
-          grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: var(--muted); padding: 30px 10px; font-size: 11px;">Tidak ada suku cadang pada filter ini.</div>`;
-          return;
-        }
-
-        grid.innerHTML = parts.map(p => `
-          <div class="part-catalog-card ${p.tier === 'budget' ? 'budget-highlight' : p.tier === 'health' ? 'health-highlight' : ''}" onclick="alert('Detail Suku Cadang: ' + '${p.name}' + ' (HET: Rp ' + '${p.price.toLocaleString('id-ID')})')">
-            <div class="part-img-area">
-              <span>${p.icon}</span>
-              ${p.tierText ? `<div class="part-tier-tag ${p.tier}">${p.tierText}</div>` : ''}
-            </div>
-            <div class="part-body">
-              <div class="part-cat-label">${p.cat}</div>
-              <div class="part-title">${p.name}</div>
-              <div class="part-brand">${p.brand}</div>
-              <div class="part-price-est">Est. Rp ${p.price.toLocaleString('id-ID')}</div>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      function renderHistoryList() {
-        const motor = getActiveMotor();
-        const list = document.getElementById("historyRecordsList");
-        list.innerHTML = `
-          <div class="comp-tile">
-            <div class="comp-tile-head">
-              <div class="comp-icon-box">🛢️</div>
-              <div class="comp-meta">
-                <b>Ganti Oli Mesin & Filter</b>
-                <p>12 Okt 2026 · ${(motor.odo - 1200).toLocaleString('id-ID')} km · Bengkel Resmi AHASS</p>
-              </div>
-              <b style="font-size:12px;color:var(--warn)">Rp 75.000</b>
-            </div>
-          </div>
-          <div class="comp-tile">
-            <div class="comp-tile-head">
-              <div class="comp-icon-box">⚙️</div>
-              <div class="comp-meta">
-                <b>Servis Rutin CVT & Pembersihan</b>
-                <p>15 Agu 2026 · ${(motor.odo - 4500).toLocaleString('id-ID')} km · Sinar Jaya Motor</p>
-              </div>
-              <b style="font-size:12px;color:var(--warn)">Rp 120.000</b>
-            </div>
-          </div>
-          <div class="comp-tile">
-            <div class="comp-tile-head">
-              <div class="comp-icon-box">🛑</div>
-              <div class="comp-meta">
-                <b>Pemeriksaan Kampas Rem Depan</b>
-                <p>04 Jul 2026 · ${(motor.odo - 8500).toLocaleString('id-ID')} km · AHASS Sahabat</p>
-              </div>
-              <b style="font-size:12px;color:var(--warn)">Rp 25.000</b>
-            </div>
-          </div>
-        `;
-      }
-
-      function renderAccountMotors() {
-        const motorList = document.getElementById("accountMotorList");
-        motorList.innerHTML = motorcycles.map(m => `
-          <div class="settings-item" onclick="selectMotor(${m.id}); switchTab('home');">
-            <div class="settings-item-left">
-              <span>🏍️</span>
-              <div>
-                <b style="font-size:12px; display:block;">${m.nickname}</b>
-                <small style="color:var(--muted); font-size:9.5px;">${m.plate} · ${m.odo.toLocaleString('id-ID')} km</small>
-              </div>
-            </div>
-            ${m.id === activeMotorId ? '<span style="font-size:9px; background:var(--ok-bg); color:var(--ok); padding:2px 8px; border-radius:99px; font-weight:bold;">AKTIF</span>' : '<span style="font-size:11px; color:var(--muted);">Ganti ›</span>'}
-          </div>
-        `).join('') + `
-          <div class="settings-item" onclick="alert('Buka formulir Tambah Motor Baru...');">
-            <div class="settings-item-left" style="color:var(--ok);">
-              <span>➕</span>
-              <span>Tambah Motor Baru</span>
-            </div>
-            <span style="color:var(--ok); font-size:14px;">›</span>
-          </div>
-        `;
-      }
-
-      function setCategoryFilter(cat, btn) {
-        activeCategory = cat;
-        document.querySelectorAll("#filterChipsRow .filter-chip").forEach(b => b.classList.remove("active", "budget-active", "health-active"));
-        if (cat === "Rekomendasi Budget") btn.classList.add("budget-active");
-        else if (cat === "Perhatian Kesehatan") btn.classList.add("health-active");
-        else btn.classList.add("active");
-        renderPartsGrid();
-      }
-
-      function filterPartsGrid() {
-        renderPartsGrid();
+      function switchBrandDemo() {
+        const nextId = activeMotorId === 1 ? 2 : 1;
+        selectMotor(nextId);
       }
 
       function switchTab(tabId) {
-        closeAiChatModal();
         document.querySelectorAll(".app-page").forEach(p => p.classList.remove("active"));
         const target = document.getElementById("tab-" + tabId);
         if (target) target.classList.add("active");
@@ -1399,86 +1320,365 @@
         const navBtn = document.getElementById("nav-" + tabId);
         if (navBtn) navBtn.classList.add("active");
 
-        document.querySelectorAll(".quick-nav button").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".nav-menu-btn").forEach(b => b.classList.remove("active"));
+        const menuBtn = document.getElementById("menu-" + tabId);
+        if (menuBtn) menuBtn.classList.add("active");
       }
 
+      /* ===== PARTS GRID RENDER & FILTER ===== */
+      function renderPartsGrid() {
+        const motor = getActiveMotor();
+        const search = document.getElementById("partSearchInput").value.toLowerCase();
+        let parts = motor.parts;
+
+        if (currentPartFilter !== "Semua") {
+          parts = parts.filter(p => p.cat.toLowerCase().includes(currentPartFilter.toLowerCase()));
+        }
+
+        if (search) {
+          parts = parts.filter(p => p.name.toLowerCase().includes(search) || p.brand.toLowerCase().includes(search));
+        }
+
+        const grid = document.getElementById("partsGrid");
+        if (parts.length === 0) {
+          grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: var(--muted); padding: 24px 8px; font-size: 11px;">Tidak ada suku cadang pada kategori ini.</div>`;
+          return;
+        }
+
+        grid.innerHTML = parts.map(p => `
+          <div class="part-card" onclick="alert('Detail Suku Cadang: ' + '${p.name}' + ' (HET Resmi: Rp ' + '${p.price.toLocaleString('id-ID')})')">
+            <div class="part-card-img">
+              <span>${p.icon}</span>
+              ${p.tierText ? `<div class="part-badge-tag" style="background:${p.tier === 'health' ? '#b91c1c' : '#15803d'}">${p.tierText}</div>` : ''}
+            </div>
+            <div class="part-card-body">
+              <div class="part-cat-text">${p.cat}</div>
+              <div class="part-name-text">${p.name}</div>
+              <div class="part-price-text">Rp ${p.price.toLocaleString('id-ID')}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function setPartFilter(cat, btn) {
+        currentPartFilter = cat;
+        document.querySelectorAll("#partsFilterRow .filter-chip").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderPartsGrid();
+      }
+
+      function filterPartsGrid() {
+        renderPartsGrid();
+      }
+
+      function openPartsForComp(compName) {
+        switchTab('parts');
+        document.getElementById("partSearchInput").value = compName.split(' ')[0];
+        renderPartsGrid();
+      }
+
+      /* ===== HISTORY LIST ===== */
+      function renderHistoryList() {
+        const motor = getActiveMotor();
+        const list = document.getElementById("serviceHistoryList");
+        list.innerHTML = `
+          <div class="comp-tile">
+            <div class="comp-tile-head">
+              <div class="comp-icon-box">🛢️</div>
+              <div class="comp-meta">
+                <b>Ganti Oli Mesin & Filter</b>
+                <p>12 Okt 2026 · ${(motor.odo - 1200).toLocaleString('id-ID')} km · Bengkel Resmi</p>
+              </div>
+              <b style="font-size:12px;color:var(--warn)">Rp 75.000</b>
+            </div>
+          </div>
+          <div class="comp-tile">
+            <div class="comp-tile-head">
+              <div class="comp-icon-box">⚙️</div>
+              <div class="comp-meta">
+                <b>Servis Rutin Pembersihan CVT</b>
+                <p>15 Agu 2026 · ${(motor.odo - 4500).toLocaleString('id-ID')} km · Bengkel Mitra</p>
+              </div>
+              <b style="font-size:12px;color:var(--warn)">Rp 90.000</b>
+            </div>
+          </div>
+          <div class="comp-tile">
+            <div class="comp-tile-head">
+              <div class="comp-icon-box">🔍</div>
+              <div class="comp-meta">
+                <b>Pemeriksaan Mandiri 8-Titik</b>
+                <p>02 Nov 2026 · Skor Terkalibrasi: ${motor.score}%</p>
+              </div>
+              <span style="font-size:10px;font-weight:bold;color:var(--ok);">SELESAI</span>
+            </div>
+          </div>
+        `;
+      }
+
+      /* ===== ACCOUNT MOTORS GARASI ===== */
+      function renderAccountMotors() {
+        const container = document.getElementById("accountMotorList");
+        container.innerHTML = motorcycles.map(m => `
+          <div class="nav-menu-btn" style="margin-bottom: 6px;" onclick="selectMotor(${m.id}); switchTab('home');">
+            <div>
+              <b style="font-size:12px; display:block;">${m.nickname}</b>
+              <small style="color:var(--muted); font-size:9.5px;">${m.plate} · ${m.odo.toLocaleString('id-ID')} km</small>
+            </div>
+            ${m.id === activeMotorId ? '<span style="font-size:8.5px; background:var(--ok-bg); color:var(--ok); padding:2px 6px; border-radius:4px; font-weight:800;">AKTIF</span>' : '<span style="font-size:11px; color:var(--muted);">Pilih ›</span>'}
+          </div>
+        `).join('');
+      }
+
+      /* ===== MODALS MANAGEMENT ===== */
+      function openModal(id) {
+        document.getElementById(id).classList.add("active");
+      }
+      function closeModal(id) {
+        document.getElementById(id).classList.remove("active");
+      }
+
+      function openAddMotorModal() {
+        openModal("addMotorModal");
+      }
+      function openInspectionModal() {
+        quizCurrentIndex = 0;
+        quizAnswers = {};
+        renderQuizStep();
+        openModal("inspectionModal");
+      }
       function openAiChatModal() {
-        document.getElementById("aiOverlayModal").classList.add("active");
+        openModal("aiOverlayModal");
+      }
+      function openRecordServiceModal() {
+        const res = prompt("Catat Servis Baru (Nama Servis, Biaya, Kilometer):", "Ganti Kampas Rem, Rp 55.000, " + getActiveMotor().odo);
+        if (res) alert("Servis berhasil disimpan ke database SQLite offline!");
       }
 
-      function closeAiChatModal() {
-        document.getElementById("aiOverlayModal").classList.remove("active");
+      /* ===== ADD MOTOR → REDIRECT TO 8-POINT INSPECTION ===== */
+      function saveNewMotorAndRedirect() {
+        const brand = document.getElementById("newMotorBrand").value;
+        const model = document.getElementById("newMotorModel").value || "Motor Baru";
+        const nick = document.getElementById("newMotorNick").value || model;
+        const plate = document.getElementById("newMotorPlate").value || "B 1234 XYZ";
+        const odo = parseInt(document.getElementById("newMotorOdo").value) || 10000;
+
+        const newId = motorcycles.length + 1;
+        const newMotor = {
+          id: newId,
+          nickname: nick,
+          brand: brand,
+          model: model,
+          plate: plate,
+          odo: odo,
+          score: 80,
+          statusLabel: "MENUNGGU UJI MANDIRI",
+          aiComplaint: null,
+          components: [
+            { id: `c_${newId}_1`, name: "Oli Mesin", score: 85, status: "good", last: "Baru Terdaftar", icon: "🛢️", part: brand === "HONDA" ? "AHM SPX 2" : "Yamalube Matic", price: 65000 },
+            { id: `c_${newId}_2`, name: "Kampas Rem Depan", score: 80, status: "good", last: "Baru Terdaftar", icon: "🛑", part: "Kampas Rem Cakram", price: 50000, isSafety: true },
+            { id: `c_${newId}_3`, name: "V-Belt & Transmisi", score: 85, status: "good", last: "Baru Terdaftar", icon: "⚙️", part: "Drive Belt Kit", price: 160000 }
+          ],
+          parts: brand === "HONDA" ? motorcycles[0].parts : motorcycles[1].parts
+        };
+
+        motorcycles.push(newMotor);
+        activeMotorId = newId;
+        renderAll();
+        closeModal("addMotorModal");
+
+        // AUTOMATIC REDIRECT TO INSPECTION IMMEDIATELY
+        setTimeout(() => {
+          openInspectionModal();
+        }, 150);
+      }
+
+      /* ===== 8-QUESTION INSPECTION WIZARD ENGINE ===== */
+      function renderQuizStep() {
+        const q = inspectionQuestions[quizCurrentIndex];
+        document.getElementById("quizStepText").textContent = `Pertanyaan ${quizCurrentIndex + 1} dari ${inspectionQuestions.length} • ${q.comp}`;
+        const pct = ((quizCurrentIndex + 1) / inspectionQuestions.length) * 100;
+        document.getElementById("quizProgressBar").style.width = pct + "%";
+
+        const container = document.getElementById("quizContainer");
+        const currentAns = quizAnswers[q.id];
+
+        container.innerHTML = `
+          <div class="quiz-card">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span style="font-size:24px;">${q.icon}</span>
+              <b style="font-size:12.5px; color:var(--ink);">${q.q}</b>
+            </div>
+            <p style="font-size:10px; color:var(--muted); margin-bottom:12px;">Pilih opsi yang paling sesuai dengan kondisi aktual fisik komponen motor Anda.</p>
+            ${q.options.map((opt, idx) => `
+              <div class="quiz-opt-btn ${currentAns === idx ? 'selected' : ''}" onclick="selectQuizAnswer(${q.id}, ${idx})">
+                <span style="font-weight:800; font-family:'JetBrains Mono', monospace; font-size:11px;">[${String.fromCharCode(65 + idx)}]</span>
+                <span style="flex:1;">${opt.text}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        document.getElementById("quizPrevBtn").style.display = quizCurrentIndex === 0 ? "none" : "block";
+        document.getElementById("quizNextBtn").textContent = quizCurrentIndex === inspectionQuestions.length - 1 ? "Selesai & Hitung Skor Kesehatan 🏁" : "Lanjut ke Pertanyaan Berikutnya →";
+      }
+
+      function selectQuizAnswer(questionId, optionIdx) {
+        quizAnswers[questionId] = optionIdx;
+        renderQuizStep();
+      }
+
+      function prevQuizStep() {
+        if (quizCurrentIndex > 0) {
+          quizCurrentIndex--;
+          renderQuizStep();
+        }
+      }
+
+      function nextQuizStep() {
+        const q = inspectionQuestions[quizCurrentIndex];
+        if (quizAnswers[q.id] === undefined) {
+          // Default select the first one if user just taps Next
+          quizAnswers[q.id] = 0;
+        }
+
+        if (quizCurrentIndex < inspectionQuestions.length - 1) {
+          quizCurrentIndex++;
+          renderQuizStep();
+        } else {
+          finishInspection();
+        }
+      }
+
+      function finishInspection() {
+        let totalScore = 0;
+        inspectionQuestions.forEach(q => {
+          const ansIdx = quizAnswers[q.id] !== undefined ? quizAnswers[q.id] : 0;
+          totalScore += q.options[ansIdx].score;
+        });
+
+        // Cap score between 30 and 98
+        totalScore = Math.min(Math.max(totalScore, 35), 98);
+
+        const motor = getActiveMotor();
+        motor.score = totalScore;
+        motor.statusLabel = totalScore >= 75 ? "BAIK — KONDISI PRIMA" : totalScore >= 50 ? "PERLU PERHATIAN" : "KRITIS — SEGERA SERVIS";
+
+        renderAll();
+        closeModal("inspectionModal");
+        alert(`Uji Mandiri 8-Titik Selesai!\n\nSkor kesehatan awal terkalibrasi untuk ${motor.nickname} adalah: ${totalScore}%\nData telah tersimpan di SQLite lokal.`);
+        switchTab("health");
+      }
+
+      /* ===== GEMINI 2.5 FLASH AI COMPLAINT SIMULATION ===== */
+      function triggerAiComplaint(type) {
+        const feed = document.getElementById("aiChatFeed");
+        const motor = getActiveMotor();
+
+        if (type === "gredek") {
+          feed.innerHTML += `
+            <div class="chat-bubble user">"Bro, motor gue pas tarikan awal rpm rendah gredek parah dan bergetar di tanjakan, itu kenapa ya?"</div>
+          `;
+          setTimeout(() => {
+            // Deduct CVT score
+            const cvt = motor.components.find(c => c.name.includes("CVT"));
+            if (cvt) {
+              cvt.score = 50;
+              cvt.status = "inspect";
+              cvt.last = "KONTROL AI: Gredek CVT";
+            }
+            motor.score = Math.max(motor.score - 15, 45);
+            motor.statusLabel = "PERLU PERHATIAN";
+
+            feed.innerHTML += `
+              <div class="chat-bubble assistant">
+                Wah itu khas banget keluhan di <b>mangkok kopling CVT & roller</b> motor matik bro!<br/><br/>
+                <b>Penyebab Utama:</b><br/>
+                Debu kampas ganda menumpuk di dalam mangkok kopling sehingga slip saat kampas menggigit putaran awal.<br/><br/>
+                <span class="complaint-tag-pill">⚠️ TINDAKAN AI: SKOR CVT DITURUNKAN KE 50%</span><br/><br/>
+                <b>Langkah Perbaikan Mandiri:</b><br/>
+                1. Buka blok CVT & semprot bersihkan mangkok kopling dengan brake cleaner.<br/>
+                2. Cek keausan roller & v-belt. Part rekomendasi: <b>Drive Belt & Roller Kit</b> (Est. Rp 175.000).
+              </div>
+            `;
+            document.getElementById("telAiStatus").textContent = "Gredek CVT Terdeteksi (-15%)";
+            document.getElementById("telAiStatus").style.color = "var(--warn)";
+            feed.scrollTop = feed.scrollHeight;
+            renderAll();
+          }, 350);
+        } else if (type === "rem") {
+          feed.innerHTML += `
+            <div class="chat-bubble user">"Bro rem depan berdecit bunyi gesekan pelat besi tajem pas ngerem pelan."</div>
+          `;
+          setTimeout(() => {
+            const brake = motor.components.find(c => c.name.includes("Rem"));
+            if (brake) {
+              brake.score = 35;
+              brake.status = "replace";
+              brake.last = "KONTROL AI: Kampas Habis";
+            }
+            motor.score = Math.max(motor.score - 25, 40);
+            motor.statusLabel = "KRITIS — SEGERA SERVIS";
+
+            feed.innerHTML += `
+              <div class="chat-bubble assistant">
+                🚨 <b>PERINGATAN BAHAYA KESELAMATAN (SAFETY OVERRIDE):</b><br/>
+                Bunyi gesekan logam tandanya <b>kampas rem kamu sudah habis total dan pelat besinya langsung bergesekan dengan piringan cakram!</b><br/><br/>
+                <span class="complaint-tag-pill" style="background:#dc2626; color:#fff;">🚨 SAFETY CRITICAL: SKOR REM DITURUNKAN KE 35%</span><br/><br/>
+                <b>Bahaya:</b> Piringan cakram bisa baret parah atau rem mendadak terkunci! Segera ganti kampas rem depan. Part resmi: <b>Kampas Rem Cakram AHM/Nissin</b> (Est. Rp 48.000).
+              </div>
+            `;
+            document.getElementById("telAiStatus").textContent = "Kampas Rem Habis (-25% Kritis)";
+            document.getElementById("telAiStatus").style.color = "var(--danger)";
+            feed.scrollTop = feed.scrollHeight;
+            renderAll();
+          }, 350);
+        } else {
+          feed.innerHTML += `
+            <div class="chat-bubble user">"Mesin cepet banget panas dan tarikan gas agak berat, bahaya nggak bro?"</div>
+          `;
+          setTimeout(() => {
+            const oil = motor.components.find(c => c.name.includes("Oli"));
+            if (oil) {
+              oil.score = 52;
+              oil.status = "inspect";
+              oil.last = "KONTROL AI: Oli Menurun";
+            }
+            motor.score = Math.max(motor.score - 10, 50);
+
+            feed.innerHTML += `
+              <div class="chat-bubble assistant">
+                Itu gejala oli mesin sudah mengalami penurunan viskositas (kekentalan) atau volumenya berkurang karena penguapan bro.<br/><br/>
+                Cek stik dipstick oli sekarang juga saat mesin dingin. Kalau warnanya sudah hitam pekat, segera ganti oli baru ya bro!
+              </div>
+            `;
+            feed.scrollTop = feed.scrollHeight;
+            renderAll();
+          }, 350);
+        }
       }
 
       function updateOdometerPrompt() {
         const motor = getActiveMotor();
-        const res = prompt(`Update Odometer untuk ${motor.nickname}:`, motor.odo);
+        const res = prompt(`Update Odometer untuk ${motor.nickname} (km saat ini: ${motor.odo}):`, motor.odo + 250);
         if (res !== null) {
           const val = parseInt(res.replace(/[^0-9]/g, ''));
           if (!isNaN(val) && val >= motor.odo) {
             motor.odo = val;
             renderAll();
+            alert(`Odometer berhasil diperbarui menjadi ${val.toLocaleString('id-ID')} km! Interval pemakaian telah terkalibrasi ulang.`);
           } else {
             alert("Kilometer baru harus lebih besar dari kilometer saat ini!");
           }
         }
       }
 
-      function addServiceRecordPrompt() {
-        alert("Membuka formulir pencatatan servis offline (Drift SQLite)...");
-      }
-
-      function openPartDetailFromComp(compName) {
-        switchTab('parts');
-        document.getElementById("partSearchInput").value = compName;
-        renderPartsGrid();
-      }
-
-      /* ===== AI CHAT SIMULATION ===== */
-      function sendAiPrompt(text) {
-        const feed = document.getElementById("aiMessageFeed");
-        const userBubble = document.createElement("div");
-        userBubble.className = "ai-chat-bubble user";
-        userBubble.textContent = text;
-        feed.appendChild(userBubble);
-
-        setTimeout(() => {
-          const aiBubble = document.createElement("div");
-          aiBubble.className = "ai-chat-bubble assistant";
-
-          if (text.includes("Rem")) {
-            aiBubble.innerHTML = `
-              ⚠️ <b>Peringatan Keamanan Berkendara:</b><br/>
-              Bunyi berdecit dan panas berlebih pada piringan cakram mengindikasikan <b>kampas rem telah menipis hingga pelat logam</b> atau ada kotoran terselip di kaliper.
-              <div class="safety-alert-box">
-                🚨 RISIKO TINGGI: Piringan cakram dapat tergores parah atau rem terkunci. Sangat disarankan tidak mengendarai motor dalam kecepatan tinggi dan segera periksakan ke bengkel resmi.
-              </div>
-              <br/><b>Rekomendasi Part Terkait:</b> Kampas Rem Depan Cakram AHM (Est. Rp 48.000).
-            `;
-          } else if (text.includes("CVT")) {
-            aiBubble.innerHTML = `
-              Tarikan bawah yang bergetar (gredek) pada motor matik umumnya disebabkan oleh <b>debu kampas ganda yang menumpuk di dalam mangkok kopling</b> atau roller yang sudah mulai peang.<br/><br/>
-              <b>Solusi Rekomendasi:</b> Lakukan servis pembersihan CVT rutin dan cek ketebalan roller serta V-Belt (Est. biaya servis Rp 35.000 - Rp 50.000).
-            `;
-          } else {
-            aiBubble.innerHTML = `
-              Untuk Honda Vario 160 ESP+, batas interval ganti oli mesin yang aman adalah <b>setiap 2.000 - 3.000 km</b> (atau maksimal 2 bulan sekali). Menunda penggantian oli dapat menyebabkan panas berlebih dan memperpendek usia piston mesin.
-            `;
-          }
-          feed.appendChild(aiBubble);
-          feed.scrollTop = feed.scrollHeight;
-        }, 300);
-      }
-
-      /* ===== THEME TOGGLE ===== */
       function toggleTheme() {
         document.body.classList.toggle("light");
         const isLight = document.body.classList.contains("light");
         document.getElementById("themeBtn").innerHTML = isLight ? "<span>☀️</span> Mode Terang" : "<span>🌙</span> Mode Gelap";
-        document.getElementById("themeModeText").textContent = isLight ? "Mode Terang" : "Mode Gelap";
       }
 
-      // Initialize
+      // Initial Render
       renderAll();
     </script>
   </body>
