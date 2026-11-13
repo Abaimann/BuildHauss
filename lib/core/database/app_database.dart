@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
@@ -65,11 +65,39 @@ class AppDatabase extends _$AppDatabase {
         if (from < 4) {
           await m.alterTable(TableMigration(odometerLogs));
         }
+        // v5: restore the missing foreign key from service_items.sparepart_id and
+        // recommendation_items.sparepart_id to spareparts(id).
+        //
+        // Both columns are nullable, so orphan rows (sparepart_id pointing at a
+        // deleted part) are cleaned to NULL before the table rebuild. Drift's
+        // TableMigration recreates the table and copies the surviving rows, so
+        // no user data is lost.
+        if (from < 5) {
+          await _nullOrphanSparepartIds();
+          await m.alterTable(TableMigration(serviceItems));
+          await m.alterTable(TableMigration(recommendationItems));
+        }
       },
       beforeOpen: (details) async {
         await customStatement('PRAGMA foreign_keys = ON');
         await ensureReferenceData();
       },
+    );
+  }
+
+  /// Set `sparepart_id` to NULL where it references a row that no longer exists.
+  /// Required before adding the foreign key constraint so the rebuild cannot
+  /// fail on legacy orphan rows.
+  Future<void> _nullOrphanSparepartIds() async {
+    await customStatement(
+      'UPDATE service_items SET sparepart_id = NULL '
+      'WHERE sparepart_id IS NOT NULL '
+      'AND sparepart_id NOT IN (SELECT id FROM spareparts)',
+    );
+    await customStatement(
+      'UPDATE recommendation_items SET sparepart_id = NULL '
+      'WHERE sparepart_id IS NOT NULL '
+      'AND sparepart_id NOT IN (SELECT id FROM spareparts)',
     );
   }
 
@@ -1755,24 +1783,30 @@ class AppDatabase extends _$AppDatabase {
         componentStatuses,
       )..where((t) => t.motorcycleId.equals(motorcycleId))).get();
 
-  Future<int> upsertComponentStatus(ComponentStatusesCompanion s) async {
-    if (!s.motorcycleId.present || !s.componentTypeId.present) {
-      throw ArgumentError('Status memerlukan motorcycleId dan componentTypeId');
-    }
-    final existing =
-        await (select(componentStatuses)..where(
-              (t) =>
-                  t.motorcycleId.equals(s.motorcycleId.value) &
-                  t.componentTypeId.equals(s.componentTypeId.value),
-            ))
-            .getSingleOrNull();
-    if (existing != null) {
-      await (update(componentStatuses)..where((t) => t.id.equals(existing.id)))
-          .write(s.copyWith(id: const Value.absent()));
-      return existing.id;
-    }
-    return into(componentStatuses).insert(s.copyWith(id: const Value.absent()));
-  }
+  /// Menyimpan status komponen untuk satu motor.
+  ///
+  /// Operasi ini berupa select-lalu-update/insert sehingga dibungkus transaksi
+  /// agar dua pemanggilan bersamaan tidak membuat baris duplikat dan
+  /// melanggar constraint UNIQUE(motorcycle_id, component_type_id).
+  Future<int> upsertComponentStatus(ComponentStatusesCompanion s) =>
+      transaction(() async {
+        if (!s.motorcycleId.present || !s.componentTypeId.present) {
+          throw ArgumentError('Status memerlukan motorcycleId dan componentTypeId');
+        }
+        final existing =
+            await (select(componentStatuses)..where(
+                  (t) =>
+                      t.motorcycleId.equals(s.motorcycleId.value) &
+                      t.componentTypeId.equals(s.componentTypeId.value),
+                ))
+                .getSingleOrNull();
+        if (existing != null) {
+          await (update(componentStatuses)..where((t) => t.id.equals(existing.id)))
+              .write(s.copyWith(id: const Value.absent()));
+          return existing.id;
+        }
+        return into(componentStatuses).insert(s.copyWith(id: const Value.absent()));
+      });
 
   // ============================================================
   // SERVICE RECORDS
@@ -2088,7 +2122,12 @@ class AppDatabase extends _$AppDatabase {
     complaints,
   )..where((t) => t.id.equals(id))).write(c).then((r) => r > 0);
 
-  Future<int> deleteComplaint(int id) async {
+  /// Menghapus keluhan beserta seluruh pesan dan analisisnya.
+  ///
+  /// Ketiga operasi dibungkus satu transaksi agar kegagalan di tengah tidak
+  /// meninggalkan pesan atau analisis yang menggantung pada keluhan yang sudah
+  /// tidak ada.
+  Future<int> deleteComplaint(int id) => transaction(() async {
     await (delete(
       complaintMessages,
     )..where((t) => t.complaintId.equals(id))).go();
@@ -2096,7 +2135,7 @@ class AppDatabase extends _$AppDatabase {
       complaintAnalyses,
     )..where((t) => t.complaintId.equals(id))).go();
     return (delete(complaints)..where((t) => t.id.equals(id))).go();
-  }
+  });
 
   // ============================================================
   // COMPLAINT MESSAGES
@@ -2520,11 +2559,15 @@ class AppDatabase extends _$AppDatabase {
     final typeMap = {for (var t in types) t.id: t.name};
     final now = DateTime.now();
 
+    // Hanya pengingat aktif yang ditampilkan. Perhatikan tanda kurung: tanpa
+    // kurung, operator `&&` mengikat lebih kuat daripada `||` sehingga pengingat
+    // nonaktif yang punya dueOdometerKm tetap ikut terbawa.
     return reminders
         .where(
           (r) =>
-              r.enabled && (r.dueDate != null && r.dueDate!.isAfter(now)) ||
-              (r.dueOdometerKm != null),
+              r.enabled &&
+              ((r.dueDate != null && r.dueDate!.isAfter(now)) ||
+                  r.dueOdometerKm != null),
         )
         .map(
           (r) => UpcomingReminder(
@@ -2612,7 +2655,14 @@ class AppDatabase extends _$AppDatabase {
 
   /// Recalculate and persist all component statuses for a motorcycle.
   /// This should be called after service records, odometer logs, inspections, or complaints are added/updated.
-  Future<void> recalculateComponentStatuses(int motorcycleId) async {
+  ///
+  /// Seluruh perhitungan disimpan dalam satu transaksi agar kegagalan di
+  /// tengah loop tidak menyisakan status komponen yang hanya ter-update
+  /// sebagian (misalnya 5 dari 14 komponen).
+  Future<void> recalculateComponentStatuses(int motorcycleId) =>
+      transaction(() => _recalculateComponentStatuses(motorcycleId));
+
+  Future<void> _recalculateComponentStatuses(int motorcycleId) async {
     final motor = await getMotorcycle(motorcycleId);
     if (motor == null) return;
     final current = (await getLatestOdometer(motorcycleId))?.odometerKm;

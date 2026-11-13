@@ -112,7 +112,8 @@ class ServiceItems extends Table {
   IntColumn get serviceRecordId => integer().references(ServiceRecords, #id)();
   IntColumn get componentTypeId =>
       integer().nullable().references(ComponentTypes, #id)();
-  IntColumn get sparepartId => integer().nullable()();
+  IntColumn get sparepartId =>
+      integer().nullable().references(Spareparts, #id)();
   TextColumn get action => text()(); // inspect, replace, repair, clean
   IntColumn get partsCost => integer().withDefault(const Constant(0))();
   IntColumn get laborCost => integer().withDefault(const Constant(0))();
@@ -257,7 +258,8 @@ class RecommendationItems extends Table {
   IntColumn get recommendationId =>
       integer().references(ServiceRecommendations, #id)();
   IntColumn get componentTypeId => integer().references(ComponentTypes, #id)();
-  IntColumn get sparepartId => integer().nullable()();
+  IntColumn get sparepartId =>
+      integer().nullable().references(Spareparts, #id)();
   TextColumn get priority => text()(); // safety, high, medium, low
   TextColumn get decision =>
       text()(); // selected, deferred, safety_alert, inspect

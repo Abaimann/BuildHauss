@@ -94,14 +94,14 @@ See `docs/ERD.md` for full ERD and `docs/DATA_DICTIONARY.md` for column details.
 ## 4. Feature Specifications
 
 ### 4.1 Motorcycle Management
-- [x] Add/edit/delete motorcycles
+- [x] Add/edit/delete motorcycles (delete dengan konfirmasi di dua tempat)
 - [x] Multiple motorcycles support
 - [x] Primary motorcycle selection
 - [x] Odometer logging (manual entry)
 - [x] Odometer history tracking
 - [x] Usage profile (harian_dalam_kota, jarak_jauh, campuran)
-- [ ] **ISSUE:** `modelId` not persisted when adding motorcycle (form uses brand/model strings, not linked to `MotorcycleModels` table)
-- [ ] Motorcycle model master data not seeded
+- [x] **`modelId` persisted sebagai foreign key valid** — dropdown merek/model/varian/tahun bersumber dari tabel `motorcycle_models`; `createMotorcycle()` menolak modelId kosong, modelId tak dikenal, dan tahun di luar rentang model
+- [x] Motorcycle model master data ter-seed (18 model, 4 merek) via `_seedMotorcycleModels()` yang idempoten
 
 ### 4.2 Health Monitoring
 - [x] Component status calculation (good/inspect/replace/unknown)
@@ -109,8 +109,9 @@ See `docs/ERD.md` for full ERD and `docs/DATA_DICTIONARY.md` for column details.
 - [x] Safety-critical component override
 - [x] Usage profile multiplier (jarak jauh = 0.8x interval)
 - [x] Overall health score aggregation
-- [ ] **ISSUE:** Health engine uses last service record globally, not per-component (lines 52-54 of health_engine.dart)
-- [ ] **ISSUE:** `ServiceItems` table not queried — last action (replace/inspect) per component not tracked
+- [x] **Riwayat tindakan servis per komponen** — `getLastActionForComponent(motorcycleId, componentTypeId)` memakai `ServiceItems` yang di-join dengan `ServiceRecords`; penggantian (replace) mereset siklus komponen, inspeksi (inspect) tidak
+- [x] **Isolasi antar motor** — seluruh query per-motor difilter `motorcycle_id`
+- [ ] **ISSUE:** kolom `applies_to` belum dipakai; komponen CVT belum dikondisikan berdasarkan tipe motor (`getApplicableComponents` mengabaikan parameter `usageProfile`)
 
 ### 4.3 Self Inspection
 - [x] Step-by-step guided inspection
@@ -141,18 +142,21 @@ See `docs/ERD.md` for full ERD and `docs/DATA_DICTIONARY.md` for column details.
 - [ ] Qwen3-0.6B GGUF model file not available
 
 ### 4.7 Budget & Service Priority
-- [x] Set monthly budget amount
-- [x] Static priority recommendations (hardcoded items)
-- [ ] **ISSUE:** Budget engine (`BudgetEngine`) exists but is NOT called from UI — hardcoded static items displayed instead
-- [ ] Budget recommendations should come from engine based on component health
+- [x] Set monthly budget amount (disimpan ke `budget_plans`)
+- [x] Rekomendasi **dinamis dari `BudgetEngine`** — `budgetPlanSummaryProvider` menghitung prioritas berdasarkan status komponen, riwayat servis, hasil inspeksi, keluhan, aturan perawatan, dan kecocokan sparepart
+- [x] Biaya yang belum diketahui **tidak dianggap Rp0** — ditandai `biaya_belum_tersedia` dan tidak dihitung sebagai terdanai
+- [x] Snapshot rekomendasi tersimpan di `service_recommendations` + `recommendation_items`
+- [x] Kunci cache memuat **motor + budget** (`BudgetSummaryKey`) sehingga dua motor dengan budget sama tidak berbagi hasil perhitungan
 
 ### 4.8 Sparepart Catalog
-- [x] Local sparepart database seeded on first run
-- [x] Categories: oli, rem, busi, filter, ban, aki, rantai, cvt, shock, kopling, kelistrikan
-- [x] Brand, part number, reference price
-- [ ] **ISSUE:** Sparepart fitment (motorcycle-to-sparepart compatibility) not set up
+- [x] Local sparepart database seeded pada inisialisasi (±70 part, idempoten)
+- [x] Categories: oli, rem, busi, filter, ban, aki, rantai, cvt, shock, kopling, kelistrikan, oli_gardan, minyak_rem, coolant, filter_oli, knalpot
+- [x] Brand, part number, reference price, catalog version
+- [x] **Sparepart fitment terverifikasi** — 17 relasi dari katalog resmi Astra Honda Motor & Yamaha Indonesia (`is_verified = true`, `source_url` terisi). Tidak ada kecocokan yang ditebak dari kesamaan nama motor.
 - [x] Search by name, brand, category
-- [ ] **ISSUE:** Motorcycle model catalog (`motorcycle_models.json`) exists but not loaded into database
+- [x] Rekomendasi memprioritaskan sparepart kompatibel (verified) di atas katalog umum
+- [ ] **ISSUE:** fitment terverifikasi baru ada untuk Honda & Yamaha; Suzuki & Kawasaki belum punya relasi kompatibilitas dan perlu ditampilkan sebagai "belum diverifikasi"
+- [ ] **ISSUE:** `assets/catalogs/*.json` dan `assets/maintenance_rules/rules_v1.json` valid tetapi tidak dimuat runtime; data master ditulis langsung sebagai literal Dart (sumber kebenaran ganda)
 
 ### 4.9 Odometer & Mileage Prediction
 - [x] Log odometer readings
@@ -161,25 +165,29 @@ See `docs/ERD.md` for full ERD and `docs/DATA_DICTIONARY.md` for column details.
 - [x] Confidence level (low/medium/high)
 - [x] Predict date for target odometer
 - [x] Predict next service odometer from interval
-- [ ] **ISSUE:** Algorithm says "3 months learning" but only requires 2 data points
+- [x] Fase pembelajaran 3 periode bulanan (diverifikasi `test/engines/mileage_predictor_test.dart`)
+- [x] Penanganan rollback / koreksi odometer
 
 ### 4.10 Notifications & Reminders
-- [x] Local reminder system (database schema)
-- [ ] **ISSUE:** Reminder UI/screen not implemented — route `/motor/:id/reminder/add` points to `AddServiceScreen`
+- [x] Local reminder system (`local_reminders` + `flutter_local_notifications`)
+- [x] `RemindersScreen` dengan ringkasan, sinkronisasi otomatis, sakelar aktif/nonaktif, dan dialog tambah manual
+- [x] Route `/motor/:id/reminder/add` membuka sheet tambah secara otomatis
+- [x] ID notifikasi deterministik per motor (`NotificationIdGenerator`, rentang 31-bit aman)
+- [x] Idempotent sinkronisasi (tidak menggandakan pengingat)
 
 ### 4.11 Settings & Preferences
-- [ ] **ISSUE:** Dark/light mode hardcoded to dark (app.dart line 16)
-- [ ] Theme preference not saved or loaded
-- [ ] User name/initial stored but settings screen incomplete
+- [x] Dark/light/system mode — `themeModeProvider` membaca & menyimpan `theme_mode` di `app_settings`; `app.dart` memakai `themeMode: themeMode`
+- [x] Layar `/settings` dengan kontrol tema, sakelar notifikasi, interval pembaruan odometer, navigasi backup/restore, status model AI, dan hapus semua data
 
 ### 4.12 Backup & Restore
-- [ ] **ISSUE:** `/backup` route points to `BudgetScreen`
-- [ ] **ISSUE:** `/restore` route points to `BudgetScreen`
-- [ ] Backup/restore functionality not implemented
+- [x] `/backup` route → `BackupScreen` (form enkripsi opsional + daftar file `.bhb`)
+- [x] `/restore` route → `RestoreScreen` (pratinjau non-destruktif + pemulihan atomik)
+- [x] Enkripsi AES-256-GCM + PBKDF2 100k iterasi dengan kompatibilitas mundur file v1
+- [x] Pemulihan diverifikasi dengan `PRAGMA foreign_key_check`
 
 ### 4.13 Licenses
-- [ ] **ISSUE:** `/licenses` route points to `BudgetScreen`
-- [ ] Third-party licenses screen not implemented
+- [x] `/licenses` route → `LicensesScreen`
+- [x] Third-party licenses screen implemented (Drift, Riverpod, flutter_local_notifications, llama.cpp, Qwen3 + kredit katalog AHM & YGP)
 
 ---
 
@@ -203,35 +211,49 @@ See `docs/ERD.md` for full ERD and `docs/DATA_DICTIONARY.md` for column details.
 | `/motor/:id/odometer-history` | OdometerHistoryScreen | ✅ |
 | `/motor/:id/inspection` | SelfInspectionScreen | ✅ |
 | `/motor/:id/service/add` | AddServiceScreen | ✅ |
-| `/motor/:id/reminder/add` | **AddServiceScreen (WRONG)** | ❌ |
-| `/motor/:id/reminders` | **AddServiceScreen (WRONG)** | ❌ |
-| `/motor/:id/expense/add` | **AddServiceScreen (WRONG)** | ❌ |
-| `/motor/:id/oil/add` | **AddServiceScreen (WRONG)** | ❌ |
+| `/motor/:id/reminder/add` | RemindersScreen + sheet tambah terbuka otomatis | ✅ |
+| `/motor/:id/reminders` | RemindersScreen | ✅ |
+| `/motor/:id/expense/add` | ComingSoonScreen (placeholder — fitur belum ada) | 🟡 |
+| `/motor/:id/oil/add` | AddServiceScreen(isOilChange: true) | ✅ |
 | `/ai-chat` | AiAssistantScreen | ✅ |
 | `/ai-model` | AiModelManagerScreen | ✅ |
 | `/ai-recommendation` | AiAssistantScreen | ✅ |
 | `/budget` | BudgetScreen | ✅ |
+| `/settings` | SettingsScreen | ✅ |
+| `/backup` | BackupScreen | ✅ |
+| `/restore` | RestoreScreen | ✅ |
+| `/licenses` | LicensesScreen | ✅ |
 | `/complaints` | ComplaintsScreen | ✅ |
 | `/complaints/new` | NewComplaintScreen | ✅ |
 | `/complaints/:id` | ComplaintDetailScreen | ✅ |
 | `/history/add` | AddServiceScreen | ✅ |
-| `/backup` | **BudgetScreen (WRONG)** | ❌ |
-| `/restore` | **BudgetScreen (WRONG)** | ❌ |
-| `/licenses` | **BudgetScreen (WRONG)** | ❌ |
+| `/reminders` | RemindersScreen | ✅ |
+| `/login` | AuthScreen | ✅ |
+| `/register` | AuthScreen(initialIsRegister: true) | ✅ |
+| `/initial-setup` | InitialMotorSetupScreen | ✅ |
+
+> Route duplikat `/edit-motor/:id` telah dihapus. Auth gating dilakukan di
+> `AppShell` (`lib/shared/widgets/app_shell.dart`): saat belum login →
+> `AuthScreen`, saat belum onboarding → `InitialMotorSetupScreen`.
 
 ---
 
 ## 6. Routing Issues Summary
 
-| Route | Current Target | Should Be |
-|-------|---------------|-----------|
-| `/motor/:id/reminder/add` | AddServiceScreen | CreateReminderScreen (not implemented) |
-| `/motor/:id/reminders` | AddServiceScreen | RemindersListScreen (not implemented) |
-| `/motor/:id/expense/add` | AddServiceScreen | AddExpenseScreen (not implemented) |
-| `/motor/:id/oil/add` | AddServiceScreen | AddServiceScreen (but filtered to oil) |
-| `/backup` | BudgetScreen | BackupScreen (not implemented) |
-| `/restore` | BudgetScreen | RestoreScreen (not implemented) |
-| `/licenses` | BudgetScreen | LicensesScreen (not implemented) |
+Semua route yang diminta sudah terverifikasi membuka layar yang sesuai.
+Status detail dan bukti pengujian ada di `docs/IMPLEMENTATION_STATUS.md`.
+
+| Route | Target | Status |
+|-------|--------|--------|
+| `/motor/:id/reminder/add` | RemindersScreen (sheet tambah terbuka otomatis) | ✅ |
+| `/motor/:id/reminders` | RemindersScreen | ✅ |
+| `/motor/:id/expense/add` | ComingSoonScreen | 🟡 jalur benar, fitur belum ada |
+| `/motor/:id/oil/add` | AddServiceScreen(isOilChange: true) | ✅ |
+| `/backup` | BackupScreen | ✅ |
+| `/restore` | RestoreScreen | ✅ |
+| `/licenses` | LicensesScreen | ✅ |
+
+**Verifikasi:** `test/widgets/tahap01_navigation_test.dart` (22 test).
 
 ---
 
@@ -279,23 +301,23 @@ lib/
 ### catalogs/
 | File | Contents |
 |------|----------|
-| `motorcycle_models.json` | Master data for motorcycle brands/models (NOT loaded into DB) |
-| `spareparts.json` | Local sparepart catalog (seeded via `_seedSpareparts()`) |
+| `motorcycle_models.json` | Master data model motor (18 model, 4 merek). **Valid, tetapi tidak dimuat runtime** — seeding memakai literal Dart yang setara. |
+| `spareparts.json` | Katalog sparepart beserta `fitments`. **Valid, tetapi tidak dimuat runtime** — seeding memakai literal Dart. |
 
 ### images/
 | File | Contents |
 |------|----------|
-| *(empty)* | No images currently |
+| `parts/` | Gambar sparepart (diisi oleh tahap berikutnya) |
 
 ### icons/
 | File | Contents |
 |------|----------|
-| *(empty)* | No icons currently |
+| *(kosong)* | Placeholder |
 
 ### maintenance_rules/
 | File | Contents |
 |------|----------|
-| *(empty)* | No maintenance rule files loaded |
+| `rules_v1.json` | 17 aturan perawatan (6 generic + model-specific). **Valid, tetapi tidak dimuat runtime** — seeding memakai literal Dart. |
 
 ---
 
@@ -311,8 +333,20 @@ Seluruh celah teknis awal telah diselesaikan secara tuntas:
 6. **Master Model Seeded:** Katalog model motor otomatis di-seed secara idempoten saat database diinisialisasi.
 7. **Rute & Navigasi 100% Final:** `/settings`, `/reminders`, `/backup`, `/restore`, `/licenses`, `/motor/:id/oil/add` aktif.
 8. **Dukungan Tema Lengkap:** Tema Terang (*Light*), Gelap (*Dark*), dan Sistem Android persisten di SQLite.
-9. **Suite Pengujian Hijau:** 143/143 pengujian otomatis lulus (unit, widget, database, dan cross-feature integration tests).
+9. **Suite Pengujian Hijau:** 220/220 pengujian otomatis lulus (unit, widget, database, dan cross-feature integration tests).
 10. **Keamanan Kriptografi Tingkat Lanjut:** Enkripsi backup offline `.bhb` menggunakan standar resmi NIST **AES-256-GCM** + **PBKDF2-HMAC-SHA256 (100.000 iterasi)**.
+
+### Pembaruan TAHAP 01 (13 November 2026)
+
+11. **Schema v5 — foreign key `sparepart_id` dipulihkan** pada `service_items` dan `recommendation_items` ke `spareparts(id)`. Baris dengan `sparepart_id` menggantung dinormalkan menjadi `NULL` sebelum tabel dibangun ulang; tidak ada data pengguna yang hilang. Migrasi diverifikasi dengan `test/database/tahap01_integration_test.dart`.
+12. **Operasi database yang tersisa kini atomik:** `deleteComplaint`, `upsertComponentStatus`, dan `recalculateComponentStatuses` dibungkus `transaction()`.
+13. **Filter pengingat diperbaiki:** `getUpcomingReminders` sebelumnya mengembalikan pengingat nonaktif yang punya `dueOdometerKm` (operator `&&` mengikat lebih kuat daripada `||`).
+14. **Kunci cache budget diperbaiki:** `budgetPlanSummaryProvider` kini memakai `BudgetSummaryKey(motorcycleId, budgetAmount)` sehingga dua motor dengan budget sama tidak berbagi hasil.
+15. **Fallback deteksi merek dihapus:** `parts_providers.dart` kini hanya memakai `motor.modelId`; pencocokan substring nickname (yang bisa salah klasifikasi) dihapus.
+16. **Route `/motor/:id/reminder/add`** kini membuka sheet tambah pengingat secara otomatis; route duplikat `/edit-motor/:id` dihapus.
+17. **`createAppRouter()` factory** ditambahkan agar setiap pengujian dapat memakai router sendiri tanpa state navigasi bocor antar test.
+
+Rincian status per fitur ada di `docs/IMPLEMENTATION_STATUS.md`.
 
 ---
 

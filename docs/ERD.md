@@ -1,5 +1,15 @@
 # BuildHaus ERD — 22 Tables
 
+> **Schema version: 5** (lihat `lib/core/database/app_database.dart`)
+>
+> | Versi | Perubahan |
+> |-------|-----------|
+> | v1 | Skema awal 22 tabel inti. |
+> | v2 | Penambahan data master (model motor, sparepart). |
+> | v3 | Backfill data master yang hilang (`_seedReferenceData`). |
+> | v4 | Menghapus constraint `UNIQUE(motorcycle_id, recorded_at)` pada `odometer_logs`. Drift membangun ulang tabel dan menyalin data lama. |
+> | v5 | **Menambahkan foreign key `sparepart_id` pada `service_items` dan `recommendation_items` ke `spareparts(id)`.** Baris dengan `sparepart_id` yang menggantung dinormalkan menjadi `NULL` sebelum tabel dibangun ulang, sehingga tidak ada data pengguna yang hilang. |
+
 ## Mermaid ERD Diagram
 
 ```mermaid
@@ -294,6 +304,8 @@ erDiagram
 | component_types | recommendation_items | 1:N |
 | component_types | local_reminders | 0..1:N |
 | service_records | service_items | 1:N |
+| spareparts | service_items | 0..1:N |
+| spareparts | recommendation_items | 0..1:N |
 | self_inspections | inspection_answers | 1:N |
 | complaints | complaint_messages | 1:N |
 | complaints | complaint_analyses | 1:N |

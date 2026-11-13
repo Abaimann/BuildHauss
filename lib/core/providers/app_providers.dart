@@ -323,6 +323,16 @@ final motorcyclesProvider = StreamProvider<List<Motorcycle>>((ref) {
   return db.watchAllMotorcycles();
 });
 
+// Provider satu motor berdasarkan id. Mengembalikan null bila id tidak ada,
+// sehingga pemanggil tidak pernah diam-diam memakai motor lain.
+final motorcyclesByIdProvider = FutureProvider.family<Motorcycle?, int>((
+  ref,
+  motorcycleId,
+) {
+  final db = ref.watch(databaseProvider);
+  return db.getMotorcycle(motorcycleId);
+});
+
 // Provider riwayat dan pembacaan odometer
 final odometerLogsProvider = FutureProvider.family<List<OdometerLog>, int>((
   ref,
@@ -514,67 +524,101 @@ final allSparepartFitmentsProvider =
   return db.getAllSparepartFitments();
 });
 
+/// Kunci cache untuk [budgetPlanSummaryProvider].
+///
+/// Angka budget saja tidak cukup sebagai kunci: dua motor dengan budget yang
+/// sama akan berbagi entri cache yang sama sehingga rekomendasi motor kedua
+/// bisa menampilkan data motor pertama. Kunci ini menggabungkan id motor dan
+/// jumlah budget sehingga setiap kombinasi motor+budget punya cache sendiri.
+@immutable
+class BudgetSummaryKey {
+  final int? motorcycleId;
+  final int budgetAmount;
+
+  const BudgetSummaryKey({required this.motorcycleId, required this.budgetAmount});
+
+  @override
+  bool operator ==(Object other) =>
+      other is BudgetSummaryKey &&
+      other.motorcycleId == motorcycleId &&
+      other.budgetAmount == budgetAmount;
+
+  @override
+  int get hashCode => Object.hash(motorcycleId, budgetAmount);
+}
+
 // Provider ringkasan rencana anggaran servis pintar (Dynamic Smart Budget Plan)
-final budgetPlanSummaryProvider = FutureProvider.family<BudgetPlanSummary, int>(
-  (ref, budgetAmount) async {
-    final motor = ref.watch(activeMotorcycleProvider);
-    if (motor == null) {
-      return BudgetPlanSummary(
-        budgetAmount: budgetAmount,
-        totalEstimatedCost: 0,
-        totalFundedCost: 0,
-        remainingBudget: budgetAmount,
-        shortfall: 0,
-        totalItems: 0,
-        fundedItemsCount: 0,
-        deferredItemsCount: 0,
-        safetyAlertCount: 0,
-        recommendations: [],
+final budgetPlanSummaryProvider =
+    FutureProvider.family<BudgetPlanSummary, BudgetSummaryKey>((
+      ref,
+      key,
+    ) async {
+      final budgetAmount = key.budgetAmount;
+
+      // Motor yang diminta secara eksplisit menang; bila null, pakai motor aktif.
+      final activeMotor = ref.watch(activeMotorcycleProvider);
+      final motor = key.motorcycleId == null
+          ? activeMotor
+          : await ref.watch(
+              motorcyclesByIdProvider(key.motorcycleId!).future,
+            );
+
+      if (motor == null) {
+        return BudgetPlanSummary(
+          budgetAmount: budgetAmount,
+          totalEstimatedCost: 0,
+          totalFundedCost: 0,
+          remainingBudget: budgetAmount,
+          shortfall: 0,
+          totalItems: 0,
+          fundedItemsCount: 0,
+          deferredItemsCount: 0,
+          safetyAlertCount: 0,
+          recommendations: [],
+        );
+      }
+
+      final db = ref.watch(databaseProvider);
+      final statuses = await ref.watch(
+        componentStatusesWithNamesProvider(motor.id).future,
       );
-    }
+      final latestOdo = await ref.watch(latestOdometerProvider(motor.id).future);
+      final latestInspection = await ref.watch(
+        latestSelfInspectionProvider(motor.id).future,
+      );
+      final complaints = await ref.watch(complaintsProvider(motor.id).future);
+      final serviceRecords = await ref.watch(
+        serviceRecordsProvider(motor.id).future,
+      );
 
-    final db = ref.watch(databaseProvider);
-    final statuses = await ref.watch(
-      componentStatusesWithNamesProvider(motor.id).future,
-    );
-    final latestOdo = await ref.watch(latestOdometerProvider(motor.id).future);
-    final latestInspection = await ref.watch(
-      latestSelfInspectionProvider(motor.id).future,
-    );
-    final complaints = await ref.watch(complaintsProvider(motor.id).future);
-    final serviceRecords = await ref.watch(
-      serviceRecordsProvider(motor.id).future,
-    );
+      List<InspectionFinding> findings = [];
+      if (latestInspection != null) {
+        final answers = await db.getInspectionAnswers(latestInspection.id);
+        final answerMap = {for (var a in answers) a.questionCode: a.answer};
+        final eval = SelfInspectionEngine.evaluate(answerMap);
+        findings = eval.allFindings;
+      }
 
-    List<InspectionFinding> findings = [];
-    if (latestInspection != null) {
-      final answers = await db.getInspectionAnswers(latestInspection.id);
-      final answerMap = {for (var a in answers) a.questionCode: a.answer};
-      final eval = SelfInspectionEngine.evaluate(answerMap);
-      findings = eval.allFindings;
-    }
+      final rules = await db.getAllMaintenanceRules();
+      final spareparts = await db.getAllSpareparts();
+      final fitments = await db.getAllSparepartFitments();
 
-    final rules = await db.getAllMaintenanceRules();
-    final spareparts = await db.getAllSpareparts();
-    final fitments = await db.getAllSparepartFitments();
+      final engine = BudgetEngine(
+        componentHealths: [],
+        budgetAmount: budgetAmount,
+        activeMotorcycle: motor,
+        componentStatusesWithNames: statuses,
+        maintenanceRules: rules,
+        currentOdometer: latestOdo?.odometerKm,
+        serviceRecords: serviceRecords,
+        inspectionFindings: findings,
+        complaints: complaints,
+        spareparts: spareparts,
+        fitments: fitments,
+      );
 
-    final engine = BudgetEngine(
-      componentHealths: [],
-      budgetAmount: budgetAmount,
-      activeMotorcycle: motor,
-      componentStatusesWithNames: statuses,
-      maintenanceRules: rules,
-      currentOdometer: latestOdo?.odometerKm,
-      serviceRecords: serviceRecords,
-      inspectionFindings: findings,
-      complaints: complaints,
-      spareparts: spareparts,
-      fitments: fitments,
-    );
-
-    return engine.calculateSummary();
-  },
-);
+      return engine.calculateSummary();
+    });
 
 // Provider riwayat rencana anggaran servis (Budget Plan History)
 final budgetPlanHistoryProvider = FutureProvider.family<List<BudgetPlan>, int>((

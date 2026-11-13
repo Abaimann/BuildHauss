@@ -92,7 +92,12 @@ final prioritizedSparepartsProvider =
       );
       final budgetAmount = budgetPlan?.budgetAmount ?? 200000;
       final budgetSummary = await ref.watch(
-        budgetPlanSummaryProvider(budgetAmount).future,
+        budgetPlanSummaryProvider(
+          BudgetSummaryKey(
+            motorcycleId: motor.id,
+            budgetAmount: budgetAmount,
+          ),
+        ).future,
       );
 
       // 2. Get Component health statuses
@@ -100,26 +105,17 @@ final prioritizedSparepartsProvider =
         componentStatusesWithNamesProvider(motor.id).future,
       );
 
-      // Active motorcycle brand detection
+      // Deteksi merek motor aktif.
+      //
+      // Merek diambil dari model motor yang terhubung lewat modelId, bukan
+      // dari nickname. Pencocokan teks pada nickname bisa salah klasifikasi
+      // (motor nicknamed "Mio Beat" akan dianggap Honda) dan tidak pernah
+      // considers model yang benar-benar dipilih pengguna.
       String? activeBrand;
       if (motor.modelId != null) {
         final model = await db.getMotorcycleModelById(motor.modelId!);
         if (model != null) {
           activeBrand = model.brand.toLowerCase();
-        }
-      }
-      if (activeBrand == null) {
-        final nick = motor.nickname.toLowerCase();
-        if (nick.contains('vario') ||
-            nick.contains('beat') ||
-            nick.contains('honda') ||
-            nick.contains('pcx')) {
-          activeBrand = 'honda';
-        } else if (nick.contains('aerox') ||
-            nick.contains('nmax') ||
-            nick.contains('yamaha') ||
-            nick.contains('mio')) {
-          activeBrand = 'yamaha';
         }
       }
 

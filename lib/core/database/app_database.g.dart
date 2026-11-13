@@ -3636,6 +3636,1125 @@ class ServiceRecordsCompanion extends UpdateCompanion<ServiceRecord> {
   }
 }
 
+class $CatalogSourcesTable extends CatalogSources
+    with TableInfo<$CatalogSourcesTable, CatalogSource> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CatalogSourcesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _providerNameMeta = const VerificationMeta(
+    'providerName',
+  );
+  @override
+  late final GeneratedColumn<String> providerName = GeneratedColumn<String>(
+    'provider_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _websiteUrlMeta = const VerificationMeta(
+    'websiteUrl',
+  );
+  @override
+  late final GeneratedColumn<String> websiteUrl = GeneratedColumn<String>(
+    'website_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _licenseOrPermissionMeta =
+      const VerificationMeta('licenseOrPermission');
+  @override
+  late final GeneratedColumn<String> licenseOrPermission =
+      GeneratedColumn<String>(
+        'license_or_permission',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _verifiedAtMeta = const VerificationMeta(
+    'verifiedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> verifiedAt = GeneratedColumn<DateTime>(
+    'verified_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastCheckedAtMeta = const VerificationMeta(
+    'lastCheckedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastCheckedAt =
+      GeneratedColumn<DateTime>(
+        'last_checked_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    providerName,
+    websiteUrl,
+    licenseOrPermission,
+    verifiedAt,
+    lastCheckedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'catalog_sources';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CatalogSource> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('provider_name')) {
+      context.handle(
+        _providerNameMeta,
+        providerName.isAcceptableOrUnknown(
+          data['provider_name']!,
+          _providerNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_providerNameMeta);
+    }
+    if (data.containsKey('website_url')) {
+      context.handle(
+        _websiteUrlMeta,
+        websiteUrl.isAcceptableOrUnknown(data['website_url']!, _websiteUrlMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_websiteUrlMeta);
+    }
+    if (data.containsKey('license_or_permission')) {
+      context.handle(
+        _licenseOrPermissionMeta,
+        licenseOrPermission.isAcceptableOrUnknown(
+          data['license_or_permission']!,
+          _licenseOrPermissionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('verified_at')) {
+      context.handle(
+        _verifiedAtMeta,
+        verifiedAt.isAcceptableOrUnknown(data['verified_at']!, _verifiedAtMeta),
+      );
+    }
+    if (data.containsKey('last_checked_at')) {
+      context.handle(
+        _lastCheckedAtMeta,
+        lastCheckedAt.isAcceptableOrUnknown(
+          data['last_checked_at']!,
+          _lastCheckedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CatalogSource map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CatalogSource(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      providerName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider_name'],
+      )!,
+      websiteUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}website_url'],
+      )!,
+      licenseOrPermission: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}license_or_permission'],
+      ),
+      verifiedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}verified_at'],
+      ),
+      lastCheckedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_checked_at'],
+      ),
+    );
+  }
+
+  @override
+  $CatalogSourcesTable createAlias(String alias) {
+    return $CatalogSourcesTable(attachedDatabase, alias);
+  }
+}
+
+class CatalogSource extends DataClass implements Insertable<CatalogSource> {
+  final int id;
+  final String providerName;
+  final String websiteUrl;
+  final String? licenseOrPermission;
+  final DateTime? verifiedAt;
+  final DateTime? lastCheckedAt;
+  const CatalogSource({
+    required this.id,
+    required this.providerName,
+    required this.websiteUrl,
+    this.licenseOrPermission,
+    this.verifiedAt,
+    this.lastCheckedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['provider_name'] = Variable<String>(providerName);
+    map['website_url'] = Variable<String>(websiteUrl);
+    if (!nullToAbsent || licenseOrPermission != null) {
+      map['license_or_permission'] = Variable<String>(licenseOrPermission);
+    }
+    if (!nullToAbsent || verifiedAt != null) {
+      map['verified_at'] = Variable<DateTime>(verifiedAt);
+    }
+    if (!nullToAbsent || lastCheckedAt != null) {
+      map['last_checked_at'] = Variable<DateTime>(lastCheckedAt);
+    }
+    return map;
+  }
+
+  CatalogSourcesCompanion toCompanion(bool nullToAbsent) {
+    return CatalogSourcesCompanion(
+      id: Value(id),
+      providerName: Value(providerName),
+      websiteUrl: Value(websiteUrl),
+      licenseOrPermission: licenseOrPermission == null && nullToAbsent
+          ? const Value.absent()
+          : Value(licenseOrPermission),
+      verifiedAt: verifiedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(verifiedAt),
+      lastCheckedAt: lastCheckedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastCheckedAt),
+    );
+  }
+
+  factory CatalogSource.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CatalogSource(
+      id: serializer.fromJson<int>(json['id']),
+      providerName: serializer.fromJson<String>(json['providerName']),
+      websiteUrl: serializer.fromJson<String>(json['websiteUrl']),
+      licenseOrPermission: serializer.fromJson<String?>(
+        json['licenseOrPermission'],
+      ),
+      verifiedAt: serializer.fromJson<DateTime?>(json['verifiedAt']),
+      lastCheckedAt: serializer.fromJson<DateTime?>(json['lastCheckedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'providerName': serializer.toJson<String>(providerName),
+      'websiteUrl': serializer.toJson<String>(websiteUrl),
+      'licenseOrPermission': serializer.toJson<String?>(licenseOrPermission),
+      'verifiedAt': serializer.toJson<DateTime?>(verifiedAt),
+      'lastCheckedAt': serializer.toJson<DateTime?>(lastCheckedAt),
+    };
+  }
+
+  CatalogSource copyWith({
+    int? id,
+    String? providerName,
+    String? websiteUrl,
+    Value<String?> licenseOrPermission = const Value.absent(),
+    Value<DateTime?> verifiedAt = const Value.absent(),
+    Value<DateTime?> lastCheckedAt = const Value.absent(),
+  }) => CatalogSource(
+    id: id ?? this.id,
+    providerName: providerName ?? this.providerName,
+    websiteUrl: websiteUrl ?? this.websiteUrl,
+    licenseOrPermission: licenseOrPermission.present
+        ? licenseOrPermission.value
+        : this.licenseOrPermission,
+    verifiedAt: verifiedAt.present ? verifiedAt.value : this.verifiedAt,
+    lastCheckedAt: lastCheckedAt.present
+        ? lastCheckedAt.value
+        : this.lastCheckedAt,
+  );
+  CatalogSource copyWithCompanion(CatalogSourcesCompanion data) {
+    return CatalogSource(
+      id: data.id.present ? data.id.value : this.id,
+      providerName: data.providerName.present
+          ? data.providerName.value
+          : this.providerName,
+      websiteUrl: data.websiteUrl.present
+          ? data.websiteUrl.value
+          : this.websiteUrl,
+      licenseOrPermission: data.licenseOrPermission.present
+          ? data.licenseOrPermission.value
+          : this.licenseOrPermission,
+      verifiedAt: data.verifiedAt.present
+          ? data.verifiedAt.value
+          : this.verifiedAt,
+      lastCheckedAt: data.lastCheckedAt.present
+          ? data.lastCheckedAt.value
+          : this.lastCheckedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CatalogSource(')
+          ..write('id: $id, ')
+          ..write('providerName: $providerName, ')
+          ..write('websiteUrl: $websiteUrl, ')
+          ..write('licenseOrPermission: $licenseOrPermission, ')
+          ..write('verifiedAt: $verifiedAt, ')
+          ..write('lastCheckedAt: $lastCheckedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    providerName,
+    websiteUrl,
+    licenseOrPermission,
+    verifiedAt,
+    lastCheckedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CatalogSource &&
+          other.id == this.id &&
+          other.providerName == this.providerName &&
+          other.websiteUrl == this.websiteUrl &&
+          other.licenseOrPermission == this.licenseOrPermission &&
+          other.verifiedAt == this.verifiedAt &&
+          other.lastCheckedAt == this.lastCheckedAt);
+}
+
+class CatalogSourcesCompanion extends UpdateCompanion<CatalogSource> {
+  final Value<int> id;
+  final Value<String> providerName;
+  final Value<String> websiteUrl;
+  final Value<String?> licenseOrPermission;
+  final Value<DateTime?> verifiedAt;
+  final Value<DateTime?> lastCheckedAt;
+  const CatalogSourcesCompanion({
+    this.id = const Value.absent(),
+    this.providerName = const Value.absent(),
+    this.websiteUrl = const Value.absent(),
+    this.licenseOrPermission = const Value.absent(),
+    this.verifiedAt = const Value.absent(),
+    this.lastCheckedAt = const Value.absent(),
+  });
+  CatalogSourcesCompanion.insert({
+    this.id = const Value.absent(),
+    required String providerName,
+    required String websiteUrl,
+    this.licenseOrPermission = const Value.absent(),
+    this.verifiedAt = const Value.absent(),
+    this.lastCheckedAt = const Value.absent(),
+  }) : providerName = Value(providerName),
+       websiteUrl = Value(websiteUrl);
+  static Insertable<CatalogSource> custom({
+    Expression<int>? id,
+    Expression<String>? providerName,
+    Expression<String>? websiteUrl,
+    Expression<String>? licenseOrPermission,
+    Expression<DateTime>? verifiedAt,
+    Expression<DateTime>? lastCheckedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (providerName != null) 'provider_name': providerName,
+      if (websiteUrl != null) 'website_url': websiteUrl,
+      if (licenseOrPermission != null)
+        'license_or_permission': licenseOrPermission,
+      if (verifiedAt != null) 'verified_at': verifiedAt,
+      if (lastCheckedAt != null) 'last_checked_at': lastCheckedAt,
+    });
+  }
+
+  CatalogSourcesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? providerName,
+    Value<String>? websiteUrl,
+    Value<String?>? licenseOrPermission,
+    Value<DateTime?>? verifiedAt,
+    Value<DateTime?>? lastCheckedAt,
+  }) {
+    return CatalogSourcesCompanion(
+      id: id ?? this.id,
+      providerName: providerName ?? this.providerName,
+      websiteUrl: websiteUrl ?? this.websiteUrl,
+      licenseOrPermission: licenseOrPermission ?? this.licenseOrPermission,
+      verifiedAt: verifiedAt ?? this.verifiedAt,
+      lastCheckedAt: lastCheckedAt ?? this.lastCheckedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (providerName.present) {
+      map['provider_name'] = Variable<String>(providerName.value);
+    }
+    if (websiteUrl.present) {
+      map['website_url'] = Variable<String>(websiteUrl.value);
+    }
+    if (licenseOrPermission.present) {
+      map['license_or_permission'] = Variable<String>(
+        licenseOrPermission.value,
+      );
+    }
+    if (verifiedAt.present) {
+      map['verified_at'] = Variable<DateTime>(verifiedAt.value);
+    }
+    if (lastCheckedAt.present) {
+      map['last_checked_at'] = Variable<DateTime>(lastCheckedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CatalogSourcesCompanion(')
+          ..write('id: $id, ')
+          ..write('providerName: $providerName, ')
+          ..write('websiteUrl: $websiteUrl, ')
+          ..write('licenseOrPermission: $licenseOrPermission, ')
+          ..write('verifiedAt: $verifiedAt, ')
+          ..write('lastCheckedAt: $lastCheckedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SparepartsTable extends Spareparts
+    with TableInfo<$SparepartsTable, Sparepart> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SparepartsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
+    'sourceId',
+  );
+  @override
+  late final GeneratedColumn<int> sourceId = GeneratedColumn<int>(
+    'source_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES catalog_sources (id)',
+    ),
+  );
+  static const VerificationMeta _partNumberMeta = const VerificationMeta(
+    'partNumber',
+  );
+  @override
+  late final GeneratedColumn<String> partNumber = GeneratedColumn<String>(
+    'part_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _brandMeta = const VerificationMeta('brand');
+  @override
+  late final GeneratedColumn<String> brand = GeneratedColumn<String>(
+    'brand',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referencePriceMeta = const VerificationMeta(
+    'referencePrice',
+  );
+  @override
+  late final GeneratedColumn<int> referencePrice = GeneratedColumn<int>(
+    'reference_price',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _productUrlMeta = const VerificationMeta(
+    'productUrl',
+  );
+  @override
+  late final GeneratedColumn<String> productUrl = GeneratedColumn<String>(
+    'product_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _priceUpdatedAtMeta = const VerificationMeta(
+    'priceUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> priceUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'price_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _catalogVersionMeta = const VerificationMeta(
+    'catalogVersion',
+  );
+  @override
+  late final GeneratedColumn<String> catalogVersion = GeneratedColumn<String>(
+    'catalog_version',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isVerifiedMeta = const VerificationMeta(
+    'isVerified',
+  );
+  @override
+  late final GeneratedColumn<bool> isVerified = GeneratedColumn<bool>(
+    'is_verified',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_verified" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sourceId,
+    partNumber,
+    name,
+    brand,
+    category,
+    referencePrice,
+    productUrl,
+    priceUpdatedAt,
+    catalogVersion,
+    isVerified,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'spareparts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Sparepart> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(
+        _sourceIdMeta,
+        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
+      );
+    }
+    if (data.containsKey('part_number')) {
+      context.handle(
+        _partNumberMeta,
+        partNumber.isAcceptableOrUnknown(data['part_number']!, _partNumberMeta),
+      );
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('brand')) {
+      context.handle(
+        _brandMeta,
+        brand.isAcceptableOrUnknown(data['brand']!, _brandMeta),
+      );
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('reference_price')) {
+      context.handle(
+        _referencePriceMeta,
+        referencePrice.isAcceptableOrUnknown(
+          data['reference_price']!,
+          _referencePriceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('product_url')) {
+      context.handle(
+        _productUrlMeta,
+        productUrl.isAcceptableOrUnknown(data['product_url']!, _productUrlMeta),
+      );
+    }
+    if (data.containsKey('price_updated_at')) {
+      context.handle(
+        _priceUpdatedAtMeta,
+        priceUpdatedAt.isAcceptableOrUnknown(
+          data['price_updated_at']!,
+          _priceUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('catalog_version')) {
+      context.handle(
+        _catalogVersionMeta,
+        catalogVersion.isAcceptableOrUnknown(
+          data['catalog_version']!,
+          _catalogVersionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_verified')) {
+      context.handle(
+        _isVerifiedMeta,
+        isVerified.isAcceptableOrUnknown(data['is_verified']!, _isVerifiedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Sparepart map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Sparepart(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      sourceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}source_id'],
+      ),
+      partNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}part_number'],
+      ),
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      brand: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}brand'],
+      ),
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      referencePrice: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reference_price'],
+      ),
+      productUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}product_url'],
+      ),
+      priceUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}price_updated_at'],
+      ),
+      catalogVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catalog_version'],
+      ),
+      isVerified: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_verified'],
+      )!,
+    );
+  }
+
+  @override
+  $SparepartsTable createAlias(String alias) {
+    return $SparepartsTable(attachedDatabase, alias);
+  }
+}
+
+class Sparepart extends DataClass implements Insertable<Sparepart> {
+  final int id;
+  final int? sourceId;
+  final String? partNumber;
+  final String name;
+  final String? brand;
+  final String category;
+  final int? referencePrice;
+  final String? productUrl;
+  final DateTime? priceUpdatedAt;
+  final String? catalogVersion;
+  final bool isVerified;
+  const Sparepart({
+    required this.id,
+    this.sourceId,
+    this.partNumber,
+    required this.name,
+    this.brand,
+    required this.category,
+    this.referencePrice,
+    this.productUrl,
+    this.priceUpdatedAt,
+    this.catalogVersion,
+    required this.isVerified,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || sourceId != null) {
+      map['source_id'] = Variable<int>(sourceId);
+    }
+    if (!nullToAbsent || partNumber != null) {
+      map['part_number'] = Variable<String>(partNumber);
+    }
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || brand != null) {
+      map['brand'] = Variable<String>(brand);
+    }
+    map['category'] = Variable<String>(category);
+    if (!nullToAbsent || referencePrice != null) {
+      map['reference_price'] = Variable<int>(referencePrice);
+    }
+    if (!nullToAbsent || productUrl != null) {
+      map['product_url'] = Variable<String>(productUrl);
+    }
+    if (!nullToAbsent || priceUpdatedAt != null) {
+      map['price_updated_at'] = Variable<DateTime>(priceUpdatedAt);
+    }
+    if (!nullToAbsent || catalogVersion != null) {
+      map['catalog_version'] = Variable<String>(catalogVersion);
+    }
+    map['is_verified'] = Variable<bool>(isVerified);
+    return map;
+  }
+
+  SparepartsCompanion toCompanion(bool nullToAbsent) {
+    return SparepartsCompanion(
+      id: Value(id),
+      sourceId: sourceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceId),
+      partNumber: partNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(partNumber),
+      name: Value(name),
+      brand: brand == null && nullToAbsent
+          ? const Value.absent()
+          : Value(brand),
+      category: Value(category),
+      referencePrice: referencePrice == null && nullToAbsent
+          ? const Value.absent()
+          : Value(referencePrice),
+      productUrl: productUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productUrl),
+      priceUpdatedAt: priceUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priceUpdatedAt),
+      catalogVersion: catalogVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(catalogVersion),
+      isVerified: Value(isVerified),
+    );
+  }
+
+  factory Sparepart.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Sparepart(
+      id: serializer.fromJson<int>(json['id']),
+      sourceId: serializer.fromJson<int?>(json['sourceId']),
+      partNumber: serializer.fromJson<String?>(json['partNumber']),
+      name: serializer.fromJson<String>(json['name']),
+      brand: serializer.fromJson<String?>(json['brand']),
+      category: serializer.fromJson<String>(json['category']),
+      referencePrice: serializer.fromJson<int?>(json['referencePrice']),
+      productUrl: serializer.fromJson<String?>(json['productUrl']),
+      priceUpdatedAt: serializer.fromJson<DateTime?>(json['priceUpdatedAt']),
+      catalogVersion: serializer.fromJson<String?>(json['catalogVersion']),
+      isVerified: serializer.fromJson<bool>(json['isVerified']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'sourceId': serializer.toJson<int?>(sourceId),
+      'partNumber': serializer.toJson<String?>(partNumber),
+      'name': serializer.toJson<String>(name),
+      'brand': serializer.toJson<String?>(brand),
+      'category': serializer.toJson<String>(category),
+      'referencePrice': serializer.toJson<int?>(referencePrice),
+      'productUrl': serializer.toJson<String?>(productUrl),
+      'priceUpdatedAt': serializer.toJson<DateTime?>(priceUpdatedAt),
+      'catalogVersion': serializer.toJson<String?>(catalogVersion),
+      'isVerified': serializer.toJson<bool>(isVerified),
+    };
+  }
+
+  Sparepart copyWith({
+    int? id,
+    Value<int?> sourceId = const Value.absent(),
+    Value<String?> partNumber = const Value.absent(),
+    String? name,
+    Value<String?> brand = const Value.absent(),
+    String? category,
+    Value<int?> referencePrice = const Value.absent(),
+    Value<String?> productUrl = const Value.absent(),
+    Value<DateTime?> priceUpdatedAt = const Value.absent(),
+    Value<String?> catalogVersion = const Value.absent(),
+    bool? isVerified,
+  }) => Sparepart(
+    id: id ?? this.id,
+    sourceId: sourceId.present ? sourceId.value : this.sourceId,
+    partNumber: partNumber.present ? partNumber.value : this.partNumber,
+    name: name ?? this.name,
+    brand: brand.present ? brand.value : this.brand,
+    category: category ?? this.category,
+    referencePrice: referencePrice.present
+        ? referencePrice.value
+        : this.referencePrice,
+    productUrl: productUrl.present ? productUrl.value : this.productUrl,
+    priceUpdatedAt: priceUpdatedAt.present
+        ? priceUpdatedAt.value
+        : this.priceUpdatedAt,
+    catalogVersion: catalogVersion.present
+        ? catalogVersion.value
+        : this.catalogVersion,
+    isVerified: isVerified ?? this.isVerified,
+  );
+  Sparepart copyWithCompanion(SparepartsCompanion data) {
+    return Sparepart(
+      id: data.id.present ? data.id.value : this.id,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      partNumber: data.partNumber.present
+          ? data.partNumber.value
+          : this.partNumber,
+      name: data.name.present ? data.name.value : this.name,
+      brand: data.brand.present ? data.brand.value : this.brand,
+      category: data.category.present ? data.category.value : this.category,
+      referencePrice: data.referencePrice.present
+          ? data.referencePrice.value
+          : this.referencePrice,
+      productUrl: data.productUrl.present
+          ? data.productUrl.value
+          : this.productUrl,
+      priceUpdatedAt: data.priceUpdatedAt.present
+          ? data.priceUpdatedAt.value
+          : this.priceUpdatedAt,
+      catalogVersion: data.catalogVersion.present
+          ? data.catalogVersion.value
+          : this.catalogVersion,
+      isVerified: data.isVerified.present
+          ? data.isVerified.value
+          : this.isVerified,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Sparepart(')
+          ..write('id: $id, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('partNumber: $partNumber, ')
+          ..write('name: $name, ')
+          ..write('brand: $brand, ')
+          ..write('category: $category, ')
+          ..write('referencePrice: $referencePrice, ')
+          ..write('productUrl: $productUrl, ')
+          ..write('priceUpdatedAt: $priceUpdatedAt, ')
+          ..write('catalogVersion: $catalogVersion, ')
+          ..write('isVerified: $isVerified')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sourceId,
+    partNumber,
+    name,
+    brand,
+    category,
+    referencePrice,
+    productUrl,
+    priceUpdatedAt,
+    catalogVersion,
+    isVerified,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Sparepart &&
+          other.id == this.id &&
+          other.sourceId == this.sourceId &&
+          other.partNumber == this.partNumber &&
+          other.name == this.name &&
+          other.brand == this.brand &&
+          other.category == this.category &&
+          other.referencePrice == this.referencePrice &&
+          other.productUrl == this.productUrl &&
+          other.priceUpdatedAt == this.priceUpdatedAt &&
+          other.catalogVersion == this.catalogVersion &&
+          other.isVerified == this.isVerified);
+}
+
+class SparepartsCompanion extends UpdateCompanion<Sparepart> {
+  final Value<int> id;
+  final Value<int?> sourceId;
+  final Value<String?> partNumber;
+  final Value<String> name;
+  final Value<String?> brand;
+  final Value<String> category;
+  final Value<int?> referencePrice;
+  final Value<String?> productUrl;
+  final Value<DateTime?> priceUpdatedAt;
+  final Value<String?> catalogVersion;
+  final Value<bool> isVerified;
+  const SparepartsCompanion({
+    this.id = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.partNumber = const Value.absent(),
+    this.name = const Value.absent(),
+    this.brand = const Value.absent(),
+    this.category = const Value.absent(),
+    this.referencePrice = const Value.absent(),
+    this.productUrl = const Value.absent(),
+    this.priceUpdatedAt = const Value.absent(),
+    this.catalogVersion = const Value.absent(),
+    this.isVerified = const Value.absent(),
+  });
+  SparepartsCompanion.insert({
+    this.id = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.partNumber = const Value.absent(),
+    required String name,
+    this.brand = const Value.absent(),
+    required String category,
+    this.referencePrice = const Value.absent(),
+    this.productUrl = const Value.absent(),
+    this.priceUpdatedAt = const Value.absent(),
+    this.catalogVersion = const Value.absent(),
+    this.isVerified = const Value.absent(),
+  }) : name = Value(name),
+       category = Value(category);
+  static Insertable<Sparepart> custom({
+    Expression<int>? id,
+    Expression<int>? sourceId,
+    Expression<String>? partNumber,
+    Expression<String>? name,
+    Expression<String>? brand,
+    Expression<String>? category,
+    Expression<int>? referencePrice,
+    Expression<String>? productUrl,
+    Expression<DateTime>? priceUpdatedAt,
+    Expression<String>? catalogVersion,
+    Expression<bool>? isVerified,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sourceId != null) 'source_id': sourceId,
+      if (partNumber != null) 'part_number': partNumber,
+      if (name != null) 'name': name,
+      if (brand != null) 'brand': brand,
+      if (category != null) 'category': category,
+      if (referencePrice != null) 'reference_price': referencePrice,
+      if (productUrl != null) 'product_url': productUrl,
+      if (priceUpdatedAt != null) 'price_updated_at': priceUpdatedAt,
+      if (catalogVersion != null) 'catalog_version': catalogVersion,
+      if (isVerified != null) 'is_verified': isVerified,
+    });
+  }
+
+  SparepartsCompanion copyWith({
+    Value<int>? id,
+    Value<int?>? sourceId,
+    Value<String?>? partNumber,
+    Value<String>? name,
+    Value<String?>? brand,
+    Value<String>? category,
+    Value<int?>? referencePrice,
+    Value<String?>? productUrl,
+    Value<DateTime?>? priceUpdatedAt,
+    Value<String?>? catalogVersion,
+    Value<bool>? isVerified,
+  }) {
+    return SparepartsCompanion(
+      id: id ?? this.id,
+      sourceId: sourceId ?? this.sourceId,
+      partNumber: partNumber ?? this.partNumber,
+      name: name ?? this.name,
+      brand: brand ?? this.brand,
+      category: category ?? this.category,
+      referencePrice: referencePrice ?? this.referencePrice,
+      productUrl: productUrl ?? this.productUrl,
+      priceUpdatedAt: priceUpdatedAt ?? this.priceUpdatedAt,
+      catalogVersion: catalogVersion ?? this.catalogVersion,
+      isVerified: isVerified ?? this.isVerified,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<int>(sourceId.value);
+    }
+    if (partNumber.present) {
+      map['part_number'] = Variable<String>(partNumber.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (brand.present) {
+      map['brand'] = Variable<String>(brand.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (referencePrice.present) {
+      map['reference_price'] = Variable<int>(referencePrice.value);
+    }
+    if (productUrl.present) {
+      map['product_url'] = Variable<String>(productUrl.value);
+    }
+    if (priceUpdatedAt.present) {
+      map['price_updated_at'] = Variable<DateTime>(priceUpdatedAt.value);
+    }
+    if (catalogVersion.present) {
+      map['catalog_version'] = Variable<String>(catalogVersion.value);
+    }
+    if (isVerified.present) {
+      map['is_verified'] = Variable<bool>(isVerified.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SparepartsCompanion(')
+          ..write('id: $id, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('partNumber: $partNumber, ')
+          ..write('name: $name, ')
+          ..write('brand: $brand, ')
+          ..write('category: $category, ')
+          ..write('referencePrice: $referencePrice, ')
+          ..write('productUrl: $productUrl, ')
+          ..write('priceUpdatedAt: $priceUpdatedAt, ')
+          ..write('catalogVersion: $catalogVersion, ')
+          ..write('isVerified: $isVerified')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ServiceItemsTable extends ServiceItems
     with TableInfo<$ServiceItemsTable, ServiceItem> {
   @override
@@ -3693,6 +4812,9 @@ class $ServiceItemsTable extends ServiceItems
     true,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES spareparts (id)',
+    ),
   );
   static const VerificationMeta _actionMeta = const VerificationMeta('action');
   @override
@@ -6822,1125 +7944,6 @@ class ComplaintAnalysesCompanion extends UpdateCompanion<ComplaintAnalysis> {
   }
 }
 
-class $CatalogSourcesTable extends CatalogSources
-    with TableInfo<$CatalogSourcesTable, CatalogSource> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $CatalogSourcesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _providerNameMeta = const VerificationMeta(
-    'providerName',
-  );
-  @override
-  late final GeneratedColumn<String> providerName = GeneratedColumn<String>(
-    'provider_name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _websiteUrlMeta = const VerificationMeta(
-    'websiteUrl',
-  );
-  @override
-  late final GeneratedColumn<String> websiteUrl = GeneratedColumn<String>(
-    'website_url',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _licenseOrPermissionMeta =
-      const VerificationMeta('licenseOrPermission');
-  @override
-  late final GeneratedColumn<String> licenseOrPermission =
-      GeneratedColumn<String>(
-        'license_or_permission',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _verifiedAtMeta = const VerificationMeta(
-    'verifiedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> verifiedAt = GeneratedColumn<DateTime>(
-    'verified_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _lastCheckedAtMeta = const VerificationMeta(
-    'lastCheckedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> lastCheckedAt =
-      GeneratedColumn<DateTime>(
-        'last_checked_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    providerName,
-    websiteUrl,
-    licenseOrPermission,
-    verifiedAt,
-    lastCheckedAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'catalog_sources';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<CatalogSource> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('provider_name')) {
-      context.handle(
-        _providerNameMeta,
-        providerName.isAcceptableOrUnknown(
-          data['provider_name']!,
-          _providerNameMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_providerNameMeta);
-    }
-    if (data.containsKey('website_url')) {
-      context.handle(
-        _websiteUrlMeta,
-        websiteUrl.isAcceptableOrUnknown(data['website_url']!, _websiteUrlMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_websiteUrlMeta);
-    }
-    if (data.containsKey('license_or_permission')) {
-      context.handle(
-        _licenseOrPermissionMeta,
-        licenseOrPermission.isAcceptableOrUnknown(
-          data['license_or_permission']!,
-          _licenseOrPermissionMeta,
-        ),
-      );
-    }
-    if (data.containsKey('verified_at')) {
-      context.handle(
-        _verifiedAtMeta,
-        verifiedAt.isAcceptableOrUnknown(data['verified_at']!, _verifiedAtMeta),
-      );
-    }
-    if (data.containsKey('last_checked_at')) {
-      context.handle(
-        _lastCheckedAtMeta,
-        lastCheckedAt.isAcceptableOrUnknown(
-          data['last_checked_at']!,
-          _lastCheckedAtMeta,
-        ),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  CatalogSource map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CatalogSource(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      providerName: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}provider_name'],
-      )!,
-      websiteUrl: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}website_url'],
-      )!,
-      licenseOrPermission: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}license_or_permission'],
-      ),
-      verifiedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}verified_at'],
-      ),
-      lastCheckedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_checked_at'],
-      ),
-    );
-  }
-
-  @override
-  $CatalogSourcesTable createAlias(String alias) {
-    return $CatalogSourcesTable(attachedDatabase, alias);
-  }
-}
-
-class CatalogSource extends DataClass implements Insertable<CatalogSource> {
-  final int id;
-  final String providerName;
-  final String websiteUrl;
-  final String? licenseOrPermission;
-  final DateTime? verifiedAt;
-  final DateTime? lastCheckedAt;
-  const CatalogSource({
-    required this.id,
-    required this.providerName,
-    required this.websiteUrl,
-    this.licenseOrPermission,
-    this.verifiedAt,
-    this.lastCheckedAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['provider_name'] = Variable<String>(providerName);
-    map['website_url'] = Variable<String>(websiteUrl);
-    if (!nullToAbsent || licenseOrPermission != null) {
-      map['license_or_permission'] = Variable<String>(licenseOrPermission);
-    }
-    if (!nullToAbsent || verifiedAt != null) {
-      map['verified_at'] = Variable<DateTime>(verifiedAt);
-    }
-    if (!nullToAbsent || lastCheckedAt != null) {
-      map['last_checked_at'] = Variable<DateTime>(lastCheckedAt);
-    }
-    return map;
-  }
-
-  CatalogSourcesCompanion toCompanion(bool nullToAbsent) {
-    return CatalogSourcesCompanion(
-      id: Value(id),
-      providerName: Value(providerName),
-      websiteUrl: Value(websiteUrl),
-      licenseOrPermission: licenseOrPermission == null && nullToAbsent
-          ? const Value.absent()
-          : Value(licenseOrPermission),
-      verifiedAt: verifiedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(verifiedAt),
-      lastCheckedAt: lastCheckedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lastCheckedAt),
-    );
-  }
-
-  factory CatalogSource.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CatalogSource(
-      id: serializer.fromJson<int>(json['id']),
-      providerName: serializer.fromJson<String>(json['providerName']),
-      websiteUrl: serializer.fromJson<String>(json['websiteUrl']),
-      licenseOrPermission: serializer.fromJson<String?>(
-        json['licenseOrPermission'],
-      ),
-      verifiedAt: serializer.fromJson<DateTime?>(json['verifiedAt']),
-      lastCheckedAt: serializer.fromJson<DateTime?>(json['lastCheckedAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'providerName': serializer.toJson<String>(providerName),
-      'websiteUrl': serializer.toJson<String>(websiteUrl),
-      'licenseOrPermission': serializer.toJson<String?>(licenseOrPermission),
-      'verifiedAt': serializer.toJson<DateTime?>(verifiedAt),
-      'lastCheckedAt': serializer.toJson<DateTime?>(lastCheckedAt),
-    };
-  }
-
-  CatalogSource copyWith({
-    int? id,
-    String? providerName,
-    String? websiteUrl,
-    Value<String?> licenseOrPermission = const Value.absent(),
-    Value<DateTime?> verifiedAt = const Value.absent(),
-    Value<DateTime?> lastCheckedAt = const Value.absent(),
-  }) => CatalogSource(
-    id: id ?? this.id,
-    providerName: providerName ?? this.providerName,
-    websiteUrl: websiteUrl ?? this.websiteUrl,
-    licenseOrPermission: licenseOrPermission.present
-        ? licenseOrPermission.value
-        : this.licenseOrPermission,
-    verifiedAt: verifiedAt.present ? verifiedAt.value : this.verifiedAt,
-    lastCheckedAt: lastCheckedAt.present
-        ? lastCheckedAt.value
-        : this.lastCheckedAt,
-  );
-  CatalogSource copyWithCompanion(CatalogSourcesCompanion data) {
-    return CatalogSource(
-      id: data.id.present ? data.id.value : this.id,
-      providerName: data.providerName.present
-          ? data.providerName.value
-          : this.providerName,
-      websiteUrl: data.websiteUrl.present
-          ? data.websiteUrl.value
-          : this.websiteUrl,
-      licenseOrPermission: data.licenseOrPermission.present
-          ? data.licenseOrPermission.value
-          : this.licenseOrPermission,
-      verifiedAt: data.verifiedAt.present
-          ? data.verifiedAt.value
-          : this.verifiedAt,
-      lastCheckedAt: data.lastCheckedAt.present
-          ? data.lastCheckedAt.value
-          : this.lastCheckedAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('CatalogSource(')
-          ..write('id: $id, ')
-          ..write('providerName: $providerName, ')
-          ..write('websiteUrl: $websiteUrl, ')
-          ..write('licenseOrPermission: $licenseOrPermission, ')
-          ..write('verifiedAt: $verifiedAt, ')
-          ..write('lastCheckedAt: $lastCheckedAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    id,
-    providerName,
-    websiteUrl,
-    licenseOrPermission,
-    verifiedAt,
-    lastCheckedAt,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is CatalogSource &&
-          other.id == this.id &&
-          other.providerName == this.providerName &&
-          other.websiteUrl == this.websiteUrl &&
-          other.licenseOrPermission == this.licenseOrPermission &&
-          other.verifiedAt == this.verifiedAt &&
-          other.lastCheckedAt == this.lastCheckedAt);
-}
-
-class CatalogSourcesCompanion extends UpdateCompanion<CatalogSource> {
-  final Value<int> id;
-  final Value<String> providerName;
-  final Value<String> websiteUrl;
-  final Value<String?> licenseOrPermission;
-  final Value<DateTime?> verifiedAt;
-  final Value<DateTime?> lastCheckedAt;
-  const CatalogSourcesCompanion({
-    this.id = const Value.absent(),
-    this.providerName = const Value.absent(),
-    this.websiteUrl = const Value.absent(),
-    this.licenseOrPermission = const Value.absent(),
-    this.verifiedAt = const Value.absent(),
-    this.lastCheckedAt = const Value.absent(),
-  });
-  CatalogSourcesCompanion.insert({
-    this.id = const Value.absent(),
-    required String providerName,
-    required String websiteUrl,
-    this.licenseOrPermission = const Value.absent(),
-    this.verifiedAt = const Value.absent(),
-    this.lastCheckedAt = const Value.absent(),
-  }) : providerName = Value(providerName),
-       websiteUrl = Value(websiteUrl);
-  static Insertable<CatalogSource> custom({
-    Expression<int>? id,
-    Expression<String>? providerName,
-    Expression<String>? websiteUrl,
-    Expression<String>? licenseOrPermission,
-    Expression<DateTime>? verifiedAt,
-    Expression<DateTime>? lastCheckedAt,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (providerName != null) 'provider_name': providerName,
-      if (websiteUrl != null) 'website_url': websiteUrl,
-      if (licenseOrPermission != null)
-        'license_or_permission': licenseOrPermission,
-      if (verifiedAt != null) 'verified_at': verifiedAt,
-      if (lastCheckedAt != null) 'last_checked_at': lastCheckedAt,
-    });
-  }
-
-  CatalogSourcesCompanion copyWith({
-    Value<int>? id,
-    Value<String>? providerName,
-    Value<String>? websiteUrl,
-    Value<String?>? licenseOrPermission,
-    Value<DateTime?>? verifiedAt,
-    Value<DateTime?>? lastCheckedAt,
-  }) {
-    return CatalogSourcesCompanion(
-      id: id ?? this.id,
-      providerName: providerName ?? this.providerName,
-      websiteUrl: websiteUrl ?? this.websiteUrl,
-      licenseOrPermission: licenseOrPermission ?? this.licenseOrPermission,
-      verifiedAt: verifiedAt ?? this.verifiedAt,
-      lastCheckedAt: lastCheckedAt ?? this.lastCheckedAt,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (providerName.present) {
-      map['provider_name'] = Variable<String>(providerName.value);
-    }
-    if (websiteUrl.present) {
-      map['website_url'] = Variable<String>(websiteUrl.value);
-    }
-    if (licenseOrPermission.present) {
-      map['license_or_permission'] = Variable<String>(
-        licenseOrPermission.value,
-      );
-    }
-    if (verifiedAt.present) {
-      map['verified_at'] = Variable<DateTime>(verifiedAt.value);
-    }
-    if (lastCheckedAt.present) {
-      map['last_checked_at'] = Variable<DateTime>(lastCheckedAt.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('CatalogSourcesCompanion(')
-          ..write('id: $id, ')
-          ..write('providerName: $providerName, ')
-          ..write('websiteUrl: $websiteUrl, ')
-          ..write('licenseOrPermission: $licenseOrPermission, ')
-          ..write('verifiedAt: $verifiedAt, ')
-          ..write('lastCheckedAt: $lastCheckedAt')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $SparepartsTable extends Spareparts
-    with TableInfo<$SparepartsTable, Sparepart> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $SparepartsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
-    'sourceId',
-  );
-  @override
-  late final GeneratedColumn<int> sourceId = GeneratedColumn<int>(
-    'source_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES catalog_sources (id)',
-    ),
-  );
-  static const VerificationMeta _partNumberMeta = const VerificationMeta(
-    'partNumber',
-  );
-  @override
-  late final GeneratedColumn<String> partNumber = GeneratedColumn<String>(
-    'part_number',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _brandMeta = const VerificationMeta('brand');
-  @override
-  late final GeneratedColumn<String> brand = GeneratedColumn<String>(
-    'brand',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _categoryMeta = const VerificationMeta(
-    'category',
-  );
-  @override
-  late final GeneratedColumn<String> category = GeneratedColumn<String>(
-    'category',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _referencePriceMeta = const VerificationMeta(
-    'referencePrice',
-  );
-  @override
-  late final GeneratedColumn<int> referencePrice = GeneratedColumn<int>(
-    'reference_price',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _productUrlMeta = const VerificationMeta(
-    'productUrl',
-  );
-  @override
-  late final GeneratedColumn<String> productUrl = GeneratedColumn<String>(
-    'product_url',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _priceUpdatedAtMeta = const VerificationMeta(
-    'priceUpdatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> priceUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'price_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _catalogVersionMeta = const VerificationMeta(
-    'catalogVersion',
-  );
-  @override
-  late final GeneratedColumn<String> catalogVersion = GeneratedColumn<String>(
-    'catalog_version',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _isVerifiedMeta = const VerificationMeta(
-    'isVerified',
-  );
-  @override
-  late final GeneratedColumn<bool> isVerified = GeneratedColumn<bool>(
-    'is_verified',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_verified" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    sourceId,
-    partNumber,
-    name,
-    brand,
-    category,
-    referencePrice,
-    productUrl,
-    priceUpdatedAt,
-    catalogVersion,
-    isVerified,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'spareparts';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<Sparepart> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('source_id')) {
-      context.handle(
-        _sourceIdMeta,
-        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
-      );
-    }
-    if (data.containsKey('part_number')) {
-      context.handle(
-        _partNumberMeta,
-        partNumber.isAcceptableOrUnknown(data['part_number']!, _partNumberMeta),
-      );
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    if (data.containsKey('brand')) {
-      context.handle(
-        _brandMeta,
-        brand.isAcceptableOrUnknown(data['brand']!, _brandMeta),
-      );
-    }
-    if (data.containsKey('category')) {
-      context.handle(
-        _categoryMeta,
-        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_categoryMeta);
-    }
-    if (data.containsKey('reference_price')) {
-      context.handle(
-        _referencePriceMeta,
-        referencePrice.isAcceptableOrUnknown(
-          data['reference_price']!,
-          _referencePriceMeta,
-        ),
-      );
-    }
-    if (data.containsKey('product_url')) {
-      context.handle(
-        _productUrlMeta,
-        productUrl.isAcceptableOrUnknown(data['product_url']!, _productUrlMeta),
-      );
-    }
-    if (data.containsKey('price_updated_at')) {
-      context.handle(
-        _priceUpdatedAtMeta,
-        priceUpdatedAt.isAcceptableOrUnknown(
-          data['price_updated_at']!,
-          _priceUpdatedAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('catalog_version')) {
-      context.handle(
-        _catalogVersionMeta,
-        catalogVersion.isAcceptableOrUnknown(
-          data['catalog_version']!,
-          _catalogVersionMeta,
-        ),
-      );
-    }
-    if (data.containsKey('is_verified')) {
-      context.handle(
-        _isVerifiedMeta,
-        isVerified.isAcceptableOrUnknown(data['is_verified']!, _isVerifiedMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  Sparepart map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Sparepart(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      sourceId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}source_id'],
-      ),
-      partNumber: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}part_number'],
-      ),
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-      brand: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}brand'],
-      ),
-      category: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}category'],
-      )!,
-      referencePrice: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}reference_price'],
-      ),
-      productUrl: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}product_url'],
-      ),
-      priceUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}price_updated_at'],
-      ),
-      catalogVersion: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}catalog_version'],
-      ),
-      isVerified: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_verified'],
-      )!,
-    );
-  }
-
-  @override
-  $SparepartsTable createAlias(String alias) {
-    return $SparepartsTable(attachedDatabase, alias);
-  }
-}
-
-class Sparepart extends DataClass implements Insertable<Sparepart> {
-  final int id;
-  final int? sourceId;
-  final String? partNumber;
-  final String name;
-  final String? brand;
-  final String category;
-  final int? referencePrice;
-  final String? productUrl;
-  final DateTime? priceUpdatedAt;
-  final String? catalogVersion;
-  final bool isVerified;
-  const Sparepart({
-    required this.id,
-    this.sourceId,
-    this.partNumber,
-    required this.name,
-    this.brand,
-    required this.category,
-    this.referencePrice,
-    this.productUrl,
-    this.priceUpdatedAt,
-    this.catalogVersion,
-    required this.isVerified,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    if (!nullToAbsent || sourceId != null) {
-      map['source_id'] = Variable<int>(sourceId);
-    }
-    if (!nullToAbsent || partNumber != null) {
-      map['part_number'] = Variable<String>(partNumber);
-    }
-    map['name'] = Variable<String>(name);
-    if (!nullToAbsent || brand != null) {
-      map['brand'] = Variable<String>(brand);
-    }
-    map['category'] = Variable<String>(category);
-    if (!nullToAbsent || referencePrice != null) {
-      map['reference_price'] = Variable<int>(referencePrice);
-    }
-    if (!nullToAbsent || productUrl != null) {
-      map['product_url'] = Variable<String>(productUrl);
-    }
-    if (!nullToAbsent || priceUpdatedAt != null) {
-      map['price_updated_at'] = Variable<DateTime>(priceUpdatedAt);
-    }
-    if (!nullToAbsent || catalogVersion != null) {
-      map['catalog_version'] = Variable<String>(catalogVersion);
-    }
-    map['is_verified'] = Variable<bool>(isVerified);
-    return map;
-  }
-
-  SparepartsCompanion toCompanion(bool nullToAbsent) {
-    return SparepartsCompanion(
-      id: Value(id),
-      sourceId: sourceId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(sourceId),
-      partNumber: partNumber == null && nullToAbsent
-          ? const Value.absent()
-          : Value(partNumber),
-      name: Value(name),
-      brand: brand == null && nullToAbsent
-          ? const Value.absent()
-          : Value(brand),
-      category: Value(category),
-      referencePrice: referencePrice == null && nullToAbsent
-          ? const Value.absent()
-          : Value(referencePrice),
-      productUrl: productUrl == null && nullToAbsent
-          ? const Value.absent()
-          : Value(productUrl),
-      priceUpdatedAt: priceUpdatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(priceUpdatedAt),
-      catalogVersion: catalogVersion == null && nullToAbsent
-          ? const Value.absent()
-          : Value(catalogVersion),
-      isVerified: Value(isVerified),
-    );
-  }
-
-  factory Sparepart.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Sparepart(
-      id: serializer.fromJson<int>(json['id']),
-      sourceId: serializer.fromJson<int?>(json['sourceId']),
-      partNumber: serializer.fromJson<String?>(json['partNumber']),
-      name: serializer.fromJson<String>(json['name']),
-      brand: serializer.fromJson<String?>(json['brand']),
-      category: serializer.fromJson<String>(json['category']),
-      referencePrice: serializer.fromJson<int?>(json['referencePrice']),
-      productUrl: serializer.fromJson<String?>(json['productUrl']),
-      priceUpdatedAt: serializer.fromJson<DateTime?>(json['priceUpdatedAt']),
-      catalogVersion: serializer.fromJson<String?>(json['catalogVersion']),
-      isVerified: serializer.fromJson<bool>(json['isVerified']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'sourceId': serializer.toJson<int?>(sourceId),
-      'partNumber': serializer.toJson<String?>(partNumber),
-      'name': serializer.toJson<String>(name),
-      'brand': serializer.toJson<String?>(brand),
-      'category': serializer.toJson<String>(category),
-      'referencePrice': serializer.toJson<int?>(referencePrice),
-      'productUrl': serializer.toJson<String?>(productUrl),
-      'priceUpdatedAt': serializer.toJson<DateTime?>(priceUpdatedAt),
-      'catalogVersion': serializer.toJson<String?>(catalogVersion),
-      'isVerified': serializer.toJson<bool>(isVerified),
-    };
-  }
-
-  Sparepart copyWith({
-    int? id,
-    Value<int?> sourceId = const Value.absent(),
-    Value<String?> partNumber = const Value.absent(),
-    String? name,
-    Value<String?> brand = const Value.absent(),
-    String? category,
-    Value<int?> referencePrice = const Value.absent(),
-    Value<String?> productUrl = const Value.absent(),
-    Value<DateTime?> priceUpdatedAt = const Value.absent(),
-    Value<String?> catalogVersion = const Value.absent(),
-    bool? isVerified,
-  }) => Sparepart(
-    id: id ?? this.id,
-    sourceId: sourceId.present ? sourceId.value : this.sourceId,
-    partNumber: partNumber.present ? partNumber.value : this.partNumber,
-    name: name ?? this.name,
-    brand: brand.present ? brand.value : this.brand,
-    category: category ?? this.category,
-    referencePrice: referencePrice.present
-        ? referencePrice.value
-        : this.referencePrice,
-    productUrl: productUrl.present ? productUrl.value : this.productUrl,
-    priceUpdatedAt: priceUpdatedAt.present
-        ? priceUpdatedAt.value
-        : this.priceUpdatedAt,
-    catalogVersion: catalogVersion.present
-        ? catalogVersion.value
-        : this.catalogVersion,
-    isVerified: isVerified ?? this.isVerified,
-  );
-  Sparepart copyWithCompanion(SparepartsCompanion data) {
-    return Sparepart(
-      id: data.id.present ? data.id.value : this.id,
-      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
-      partNumber: data.partNumber.present
-          ? data.partNumber.value
-          : this.partNumber,
-      name: data.name.present ? data.name.value : this.name,
-      brand: data.brand.present ? data.brand.value : this.brand,
-      category: data.category.present ? data.category.value : this.category,
-      referencePrice: data.referencePrice.present
-          ? data.referencePrice.value
-          : this.referencePrice,
-      productUrl: data.productUrl.present
-          ? data.productUrl.value
-          : this.productUrl,
-      priceUpdatedAt: data.priceUpdatedAt.present
-          ? data.priceUpdatedAt.value
-          : this.priceUpdatedAt,
-      catalogVersion: data.catalogVersion.present
-          ? data.catalogVersion.value
-          : this.catalogVersion,
-      isVerified: data.isVerified.present
-          ? data.isVerified.value
-          : this.isVerified,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('Sparepart(')
-          ..write('id: $id, ')
-          ..write('sourceId: $sourceId, ')
-          ..write('partNumber: $partNumber, ')
-          ..write('name: $name, ')
-          ..write('brand: $brand, ')
-          ..write('category: $category, ')
-          ..write('referencePrice: $referencePrice, ')
-          ..write('productUrl: $productUrl, ')
-          ..write('priceUpdatedAt: $priceUpdatedAt, ')
-          ..write('catalogVersion: $catalogVersion, ')
-          ..write('isVerified: $isVerified')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    id,
-    sourceId,
-    partNumber,
-    name,
-    brand,
-    category,
-    referencePrice,
-    productUrl,
-    priceUpdatedAt,
-    catalogVersion,
-    isVerified,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is Sparepart &&
-          other.id == this.id &&
-          other.sourceId == this.sourceId &&
-          other.partNumber == this.partNumber &&
-          other.name == this.name &&
-          other.brand == this.brand &&
-          other.category == this.category &&
-          other.referencePrice == this.referencePrice &&
-          other.productUrl == this.productUrl &&
-          other.priceUpdatedAt == this.priceUpdatedAt &&
-          other.catalogVersion == this.catalogVersion &&
-          other.isVerified == this.isVerified);
-}
-
-class SparepartsCompanion extends UpdateCompanion<Sparepart> {
-  final Value<int> id;
-  final Value<int?> sourceId;
-  final Value<String?> partNumber;
-  final Value<String> name;
-  final Value<String?> brand;
-  final Value<String> category;
-  final Value<int?> referencePrice;
-  final Value<String?> productUrl;
-  final Value<DateTime?> priceUpdatedAt;
-  final Value<String?> catalogVersion;
-  final Value<bool> isVerified;
-  const SparepartsCompanion({
-    this.id = const Value.absent(),
-    this.sourceId = const Value.absent(),
-    this.partNumber = const Value.absent(),
-    this.name = const Value.absent(),
-    this.brand = const Value.absent(),
-    this.category = const Value.absent(),
-    this.referencePrice = const Value.absent(),
-    this.productUrl = const Value.absent(),
-    this.priceUpdatedAt = const Value.absent(),
-    this.catalogVersion = const Value.absent(),
-    this.isVerified = const Value.absent(),
-  });
-  SparepartsCompanion.insert({
-    this.id = const Value.absent(),
-    this.sourceId = const Value.absent(),
-    this.partNumber = const Value.absent(),
-    required String name,
-    this.brand = const Value.absent(),
-    required String category,
-    this.referencePrice = const Value.absent(),
-    this.productUrl = const Value.absent(),
-    this.priceUpdatedAt = const Value.absent(),
-    this.catalogVersion = const Value.absent(),
-    this.isVerified = const Value.absent(),
-  }) : name = Value(name),
-       category = Value(category);
-  static Insertable<Sparepart> custom({
-    Expression<int>? id,
-    Expression<int>? sourceId,
-    Expression<String>? partNumber,
-    Expression<String>? name,
-    Expression<String>? brand,
-    Expression<String>? category,
-    Expression<int>? referencePrice,
-    Expression<String>? productUrl,
-    Expression<DateTime>? priceUpdatedAt,
-    Expression<String>? catalogVersion,
-    Expression<bool>? isVerified,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (sourceId != null) 'source_id': sourceId,
-      if (partNumber != null) 'part_number': partNumber,
-      if (name != null) 'name': name,
-      if (brand != null) 'brand': brand,
-      if (category != null) 'category': category,
-      if (referencePrice != null) 'reference_price': referencePrice,
-      if (productUrl != null) 'product_url': productUrl,
-      if (priceUpdatedAt != null) 'price_updated_at': priceUpdatedAt,
-      if (catalogVersion != null) 'catalog_version': catalogVersion,
-      if (isVerified != null) 'is_verified': isVerified,
-    });
-  }
-
-  SparepartsCompanion copyWith({
-    Value<int>? id,
-    Value<int?>? sourceId,
-    Value<String?>? partNumber,
-    Value<String>? name,
-    Value<String?>? brand,
-    Value<String>? category,
-    Value<int?>? referencePrice,
-    Value<String?>? productUrl,
-    Value<DateTime?>? priceUpdatedAt,
-    Value<String?>? catalogVersion,
-    Value<bool>? isVerified,
-  }) {
-    return SparepartsCompanion(
-      id: id ?? this.id,
-      sourceId: sourceId ?? this.sourceId,
-      partNumber: partNumber ?? this.partNumber,
-      name: name ?? this.name,
-      brand: brand ?? this.brand,
-      category: category ?? this.category,
-      referencePrice: referencePrice ?? this.referencePrice,
-      productUrl: productUrl ?? this.productUrl,
-      priceUpdatedAt: priceUpdatedAt ?? this.priceUpdatedAt,
-      catalogVersion: catalogVersion ?? this.catalogVersion,
-      isVerified: isVerified ?? this.isVerified,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (sourceId.present) {
-      map['source_id'] = Variable<int>(sourceId.value);
-    }
-    if (partNumber.present) {
-      map['part_number'] = Variable<String>(partNumber.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    if (brand.present) {
-      map['brand'] = Variable<String>(brand.value);
-    }
-    if (category.present) {
-      map['category'] = Variable<String>(category.value);
-    }
-    if (referencePrice.present) {
-      map['reference_price'] = Variable<int>(referencePrice.value);
-    }
-    if (productUrl.present) {
-      map['product_url'] = Variable<String>(productUrl.value);
-    }
-    if (priceUpdatedAt.present) {
-      map['price_updated_at'] = Variable<DateTime>(priceUpdatedAt.value);
-    }
-    if (catalogVersion.present) {
-      map['catalog_version'] = Variable<String>(catalogVersion.value);
-    }
-    if (isVerified.present) {
-      map['is_verified'] = Variable<bool>(isVerified.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('SparepartsCompanion(')
-          ..write('id: $id, ')
-          ..write('sourceId: $sourceId, ')
-          ..write('partNumber: $partNumber, ')
-          ..write('name: $name, ')
-          ..write('brand: $brand, ')
-          ..write('category: $category, ')
-          ..write('referencePrice: $referencePrice, ')
-          ..write('productUrl: $productUrl, ')
-          ..write('priceUpdatedAt: $priceUpdatedAt, ')
-          ..write('catalogVersion: $catalogVersion, ')
-          ..write('isVerified: $isVerified')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $SparepartFitmentsTable extends SparepartFitments
     with TableInfo<$SparepartFitmentsTable, SparepartFitment> {
   @override
@@ -9419,6 +9422,9 @@ class $RecommendationItemsTable extends RecommendationItems
     true,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES spareparts (id)',
+    ),
   );
   static const VerificationMeta _priorityMeta = const VerificationMeta(
     'priority',
@@ -11554,6 +11560,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ComponentStatusesTable componentStatuses =
       $ComponentStatusesTable(this);
   late final $ServiceRecordsTable serviceRecords = $ServiceRecordsTable(this);
+  late final $CatalogSourcesTable catalogSources = $CatalogSourcesTable(this);
+  late final $SparepartsTable spareparts = $SparepartsTable(this);
   late final $ServiceItemsTable serviceItems = $ServiceItemsTable(this);
   late final $SelfInspectionsTable selfInspections = $SelfInspectionsTable(
     this,
@@ -11565,8 +11573,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $ComplaintMessagesTable(this);
   late final $ComplaintAnalysesTable complaintAnalyses =
       $ComplaintAnalysesTable(this);
-  late final $CatalogSourcesTable catalogSources = $CatalogSourcesTable(this);
-  late final $SparepartsTable spareparts = $SparepartsTable(this);
   late final $SparepartFitmentsTable sparepartFitments =
       $SparepartFitmentsTable(this);
   late final $BudgetPlansTable budgetPlans = $BudgetPlansTable(this);
@@ -11591,14 +11597,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     maintenanceRules,
     componentStatuses,
     serviceRecords,
+    catalogSources,
+    spareparts,
     serviceItems,
     selfInspections,
     inspectionAnswers,
     complaints,
     complaintMessages,
     complaintAnalyses,
-    catalogSources,
-    spareparts,
     sparepartFitments,
     budgetPlans,
     serviceRecommendations,
@@ -15956,6 +15962,1087 @@ typedef $$ServiceRecordsTableProcessedTableManager =
         bool complaintsRefs,
       })
     >;
+typedef $$CatalogSourcesTableCreateCompanionBuilder =
+    CatalogSourcesCompanion Function({
+      Value<int> id,
+      required String providerName,
+      required String websiteUrl,
+      Value<String?> licenseOrPermission,
+      Value<DateTime?> verifiedAt,
+      Value<DateTime?> lastCheckedAt,
+    });
+typedef $$CatalogSourcesTableUpdateCompanionBuilder =
+    CatalogSourcesCompanion Function({
+      Value<int> id,
+      Value<String> providerName,
+      Value<String> websiteUrl,
+      Value<String?> licenseOrPermission,
+      Value<DateTime?> verifiedAt,
+      Value<DateTime?> lastCheckedAt,
+    });
+
+final class $$CatalogSourcesTableReferences
+    extends BaseReferences<_$AppDatabase, $CatalogSourcesTable, CatalogSource> {
+  $$CatalogSourcesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$SparepartsTable, List<Sparepart>>
+  _sparepartsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.spareparts,
+    aliasName: $_aliasNameGenerator(
+      db.catalogSources.id,
+      db.spareparts.sourceId,
+    ),
+  );
+
+  $$SparepartsTableProcessedTableManager get sparepartsRefs {
+    final manager = $$SparepartsTableTableManager(
+      $_db,
+      $_db.spareparts,
+    ).filter((f) => f.sourceId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_sparepartsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$CatalogSourcesTableFilterComposer
+    extends Composer<_$AppDatabase, $CatalogSourcesTable> {
+  $$CatalogSourcesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get providerName => $composableBuilder(
+    column: $table.providerName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get websiteUrl => $composableBuilder(
+    column: $table.websiteUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get licenseOrPermission => $composableBuilder(
+    column: $table.licenseOrPermission,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get verifiedAt => $composableBuilder(
+    column: $table.verifiedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastCheckedAt => $composableBuilder(
+    column: $table.lastCheckedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> sparepartsRefs(
+    Expression<bool> Function($$SparepartsTableFilterComposer f) f,
+  ) {
+    final $$SparepartsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.spareparts,
+      getReferencedColumn: (t) => t.sourceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SparepartsTableFilterComposer(
+            $db: $db,
+            $table: $db.spareparts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$CatalogSourcesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CatalogSourcesTable> {
+  $$CatalogSourcesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get providerName => $composableBuilder(
+    column: $table.providerName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get websiteUrl => $composableBuilder(
+    column: $table.websiteUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get licenseOrPermission => $composableBuilder(
+    column: $table.licenseOrPermission,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get verifiedAt => $composableBuilder(
+    column: $table.verifiedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastCheckedAt => $composableBuilder(
+    column: $table.lastCheckedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CatalogSourcesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CatalogSourcesTable> {
+  $$CatalogSourcesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get providerName => $composableBuilder(
+    column: $table.providerName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get websiteUrl => $composableBuilder(
+    column: $table.websiteUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get licenseOrPermission => $composableBuilder(
+    column: $table.licenseOrPermission,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get verifiedAt => $composableBuilder(
+    column: $table.verifiedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastCheckedAt => $composableBuilder(
+    column: $table.lastCheckedAt,
+    builder: (column) => column,
+  );
+
+  Expression<T> sparepartsRefs<T extends Object>(
+    Expression<T> Function($$SparepartsTableAnnotationComposer a) f,
+  ) {
+    final $$SparepartsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.spareparts,
+      getReferencedColumn: (t) => t.sourceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SparepartsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.spareparts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$CatalogSourcesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CatalogSourcesTable,
+          CatalogSource,
+          $$CatalogSourcesTableFilterComposer,
+          $$CatalogSourcesTableOrderingComposer,
+          $$CatalogSourcesTableAnnotationComposer,
+          $$CatalogSourcesTableCreateCompanionBuilder,
+          $$CatalogSourcesTableUpdateCompanionBuilder,
+          (CatalogSource, $$CatalogSourcesTableReferences),
+          CatalogSource,
+          PrefetchHooks Function({bool sparepartsRefs})
+        > {
+  $$CatalogSourcesTableTableManager(
+    _$AppDatabase db,
+    $CatalogSourcesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CatalogSourcesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CatalogSourcesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CatalogSourcesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> providerName = const Value.absent(),
+                Value<String> websiteUrl = const Value.absent(),
+                Value<String?> licenseOrPermission = const Value.absent(),
+                Value<DateTime?> verifiedAt = const Value.absent(),
+                Value<DateTime?> lastCheckedAt = const Value.absent(),
+              }) => CatalogSourcesCompanion(
+                id: id,
+                providerName: providerName,
+                websiteUrl: websiteUrl,
+                licenseOrPermission: licenseOrPermission,
+                verifiedAt: verifiedAt,
+                lastCheckedAt: lastCheckedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String providerName,
+                required String websiteUrl,
+                Value<String?> licenseOrPermission = const Value.absent(),
+                Value<DateTime?> verifiedAt = const Value.absent(),
+                Value<DateTime?> lastCheckedAt = const Value.absent(),
+              }) => CatalogSourcesCompanion.insert(
+                id: id,
+                providerName: providerName,
+                websiteUrl: websiteUrl,
+                licenseOrPermission: licenseOrPermission,
+                verifiedAt: verifiedAt,
+                lastCheckedAt: lastCheckedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CatalogSourcesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sparepartsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (sparepartsRefs) db.spareparts],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (sparepartsRefs)
+                    await $_getPrefetchedData<
+                      CatalogSource,
+                      $CatalogSourcesTable,
+                      Sparepart
+                    >(
+                      currentTable: table,
+                      referencedTable: $$CatalogSourcesTableReferences
+                          ._sparepartsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$CatalogSourcesTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).sparepartsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.sourceId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CatalogSourcesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CatalogSourcesTable,
+      CatalogSource,
+      $$CatalogSourcesTableFilterComposer,
+      $$CatalogSourcesTableOrderingComposer,
+      $$CatalogSourcesTableAnnotationComposer,
+      $$CatalogSourcesTableCreateCompanionBuilder,
+      $$CatalogSourcesTableUpdateCompanionBuilder,
+      (CatalogSource, $$CatalogSourcesTableReferences),
+      CatalogSource,
+      PrefetchHooks Function({bool sparepartsRefs})
+    >;
+typedef $$SparepartsTableCreateCompanionBuilder =
+    SparepartsCompanion Function({
+      Value<int> id,
+      Value<int?> sourceId,
+      Value<String?> partNumber,
+      required String name,
+      Value<String?> brand,
+      required String category,
+      Value<int?> referencePrice,
+      Value<String?> productUrl,
+      Value<DateTime?> priceUpdatedAt,
+      Value<String?> catalogVersion,
+      Value<bool> isVerified,
+    });
+typedef $$SparepartsTableUpdateCompanionBuilder =
+    SparepartsCompanion Function({
+      Value<int> id,
+      Value<int?> sourceId,
+      Value<String?> partNumber,
+      Value<String> name,
+      Value<String?> brand,
+      Value<String> category,
+      Value<int?> referencePrice,
+      Value<String?> productUrl,
+      Value<DateTime?> priceUpdatedAt,
+      Value<String?> catalogVersion,
+      Value<bool> isVerified,
+    });
+
+final class $$SparepartsTableReferences
+    extends BaseReferences<_$AppDatabase, $SparepartsTable, Sparepart> {
+  $$SparepartsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $CatalogSourcesTable _sourceIdTable(_$AppDatabase db) =>
+      db.catalogSources.createAlias(
+        $_aliasNameGenerator(db.spareparts.sourceId, db.catalogSources.id),
+      );
+
+  $$CatalogSourcesTableProcessedTableManager? get sourceId {
+    final $_column = $_itemColumn<int>('source_id');
+    if ($_column == null) return null;
+    final manager = $$CatalogSourcesTableTableManager(
+      $_db,
+      $_db.catalogSources,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sourceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$ServiceItemsTable, List<ServiceItem>>
+  _serviceItemsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.serviceItems,
+    aliasName: $_aliasNameGenerator(
+      db.spareparts.id,
+      db.serviceItems.sparepartId,
+    ),
+  );
+
+  $$ServiceItemsTableProcessedTableManager get serviceItemsRefs {
+    final manager = $$ServiceItemsTableTableManager(
+      $_db,
+      $_db.serviceItems,
+    ).filter((f) => f.sparepartId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_serviceItemsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$SparepartFitmentsTable, List<SparepartFitment>>
+  _sparepartFitmentsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.sparepartFitments,
+        aliasName: $_aliasNameGenerator(
+          db.spareparts.id,
+          db.sparepartFitments.sparepartId,
+        ),
+      );
+
+  $$SparepartFitmentsTableProcessedTableManager get sparepartFitmentsRefs {
+    final manager = $$SparepartFitmentsTableTableManager(
+      $_db,
+      $_db.sparepartFitments,
+    ).filter((f) => f.sparepartId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _sparepartFitmentsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $RecommendationItemsTable,
+    List<RecommendationItem>
+  >
+  _recommendationItemsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.recommendationItems,
+        aliasName: $_aliasNameGenerator(
+          db.spareparts.id,
+          db.recommendationItems.sparepartId,
+        ),
+      );
+
+  $$RecommendationItemsTableProcessedTableManager get recommendationItemsRefs {
+    final manager = $$RecommendationItemsTableTableManager(
+      $_db,
+      $_db.recommendationItems,
+    ).filter((f) => f.sparepartId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _recommendationItemsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$SparepartsTableFilterComposer
+    extends Composer<_$AppDatabase, $SparepartsTable> {
+  $$SparepartsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get partNumber => $composableBuilder(
+    column: $table.partNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get referencePrice => $composableBuilder(
+    column: $table.referencePrice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get productUrl => $composableBuilder(
+    column: $table.productUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get priceUpdatedAt => $composableBuilder(
+    column: $table.priceUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get catalogVersion => $composableBuilder(
+    column: $table.catalogVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isVerified => $composableBuilder(
+    column: $table.isVerified,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CatalogSourcesTableFilterComposer get sourceId {
+    final $$CatalogSourcesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceId,
+      referencedTable: $db.catalogSources,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CatalogSourcesTableFilterComposer(
+            $db: $db,
+            $table: $db.catalogSources,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> serviceItemsRefs(
+    Expression<bool> Function($$ServiceItemsTableFilterComposer f) f,
+  ) {
+    final $$ServiceItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.serviceItems,
+      getReferencedColumn: (t) => t.sparepartId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ServiceItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.serviceItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> sparepartFitmentsRefs(
+    Expression<bool> Function($$SparepartFitmentsTableFilterComposer f) f,
+  ) {
+    final $$SparepartFitmentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sparepartFitments,
+      getReferencedColumn: (t) => t.sparepartId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SparepartFitmentsTableFilterComposer(
+            $db: $db,
+            $table: $db.sparepartFitments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> recommendationItemsRefs(
+    Expression<bool> Function($$RecommendationItemsTableFilterComposer f) f,
+  ) {
+    final $$RecommendationItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.recommendationItems,
+      getReferencedColumn: (t) => t.sparepartId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RecommendationItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.recommendationItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SparepartsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SparepartsTable> {
+  $$SparepartsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get partNumber => $composableBuilder(
+    column: $table.partNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get referencePrice => $composableBuilder(
+    column: $table.referencePrice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get productUrl => $composableBuilder(
+    column: $table.productUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get priceUpdatedAt => $composableBuilder(
+    column: $table.priceUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get catalogVersion => $composableBuilder(
+    column: $table.catalogVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isVerified => $composableBuilder(
+    column: $table.isVerified,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CatalogSourcesTableOrderingComposer get sourceId {
+    final $$CatalogSourcesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceId,
+      referencedTable: $db.catalogSources,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CatalogSourcesTableOrderingComposer(
+            $db: $db,
+            $table: $db.catalogSources,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SparepartsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SparepartsTable> {
+  $$SparepartsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get partNumber => $composableBuilder(
+    column: $table.partNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get brand =>
+      $composableBuilder(column: $table.brand, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<int> get referencePrice => $composableBuilder(
+    column: $table.referencePrice,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get productUrl => $composableBuilder(
+    column: $table.productUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get priceUpdatedAt => $composableBuilder(
+    column: $table.priceUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get catalogVersion => $composableBuilder(
+    column: $table.catalogVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isVerified => $composableBuilder(
+    column: $table.isVerified,
+    builder: (column) => column,
+  );
+
+  $$CatalogSourcesTableAnnotationComposer get sourceId {
+    final $$CatalogSourcesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceId,
+      referencedTable: $db.catalogSources,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CatalogSourcesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.catalogSources,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> serviceItemsRefs<T extends Object>(
+    Expression<T> Function($$ServiceItemsTableAnnotationComposer a) f,
+  ) {
+    final $$ServiceItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.serviceItems,
+      getReferencedColumn: (t) => t.sparepartId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ServiceItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.serviceItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> sparepartFitmentsRefs<T extends Object>(
+    Expression<T> Function($$SparepartFitmentsTableAnnotationComposer a) f,
+  ) {
+    final $$SparepartFitmentsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.sparepartFitments,
+          getReferencedColumn: (t) => t.sparepartId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$SparepartFitmentsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.sparepartFitments,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> recommendationItemsRefs<T extends Object>(
+    Expression<T> Function($$RecommendationItemsTableAnnotationComposer a) f,
+  ) {
+    final $$RecommendationItemsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.recommendationItems,
+          getReferencedColumn: (t) => t.sparepartId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecommendationItemsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.recommendationItems,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$SparepartsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SparepartsTable,
+          Sparepart,
+          $$SparepartsTableFilterComposer,
+          $$SparepartsTableOrderingComposer,
+          $$SparepartsTableAnnotationComposer,
+          $$SparepartsTableCreateCompanionBuilder,
+          $$SparepartsTableUpdateCompanionBuilder,
+          (Sparepart, $$SparepartsTableReferences),
+          Sparepart,
+          PrefetchHooks Function({
+            bool sourceId,
+            bool serviceItemsRefs,
+            bool sparepartFitmentsRefs,
+            bool recommendationItemsRefs,
+          })
+        > {
+  $$SparepartsTableTableManager(_$AppDatabase db, $SparepartsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SparepartsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SparepartsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SparepartsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> sourceId = const Value.absent(),
+                Value<String?> partNumber = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> brand = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<int?> referencePrice = const Value.absent(),
+                Value<String?> productUrl = const Value.absent(),
+                Value<DateTime?> priceUpdatedAt = const Value.absent(),
+                Value<String?> catalogVersion = const Value.absent(),
+                Value<bool> isVerified = const Value.absent(),
+              }) => SparepartsCompanion(
+                id: id,
+                sourceId: sourceId,
+                partNumber: partNumber,
+                name: name,
+                brand: brand,
+                category: category,
+                referencePrice: referencePrice,
+                productUrl: productUrl,
+                priceUpdatedAt: priceUpdatedAt,
+                catalogVersion: catalogVersion,
+                isVerified: isVerified,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> sourceId = const Value.absent(),
+                Value<String?> partNumber = const Value.absent(),
+                required String name,
+                Value<String?> brand = const Value.absent(),
+                required String category,
+                Value<int?> referencePrice = const Value.absent(),
+                Value<String?> productUrl = const Value.absent(),
+                Value<DateTime?> priceUpdatedAt = const Value.absent(),
+                Value<String?> catalogVersion = const Value.absent(),
+                Value<bool> isVerified = const Value.absent(),
+              }) => SparepartsCompanion.insert(
+                id: id,
+                sourceId: sourceId,
+                partNumber: partNumber,
+                name: name,
+                brand: brand,
+                category: category,
+                referencePrice: referencePrice,
+                productUrl: productUrl,
+                priceUpdatedAt: priceUpdatedAt,
+                catalogVersion: catalogVersion,
+                isVerified: isVerified,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SparepartsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                sourceId = false,
+                serviceItemsRefs = false,
+                sparepartFitmentsRefs = false,
+                recommendationItemsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (serviceItemsRefs) db.serviceItems,
+                    if (sparepartFitmentsRefs) db.sparepartFitments,
+                    if (recommendationItemsRefs) db.recommendationItems,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (sourceId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.sourceId,
+                                    referencedTable: $$SparepartsTableReferences
+                                        ._sourceIdTable(db),
+                                    referencedColumn:
+                                        $$SparepartsTableReferences
+                                            ._sourceIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (serviceItemsRefs)
+                        await $_getPrefetchedData<
+                          Sparepart,
+                          $SparepartsTable,
+                          ServiceItem
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SparepartsTableReferences
+                              ._serviceItemsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SparepartsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).serviceItemsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sparepartId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (sparepartFitmentsRefs)
+                        await $_getPrefetchedData<
+                          Sparepart,
+                          $SparepartsTable,
+                          SparepartFitment
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SparepartsTableReferences
+                              ._sparepartFitmentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SparepartsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).sparepartFitmentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sparepartId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (recommendationItemsRefs)
+                        await $_getPrefetchedData<
+                          Sparepart,
+                          $SparepartsTable,
+                          RecommendationItem
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SparepartsTableReferences
+                              ._recommendationItemsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SparepartsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).recommendationItemsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sparepartId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$SparepartsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SparepartsTable,
+      Sparepart,
+      $$SparepartsTableFilterComposer,
+      $$SparepartsTableOrderingComposer,
+      $$SparepartsTableAnnotationComposer,
+      $$SparepartsTableCreateCompanionBuilder,
+      $$SparepartsTableUpdateCompanionBuilder,
+      (Sparepart, $$SparepartsTableReferences),
+      Sparepart,
+      PrefetchHooks Function({
+        bool sourceId,
+        bool serviceItemsRefs,
+        bool sparepartFitmentsRefs,
+        bool recommendationItemsRefs,
+      })
+    >;
 typedef $$ServiceItemsTableCreateCompanionBuilder =
     ServiceItemsCompanion Function({
       Value<int> id,
@@ -16028,6 +17115,25 @@ final class $$ServiceItemsTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static $SparepartsTable _sparepartIdTable(_$AppDatabase db) =>
+      db.spareparts.createAlias(
+        $_aliasNameGenerator(db.serviceItems.sparepartId, db.spareparts.id),
+      );
+
+  $$SparepartsTableProcessedTableManager? get sparepartId {
+    final $_column = $_itemColumn<int>('sparepart_id');
+    if ($_column == null) return null;
+    final manager = $$SparepartsTableTableManager(
+      $_db,
+      $_db.spareparts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sparepartIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 }
 
 class $$ServiceItemsTableFilterComposer
@@ -16041,11 +17147,6 @@ class $$ServiceItemsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get sparepartId => $composableBuilder(
-    column: $table.sparepartId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16119,6 +17220,29 @@ class $$ServiceItemsTableFilterComposer
     );
     return composer;
   }
+
+  $$SparepartsTableFilterComposer get sparepartId {
+    final $$SparepartsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sparepartId,
+      referencedTable: $db.spareparts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SparepartsTableFilterComposer(
+            $db: $db,
+            $table: $db.spareparts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ServiceItemsTableOrderingComposer
@@ -16132,11 +17256,6 @@ class $$ServiceItemsTableOrderingComposer
   });
   ColumnOrderings<int> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get sparepartId => $composableBuilder(
-    column: $table.sparepartId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -16210,6 +17329,29 @@ class $$ServiceItemsTableOrderingComposer
     );
     return composer;
   }
+
+  $$SparepartsTableOrderingComposer get sparepartId {
+    final $$SparepartsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sparepartId,
+      referencedTable: $db.spareparts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SparepartsTableOrderingComposer(
+            $db: $db,
+            $table: $db.spareparts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ServiceItemsTableAnnotationComposer
@@ -16223,11 +17365,6 @@ class $$ServiceItemsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<int> get sparepartId => $composableBuilder(
-    column: $table.sparepartId,
-    builder: (column) => column,
-  );
 
   GeneratedColumn<String> get action =>
       $composableBuilder(column: $table.action, builder: (column) => column);
@@ -16289,6 +17426,29 @@ class $$ServiceItemsTableAnnotationComposer
     );
     return composer;
   }
+
+  $$SparepartsTableAnnotationComposer get sparepartId {
+    final $$SparepartsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sparepartId,
+      referencedTable: $db.spareparts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SparepartsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.spareparts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ServiceItemsTableTableManager
@@ -16304,7 +17464,11 @@ class $$ServiceItemsTableTableManager
           $$ServiceItemsTableUpdateCompanionBuilder,
           (ServiceItem, $$ServiceItemsTableReferences),
           ServiceItem,
-          PrefetchHooks Function({bool serviceRecordId, bool componentTypeId})
+          PrefetchHooks Function({
+            bool serviceRecordId,
+            bool componentTypeId,
+            bool sparepartId,
+          })
         > {
   $$ServiceItemsTableTableManager(_$AppDatabase db, $ServiceItemsTable table)
     : super(
@@ -16370,7 +17534,11 @@ class $$ServiceItemsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({serviceRecordId = false, componentTypeId = false}) {
+              ({
+                serviceRecordId = false,
+                componentTypeId = false,
+                sparepartId = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [],
@@ -16420,6 +17588,21 @@ class $$ServiceItemsTableTableManager
                                   )
                                   as T;
                         }
+                        if (sparepartId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.sparepartId,
+                                    referencedTable:
+                                        $$ServiceItemsTableReferences
+                                            ._sparepartIdTable(db),
+                                    referencedColumn:
+                                        $$ServiceItemsTableReferences
+                                            ._sparepartIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
                         return state;
                       },
@@ -16444,7 +17627,11 @@ typedef $$ServiceItemsTableProcessedTableManager =
       $$ServiceItemsTableUpdateCompanionBuilder,
       (ServiceItem, $$ServiceItemsTableReferences),
       ServiceItem,
-      PrefetchHooks Function({bool serviceRecordId, bool componentTypeId})
+      PrefetchHooks Function({
+        bool serviceRecordId,
+        bool componentTypeId,
+        bool sparepartId,
+      })
     >;
 typedef $$SelfInspectionsTableCreateCompanionBuilder =
     SelfInspectionsCompanion Function({
@@ -18993,879 +20180,6 @@ typedef $$ComplaintAnalysesTableProcessedTableManager =
       ComplaintAnalysis,
       PrefetchHooks Function({bool complaintId})
     >;
-typedef $$CatalogSourcesTableCreateCompanionBuilder =
-    CatalogSourcesCompanion Function({
-      Value<int> id,
-      required String providerName,
-      required String websiteUrl,
-      Value<String?> licenseOrPermission,
-      Value<DateTime?> verifiedAt,
-      Value<DateTime?> lastCheckedAt,
-    });
-typedef $$CatalogSourcesTableUpdateCompanionBuilder =
-    CatalogSourcesCompanion Function({
-      Value<int> id,
-      Value<String> providerName,
-      Value<String> websiteUrl,
-      Value<String?> licenseOrPermission,
-      Value<DateTime?> verifiedAt,
-      Value<DateTime?> lastCheckedAt,
-    });
-
-final class $$CatalogSourcesTableReferences
-    extends BaseReferences<_$AppDatabase, $CatalogSourcesTable, CatalogSource> {
-  $$CatalogSourcesTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static MultiTypedResultKey<$SparepartsTable, List<Sparepart>>
-  _sparepartsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.spareparts,
-    aliasName: $_aliasNameGenerator(
-      db.catalogSources.id,
-      db.spareparts.sourceId,
-    ),
-  );
-
-  $$SparepartsTableProcessedTableManager get sparepartsRefs {
-    final manager = $$SparepartsTableTableManager(
-      $_db,
-      $_db.spareparts,
-    ).filter((f) => f.sourceId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_sparepartsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
-class $$CatalogSourcesTableFilterComposer
-    extends Composer<_$AppDatabase, $CatalogSourcesTable> {
-  $$CatalogSourcesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get providerName => $composableBuilder(
-    column: $table.providerName,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get websiteUrl => $composableBuilder(
-    column: $table.websiteUrl,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get licenseOrPermission => $composableBuilder(
-    column: $table.licenseOrPermission,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get verifiedAt => $composableBuilder(
-    column: $table.verifiedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get lastCheckedAt => $composableBuilder(
-    column: $table.lastCheckedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  Expression<bool> sparepartsRefs(
-    Expression<bool> Function($$SparepartsTableFilterComposer f) f,
-  ) {
-    final $$SparepartsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.spareparts,
-      getReferencedColumn: (t) => t.sourceId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SparepartsTableFilterComposer(
-            $db: $db,
-            $table: $db.spareparts,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$CatalogSourcesTableOrderingComposer
-    extends Composer<_$AppDatabase, $CatalogSourcesTable> {
-  $$CatalogSourcesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get providerName => $composableBuilder(
-    column: $table.providerName,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get websiteUrl => $composableBuilder(
-    column: $table.websiteUrl,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get licenseOrPermission => $composableBuilder(
-    column: $table.licenseOrPermission,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get verifiedAt => $composableBuilder(
-    column: $table.verifiedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get lastCheckedAt => $composableBuilder(
-    column: $table.lastCheckedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$CatalogSourcesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CatalogSourcesTable> {
-  $$CatalogSourcesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get providerName => $composableBuilder(
-    column: $table.providerName,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get websiteUrl => $composableBuilder(
-    column: $table.websiteUrl,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get licenseOrPermission => $composableBuilder(
-    column: $table.licenseOrPermission,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get verifiedAt => $composableBuilder(
-    column: $table.verifiedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get lastCheckedAt => $composableBuilder(
-    column: $table.lastCheckedAt,
-    builder: (column) => column,
-  );
-
-  Expression<T> sparepartsRefs<T extends Object>(
-    Expression<T> Function($$SparepartsTableAnnotationComposer a) f,
-  ) {
-    final $$SparepartsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.spareparts,
-      getReferencedColumn: (t) => t.sourceId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SparepartsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.spareparts,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$CatalogSourcesTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $CatalogSourcesTable,
-          CatalogSource,
-          $$CatalogSourcesTableFilterComposer,
-          $$CatalogSourcesTableOrderingComposer,
-          $$CatalogSourcesTableAnnotationComposer,
-          $$CatalogSourcesTableCreateCompanionBuilder,
-          $$CatalogSourcesTableUpdateCompanionBuilder,
-          (CatalogSource, $$CatalogSourcesTableReferences),
-          CatalogSource,
-          PrefetchHooks Function({bool sparepartsRefs})
-        > {
-  $$CatalogSourcesTableTableManager(
-    _$AppDatabase db,
-    $CatalogSourcesTable table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$CatalogSourcesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$CatalogSourcesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$CatalogSourcesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<String> providerName = const Value.absent(),
-                Value<String> websiteUrl = const Value.absent(),
-                Value<String?> licenseOrPermission = const Value.absent(),
-                Value<DateTime?> verifiedAt = const Value.absent(),
-                Value<DateTime?> lastCheckedAt = const Value.absent(),
-              }) => CatalogSourcesCompanion(
-                id: id,
-                providerName: providerName,
-                websiteUrl: websiteUrl,
-                licenseOrPermission: licenseOrPermission,
-                verifiedAt: verifiedAt,
-                lastCheckedAt: lastCheckedAt,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required String providerName,
-                required String websiteUrl,
-                Value<String?> licenseOrPermission = const Value.absent(),
-                Value<DateTime?> verifiedAt = const Value.absent(),
-                Value<DateTime?> lastCheckedAt = const Value.absent(),
-              }) => CatalogSourcesCompanion.insert(
-                id: id,
-                providerName: providerName,
-                websiteUrl: websiteUrl,
-                licenseOrPermission: licenseOrPermission,
-                verifiedAt: verifiedAt,
-                lastCheckedAt: lastCheckedAt,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$CatalogSourcesTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({sparepartsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (sparepartsRefs) db.spareparts],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (sparepartsRefs)
-                    await $_getPrefetchedData<
-                      CatalogSource,
-                      $CatalogSourcesTable,
-                      Sparepart
-                    >(
-                      currentTable: table,
-                      referencedTable: $$CatalogSourcesTableReferences
-                          ._sparepartsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$CatalogSourcesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).sparepartsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.sourceId == item.id),
-                      typedResults: items,
-                    ),
-                ];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$CatalogSourcesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $CatalogSourcesTable,
-      CatalogSource,
-      $$CatalogSourcesTableFilterComposer,
-      $$CatalogSourcesTableOrderingComposer,
-      $$CatalogSourcesTableAnnotationComposer,
-      $$CatalogSourcesTableCreateCompanionBuilder,
-      $$CatalogSourcesTableUpdateCompanionBuilder,
-      (CatalogSource, $$CatalogSourcesTableReferences),
-      CatalogSource,
-      PrefetchHooks Function({bool sparepartsRefs})
-    >;
-typedef $$SparepartsTableCreateCompanionBuilder =
-    SparepartsCompanion Function({
-      Value<int> id,
-      Value<int?> sourceId,
-      Value<String?> partNumber,
-      required String name,
-      Value<String?> brand,
-      required String category,
-      Value<int?> referencePrice,
-      Value<String?> productUrl,
-      Value<DateTime?> priceUpdatedAt,
-      Value<String?> catalogVersion,
-      Value<bool> isVerified,
-    });
-typedef $$SparepartsTableUpdateCompanionBuilder =
-    SparepartsCompanion Function({
-      Value<int> id,
-      Value<int?> sourceId,
-      Value<String?> partNumber,
-      Value<String> name,
-      Value<String?> brand,
-      Value<String> category,
-      Value<int?> referencePrice,
-      Value<String?> productUrl,
-      Value<DateTime?> priceUpdatedAt,
-      Value<String?> catalogVersion,
-      Value<bool> isVerified,
-    });
-
-final class $$SparepartsTableReferences
-    extends BaseReferences<_$AppDatabase, $SparepartsTable, Sparepart> {
-  $$SparepartsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $CatalogSourcesTable _sourceIdTable(_$AppDatabase db) =>
-      db.catalogSources.createAlias(
-        $_aliasNameGenerator(db.spareparts.sourceId, db.catalogSources.id),
-      );
-
-  $$CatalogSourcesTableProcessedTableManager? get sourceId {
-    final $_column = $_itemColumn<int>('source_id');
-    if ($_column == null) return null;
-    final manager = $$CatalogSourcesTableTableManager(
-      $_db,
-      $_db.catalogSources,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_sourceIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<$SparepartFitmentsTable, List<SparepartFitment>>
-  _sparepartFitmentsRefsTable(_$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.sparepartFitments,
-        aliasName: $_aliasNameGenerator(
-          db.spareparts.id,
-          db.sparepartFitments.sparepartId,
-        ),
-      );
-
-  $$SparepartFitmentsTableProcessedTableManager get sparepartFitmentsRefs {
-    final manager = $$SparepartFitmentsTableTableManager(
-      $_db,
-      $_db.sparepartFitments,
-    ).filter((f) => f.sparepartId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _sparepartFitmentsRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
-class $$SparepartsTableFilterComposer
-    extends Composer<_$AppDatabase, $SparepartsTable> {
-  $$SparepartsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get partNumber => $composableBuilder(
-    column: $table.partNumber,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get brand => $composableBuilder(
-    column: $table.brand,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get category => $composableBuilder(
-    column: $table.category,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get referencePrice => $composableBuilder(
-    column: $table.referencePrice,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get productUrl => $composableBuilder(
-    column: $table.productUrl,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get priceUpdatedAt => $composableBuilder(
-    column: $table.priceUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get catalogVersion => $composableBuilder(
-    column: $table.catalogVersion,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isVerified => $composableBuilder(
-    column: $table.isVerified,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$CatalogSourcesTableFilterComposer get sourceId {
-    final $$CatalogSourcesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sourceId,
-      referencedTable: $db.catalogSources,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CatalogSourcesTableFilterComposer(
-            $db: $db,
-            $table: $db.catalogSources,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<bool> sparepartFitmentsRefs(
-    Expression<bool> Function($$SparepartFitmentsTableFilterComposer f) f,
-  ) {
-    final $$SparepartFitmentsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.sparepartFitments,
-      getReferencedColumn: (t) => t.sparepartId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SparepartFitmentsTableFilterComposer(
-            $db: $db,
-            $table: $db.sparepartFitments,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$SparepartsTableOrderingComposer
-    extends Composer<_$AppDatabase, $SparepartsTable> {
-  $$SparepartsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get partNumber => $composableBuilder(
-    column: $table.partNumber,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get brand => $composableBuilder(
-    column: $table.brand,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get category => $composableBuilder(
-    column: $table.category,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get referencePrice => $composableBuilder(
-    column: $table.referencePrice,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get productUrl => $composableBuilder(
-    column: $table.productUrl,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get priceUpdatedAt => $composableBuilder(
-    column: $table.priceUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get catalogVersion => $composableBuilder(
-    column: $table.catalogVersion,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isVerified => $composableBuilder(
-    column: $table.isVerified,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$CatalogSourcesTableOrderingComposer get sourceId {
-    final $$CatalogSourcesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sourceId,
-      referencedTable: $db.catalogSources,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CatalogSourcesTableOrderingComposer(
-            $db: $db,
-            $table: $db.catalogSources,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$SparepartsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $SparepartsTable> {
-  $$SparepartsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get partNumber => $composableBuilder(
-    column: $table.partNumber,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  GeneratedColumn<String> get brand =>
-      $composableBuilder(column: $table.brand, builder: (column) => column);
-
-  GeneratedColumn<String> get category =>
-      $composableBuilder(column: $table.category, builder: (column) => column);
-
-  GeneratedColumn<int> get referencePrice => $composableBuilder(
-    column: $table.referencePrice,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get productUrl => $composableBuilder(
-    column: $table.productUrl,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get priceUpdatedAt => $composableBuilder(
-    column: $table.priceUpdatedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get catalogVersion => $composableBuilder(
-    column: $table.catalogVersion,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<bool> get isVerified => $composableBuilder(
-    column: $table.isVerified,
-    builder: (column) => column,
-  );
-
-  $$CatalogSourcesTableAnnotationComposer get sourceId {
-    final $$CatalogSourcesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sourceId,
-      referencedTable: $db.catalogSources,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CatalogSourcesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.catalogSources,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<T> sparepartFitmentsRefs<T extends Object>(
-    Expression<T> Function($$SparepartFitmentsTableAnnotationComposer a) f,
-  ) {
-    final $$SparepartFitmentsTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.sparepartFitments,
-          getReferencedColumn: (t) => t.sparepartId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$SparepartFitmentsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.sparepartFitments,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
-}
-
-class $$SparepartsTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $SparepartsTable,
-          Sparepart,
-          $$SparepartsTableFilterComposer,
-          $$SparepartsTableOrderingComposer,
-          $$SparepartsTableAnnotationComposer,
-          $$SparepartsTableCreateCompanionBuilder,
-          $$SparepartsTableUpdateCompanionBuilder,
-          (Sparepart, $$SparepartsTableReferences),
-          Sparepart,
-          PrefetchHooks Function({bool sourceId, bool sparepartFitmentsRefs})
-        > {
-  $$SparepartsTableTableManager(_$AppDatabase db, $SparepartsTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$SparepartsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$SparepartsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$SparepartsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<int?> sourceId = const Value.absent(),
-                Value<String?> partNumber = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<String?> brand = const Value.absent(),
-                Value<String> category = const Value.absent(),
-                Value<int?> referencePrice = const Value.absent(),
-                Value<String?> productUrl = const Value.absent(),
-                Value<DateTime?> priceUpdatedAt = const Value.absent(),
-                Value<String?> catalogVersion = const Value.absent(),
-                Value<bool> isVerified = const Value.absent(),
-              }) => SparepartsCompanion(
-                id: id,
-                sourceId: sourceId,
-                partNumber: partNumber,
-                name: name,
-                brand: brand,
-                category: category,
-                referencePrice: referencePrice,
-                productUrl: productUrl,
-                priceUpdatedAt: priceUpdatedAt,
-                catalogVersion: catalogVersion,
-                isVerified: isVerified,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<int?> sourceId = const Value.absent(),
-                Value<String?> partNumber = const Value.absent(),
-                required String name,
-                Value<String?> brand = const Value.absent(),
-                required String category,
-                Value<int?> referencePrice = const Value.absent(),
-                Value<String?> productUrl = const Value.absent(),
-                Value<DateTime?> priceUpdatedAt = const Value.absent(),
-                Value<String?> catalogVersion = const Value.absent(),
-                Value<bool> isVerified = const Value.absent(),
-              }) => SparepartsCompanion.insert(
-                id: id,
-                sourceId: sourceId,
-                partNumber: partNumber,
-                name: name,
-                brand: brand,
-                category: category,
-                referencePrice: referencePrice,
-                productUrl: productUrl,
-                priceUpdatedAt: priceUpdatedAt,
-                catalogVersion: catalogVersion,
-                isVerified: isVerified,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$SparepartsTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback:
-              ({sourceId = false, sparepartFitmentsRefs = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (sparepartFitmentsRefs) db.sparepartFitments,
-                  ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (sourceId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.sourceId,
-                                    referencedTable: $$SparepartsTableReferences
-                                        ._sourceIdTable(db),
-                                    referencedColumn:
-                                        $$SparepartsTableReferences
-                                            ._sourceIdTable(db)
-                                            .id,
-                                  )
-                                  as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (sparepartFitmentsRefs)
-                        await $_getPrefetchedData<
-                          Sparepart,
-                          $SparepartsTable,
-                          SparepartFitment
-                        >(
-                          currentTable: table,
-                          referencedTable: $$SparepartsTableReferences
-                              ._sparepartFitmentsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$SparepartsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).sparepartFitmentsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.sparepartId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
-        ),
-      );
-}
-
-typedef $$SparepartsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $SparepartsTable,
-      Sparepart,
-      $$SparepartsTableFilterComposer,
-      $$SparepartsTableOrderingComposer,
-      $$SparepartsTableAnnotationComposer,
-      $$SparepartsTableCreateCompanionBuilder,
-      $$SparepartsTableUpdateCompanionBuilder,
-      (Sparepart, $$SparepartsTableReferences),
-      Sparepart,
-      PrefetchHooks Function({bool sourceId, bool sparepartFitmentsRefs})
-    >;
 typedef $$SparepartFitmentsTableCreateCompanionBuilder =
     SparepartFitmentsCompanion Function({
       Value<int> id,
@@ -21376,6 +21690,28 @@ final class $$RecommendationItemsTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static $SparepartsTable _sparepartIdTable(_$AppDatabase db) =>
+      db.spareparts.createAlias(
+        $_aliasNameGenerator(
+          db.recommendationItems.sparepartId,
+          db.spareparts.id,
+        ),
+      );
+
+  $$SparepartsTableProcessedTableManager? get sparepartId {
+    final $_column = $_itemColumn<int>('sparepart_id');
+    if ($_column == null) return null;
+    final manager = $$SparepartsTableTableManager(
+      $_db,
+      $_db.spareparts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sparepartIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 }
 
 class $$RecommendationItemsTableFilterComposer
@@ -21389,11 +21725,6 @@ class $$RecommendationItemsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get sparepartId => $composableBuilder(
-    column: $table.sparepartId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -21478,6 +21809,29 @@ class $$RecommendationItemsTableFilterComposer
     );
     return composer;
   }
+
+  $$SparepartsTableFilterComposer get sparepartId {
+    final $$SparepartsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sparepartId,
+      referencedTable: $db.spareparts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SparepartsTableFilterComposer(
+            $db: $db,
+            $table: $db.spareparts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$RecommendationItemsTableOrderingComposer
@@ -21491,11 +21845,6 @@ class $$RecommendationItemsTableOrderingComposer
   });
   ColumnOrderings<int> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get sparepartId => $composableBuilder(
-    column: $table.sparepartId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -21580,6 +21929,29 @@ class $$RecommendationItemsTableOrderingComposer
     );
     return composer;
   }
+
+  $$SparepartsTableOrderingComposer get sparepartId {
+    final $$SparepartsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sparepartId,
+      referencedTable: $db.spareparts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SparepartsTableOrderingComposer(
+            $db: $db,
+            $table: $db.spareparts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$RecommendationItemsTableAnnotationComposer
@@ -21593,11 +21965,6 @@ class $$RecommendationItemsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<int> get sparepartId => $composableBuilder(
-    column: $table.sparepartId,
-    builder: (column) => column,
-  );
 
   GeneratedColumn<String> get priority =>
       $composableBuilder(column: $table.priority, builder: (column) => column);
@@ -21674,6 +22041,29 @@ class $$RecommendationItemsTableAnnotationComposer
     );
     return composer;
   }
+
+  $$SparepartsTableAnnotationComposer get sparepartId {
+    final $$SparepartsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sparepartId,
+      referencedTable: $db.spareparts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SparepartsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.spareparts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$RecommendationItemsTableTableManager
@@ -21689,7 +22079,11 @@ class $$RecommendationItemsTableTableManager
           $$RecommendationItemsTableUpdateCompanionBuilder,
           (RecommendationItem, $$RecommendationItemsTableReferences),
           RecommendationItem,
-          PrefetchHooks Function({bool recommendationId, bool componentTypeId})
+          PrefetchHooks Function({
+            bool recommendationId,
+            bool componentTypeId,
+            bool sparepartId,
+          })
         > {
   $$RecommendationItemsTableTableManager(
     _$AppDatabase db,
@@ -21771,7 +22165,11 @@ class $$RecommendationItemsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({recommendationId = false, componentTypeId = false}) {
+              ({
+                recommendationId = false,
+                componentTypeId = false,
+                sparepartId = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [],
@@ -21821,6 +22219,21 @@ class $$RecommendationItemsTableTableManager
                                   )
                                   as T;
                         }
+                        if (sparepartId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.sparepartId,
+                                    referencedTable:
+                                        $$RecommendationItemsTableReferences
+                                            ._sparepartIdTable(db),
+                                    referencedColumn:
+                                        $$RecommendationItemsTableReferences
+                                            ._sparepartIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
                         return state;
                       },
@@ -21845,7 +22258,11 @@ typedef $$RecommendationItemsTableProcessedTableManager =
       $$RecommendationItemsTableUpdateCompanionBuilder,
       (RecommendationItem, $$RecommendationItemsTableReferences),
       RecommendationItem,
-      PrefetchHooks Function({bool recommendationId, bool componentTypeId})
+      PrefetchHooks Function({
+        bool recommendationId,
+        bool componentTypeId,
+        bool sparepartId,
+      })
     >;
 typedef $$LocalRemindersTableCreateCompanionBuilder =
     LocalRemindersCompanion Function({
@@ -22827,6 +23244,10 @@ class $AppDatabaseManager {
       $$ComponentStatusesTableTableManager(_db, _db.componentStatuses);
   $$ServiceRecordsTableTableManager get serviceRecords =>
       $$ServiceRecordsTableTableManager(_db, _db.serviceRecords);
+  $$CatalogSourcesTableTableManager get catalogSources =>
+      $$CatalogSourcesTableTableManager(_db, _db.catalogSources);
+  $$SparepartsTableTableManager get spareparts =>
+      $$SparepartsTableTableManager(_db, _db.spareparts);
   $$ServiceItemsTableTableManager get serviceItems =>
       $$ServiceItemsTableTableManager(_db, _db.serviceItems);
   $$SelfInspectionsTableTableManager get selfInspections =>
@@ -22839,10 +23260,6 @@ class $AppDatabaseManager {
       $$ComplaintMessagesTableTableManager(_db, _db.complaintMessages);
   $$ComplaintAnalysesTableTableManager get complaintAnalyses =>
       $$ComplaintAnalysesTableTableManager(_db, _db.complaintAnalyses);
-  $$CatalogSourcesTableTableManager get catalogSources =>
-      $$CatalogSourcesTableTableManager(_db, _db.catalogSources);
-  $$SparepartsTableTableManager get spareparts =>
-      $$SparepartsTableTableManager(_db, _db.spareparts);
   $$SparepartFitmentsTableTableManager get sparepartFitments =>
       $$SparepartFitmentsTableTableManager(_db, _db.sparepartFitments);
   $$BudgetPlansTableTableManager get budgetPlans =>

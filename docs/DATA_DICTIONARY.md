@@ -1,5 +1,11 @@
 # BuildHaus Data Dictionary
 
+> **Schema version: 5** — `lib/core/database/app_database.dart`
+>
+> Foreign key diaktifkan pada setiap koneksi database melalui
+> `PRAGMA foreign_keys = ON` (dijalankan di `beforeOpen`).
+> Semua operasi yang menyentuh beberapa tabel dibungkus `transaction()`.
+
 ## Common Fields
 
 | Field | Type | Notes |
@@ -57,7 +63,7 @@ Riwayat pembacaan odometer aktual.
 | id | INT | PK, AUTO | |
 | motorcycle_id | INT | FK→motorcycles | |
 | odometer_km | REAL | NOT NULL | Nilai kilometer |
-| recorded_at | DATETIME | NOT NULL, UNIQUE+c Kombined | Tanggal pembacaan |
+| recorded_at | DATETIME | NOT NULL | Tanggal pembacaan. Constraint `UNIQUE(motorcycle_id, recorded_at)` sudah **dihapus pada skema v4** karena satu motor boleh memiliki beberapa pembacaan pada detik yang sama. |
 | source | TEXT | DEFAULT 'manual' | manual/correction/service_record |
 | note | TEXT | NULL | Catatan opsional |
 
@@ -141,7 +147,7 @@ Item detail dalam satu servis.
 | id | INT | PK, AUTO | |
 | service_record_id | INT | FK→service_records | |
 | component_type_id | INT | FK→component_types, NULL | |
-| sparepart_id | INT | NULL | FK→spareparts |
+| sparepart_id | INT | NULL, FK→spareparts | Dipulihkan pada skema v5. Nilai NULL berarti sparepart tidak specifies atau tidak lagi tersedia di katalog. |
 | action | TEXT | NOT NULL | inspect/replace/clean/repair |
 | parts_cost | INT | DEFAULT 0 | Biaya part |
 | labor_cost | INT | DEFAULT 0 | Biaya jasa |

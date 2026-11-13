@@ -73,7 +73,12 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     }
 
     final budgetSummaryAsync = ref.watch(
-      budgetPlanSummaryProvider(_budgetAmount),
+      budgetPlanSummaryProvider(
+        BudgetSummaryKey(
+          motorcycleId: activeMotor.id,
+          budgetAmount: _budgetAmount,
+        ),
+      ),
     );
 
     return Scaffold(

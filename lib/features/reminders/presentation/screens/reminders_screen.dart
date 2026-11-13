@@ -12,7 +12,17 @@ import '../../../../core/theme/app_theme.dart';
 
 class RemindersScreen extends ConsumerStatefulWidget {
   final int? motorcycleId;
-  const RemindersScreen({super.key, this.motorcycleId});
+
+  /// When true, the "add reminder" sheet is opened automatically once the
+  /// screen has loaded. Used by the `/motor/:id/reminder/add` route so the
+  /// user lands directly on the form instead of the reminder list.
+  final bool openAddSheetOnOpen;
+
+  const RemindersScreen({
+    super.key,
+    this.motorcycleId,
+    this.openAddSheetOnOpen = false,
+  });
 
   @override
   ConsumerState<RemindersScreen> createState() => _RemindersScreenState();
@@ -20,6 +30,7 @@ class RemindersScreen extends ConsumerStatefulWidget {
 
 class _RemindersScreenState extends ConsumerState<RemindersScreen> {
   bool _isSyncing = false;
+  bool _didAutoOpenAddSheet = false;
 
   Future<void> _syncReminders(int motorId) async {
     setState(() => _isSyncing = true);
@@ -66,13 +77,28 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
     ).then((_) => ref.invalidate(remindersProvider(motorId)));
   }
 
+  /// Menentukan motor yang ditampilkan pada layar ini.
+  ///
+  /// Bila `motorcycleId` diberikan, motor dengan id tersebut dipakai dan tidak
+  /// ada fallback ke motor aktif. Ini mencegah tampilnya pengingat motor lain
+  /// ketika id yang diminta tidak valid.
+  Motorcycle? _resolveMotor(List<Motorcycle> motors) {
+    final requestedId = widget.motorcycleId;
+    if (requestedId == null) {
+      return ref.watch(activeMotorcycleProvider);
+    }
+    return motors.where((m) => m.id == requestedId).firstOrNull;
+  }
+
   @override
   Widget build(BuildContext context) {
     final motors = ref.watch(motorcyclesProvider).valueOrNull ?? [];
-    final activeMotor = widget.motorcycleId != null
-        ? (motors.where((m) => m.id == widget.motorcycleId).firstOrNull ??
-              ref.watch(activeMotorcycleProvider))
-        : ref.watch(activeMotorcycleProvider);
+
+    // Resolve the target motorcycle. When an explicit id is supplied but does
+    // not resolve, fall back to the active motorcycle only when the id was
+    // never provided; an explicitly requested but unknown id must not silently
+    // display another motorcycle's reminders.
+    final activeMotor = _resolveMotor(motors);
 
     if (activeMotor == null) {
       return Scaffold(
@@ -91,6 +117,15 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
           ),
         ),
       );
+    }
+
+    // Auto-open the add sheet once, after the first frame, when this route was
+    // opened specifically to create a reminder.
+    if (widget.openAddSheetOnOpen && !_didAutoOpenAddSheet) {
+      _didAutoOpenAddSheet = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showAddReminderDialog(context, activeMotor.id);
+      });
     }
 
     final remindersAsync = ref.watch(remindersProvider(activeMotor.id));
