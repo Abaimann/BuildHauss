@@ -6,6 +6,7 @@ import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../parts/presentation/providers/parts_providers.dart';
 
 class BudgetScreen extends ConsumerStatefulWidget {
   const BudgetScreen({super.key});
@@ -549,7 +550,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   }
 
   Future<void> _showEditBudget() async {
-    final controller = TextEditingController(text: _budgetAmount.toString());
+    final controller = TextEditingController(
+      text: Formatters.formatIdrNumber(_budgetAmount),
+    );
     final result = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
@@ -557,9 +560,11 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
+          inputFormatters: [IdrTextInputFormatter()],
           decoration: const InputDecoration(
             labelText: 'Jumlah (Rp)',
-            hintText: 'Contoh: 200000',
+            prefixText: 'Rp ',
+            hintText: 'Contoh: 200.000',
           ),
           autofocus: true,
         ),
@@ -570,7 +575,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              final val = int.tryParse(controller.text);
+              final val = Formatters.parseCurrencyInt(controller.text);
               Navigator.pop(context, val);
             },
             child: const Text('Simpan'),
@@ -581,6 +586,39 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
 
     if (result != null && result > 0 && mounted) {
       setState(() => _budgetAmount = result);
+      final activeMotor = ref.read(activeMotorcycleProvider);
+      if (activeMotor != null) {
+        final db = ref.read(databaseProvider);
+        final updatedSummary = await ref.read(
+          budgetPlanSummaryProvider(
+            BudgetSummaryKey(
+              motorcycleId: activeMotor.id,
+              budgetAmount: result,
+            ),
+          ).future,
+        );
+        if (!mounted) return;
+        await db.saveCompleteBudgetPlan(
+          motorcycleId: activeMotor.id,
+          budgetAmount: result,
+          period: 'bulanan',
+          recommendations: updatedSummary.recommendations,
+          notes: 'Diperbarui dari Ubah Budget',
+        );
+        ref.invalidate(activeBudgetPlanProvider(activeMotor.id));
+        ref.invalidate(budgetPlanHistoryProvider(activeMotor.id));
+        ref.invalidate(prioritizedSparepartsProvider);
+        ref.invalidate(sparepartRecommendationStatsProvider);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Anggaran disimpan: ${Formatters.currency(result)}',
+              ),
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -601,6 +639,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
 
       ref.invalidate(activeBudgetPlanProvider(activeMotor.id));
       ref.invalidate(budgetPlanHistoryProvider(activeMotor.id));
+      ref.invalidate(prioritizedSparepartsProvider);
+      ref.invalidate(sparepartRecommendationStatsProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

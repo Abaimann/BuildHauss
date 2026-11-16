@@ -20,16 +20,20 @@ String _formatPartCategoryLabel(String raw) {
     'oli_mesin': 'Oli Mesin',
     'oli_gardan': 'Oli Gardan',
     'minyak_rem': 'Minyak Rem',
+    'filter': 'Filter Udara',
     'filter_oli': 'Filter Oli',
     'filter_udara': 'Filter Udara',
     'kampas_rem': 'Kampas Rem',
+    'rem': 'Kampas Rem',
     'cvt': 'CVT & V-Belt',
     'vbelt': 'V-Belt',
     'aki': 'Aki / Baterai',
     'busi': 'Busi',
     'ban': 'Ban',
     'rantai': 'Rantai & Gir',
+    'shock': 'Shockbreaker',
     'shockbreaker': 'Shockbreaker',
+    'knalpot': 'Knalpot',
     'coolant': 'Radiator Coolant',
   };
   final key = raw.trim().toLowerCase();
@@ -63,6 +67,317 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
 
   String _formatCurrency(num amount) {
     return 'Rp ${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+  }
+
+  String _sortLabel(String sortBy) {
+    switch (sortBy) {
+      case 'price_low':
+        return 'Termurah';
+      case 'price_high':
+        return 'Termahal';
+      case 'name':
+        return 'Nama A-Z';
+      default:
+        return 'Rekomendasi';
+    }
+  }
+
+  Future<void> _showFilterModal(
+    BuildContext context, {
+    required List<String> dbCategories,
+    required bool hasActiveMotor,
+  }) async {
+    final smartFilters = [
+      'Semua',
+      if (hasActiveMotor) 'Rekomendasi Budget',
+      if (hasActiveMotor) 'Perhatian Kesehatan',
+    ];
+
+    final uniqueCategories = <String>[];
+    final seenLabels = <String>{};
+    for (final cat in dbCategories) {
+      final label = _formatPartCategoryLabel(cat);
+      if (seenLabels.add(label)) {
+        uniqueCategories.add(cat);
+      }
+    }
+    uniqueCategories.sort(
+      (a, b) =>
+          _formatPartCategoryLabel(a).compareTo(_formatPartCategoryLabel(b)),
+    );
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: context.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: context.line,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Filter Katalog Sparepart',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: context.ink,
+                      ),
+                    ),
+                  ),
+                  if (_selectedCategory != 'Semua')
+                    TextButton(
+                      onPressed: () {
+                        setState(() => _selectedCategory = 'Semua');
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text('Reset'),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Prioritas & Tampilan',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: context.muted,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: smartFilters
+                    .map((cat) => _buildModalFilterChip(ctx, cat))
+                    .toList(),
+              ),
+              if (uniqueCategories.isNotEmpty) ...[
+                const SizedBox(height: 18),
+                Text(
+                  'Kategori Komponen',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: context.muted,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: uniqueCategories
+                      .map((cat) => _buildModalFilterChip(ctx, cat))
+                      .toList(),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModalFilterChip(BuildContext sheetCtx, String cat) {
+    final isSelected =
+        _formatPartCategoryLabel(_selectedCategory) ==
+        _formatPartCategoryLabel(cat);
+    final isBudget = cat == 'Rekomendasi Budget';
+    final isHealth = cat == 'Perhatian Kesehatan';
+
+    Color activeBg = context.ink;
+    Color activeText = context.bg;
+    IconData? icon;
+
+    if (isBudget) {
+      icon = Icons.account_balance_wallet_outlined;
+      if (isSelected) {
+        activeBg = Colors.green.shade700;
+        activeText = Colors.white;
+      }
+    } else if (isHealth) {
+      icon = Icons.health_and_safety_outlined;
+      if (isSelected) {
+        activeBg = Colors.orange.shade800;
+        activeText = Colors.white;
+      }
+    }
+
+    final borderColor = isSelected
+        ? activeBg
+        : (isBudget
+            ? Colors.green.withValues(alpha: 0.45)
+            : (isHealth
+                ? Colors.orange.withValues(alpha: 0.45)
+                : context.line));
+
+    return TapScale(
+      onTap: () {
+        setState(() => _selectedCategory = cat);
+        Navigator.pop(sheetCtx);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+        decoration: BoxDecoration(
+          color: isSelected ? activeBg : context.surface2,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 14,
+                color: isSelected
+                    ? activeText
+                    : (isBudget ? Colors.green : Colors.orange),
+              ),
+              const SizedBox(width: 6),
+            ] else if (isSelected) ...[
+              Icon(Icons.check_rounded, size: 14, color: activeText),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              _formatPartCategoryLabel(cat),
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? activeText : context.ink,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showSortModal(BuildContext context) async {
+    const sortOptions = [
+      ('priority', 'Rekomendasi Prioritas', Icons.auto_awesome_outlined),
+      ('price_low', 'Harga Terendah', Icons.arrow_upward_rounded),
+      ('price_high', 'Harga Tertinggi', Icons.arrow_downward_rounded),
+      ('name', 'Nama Produk (A–Z)', Icons.sort_by_alpha_rounded),
+    ];
+
+    await showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: context.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: context.line,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Urutkan Katalog',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: context.ink,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...sortOptions.map((opt) {
+                final isSelected = _sortBy == opt.$1;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: TapScale(
+                    onTap: () {
+                      setState(() => _sortBy = opt.$1);
+                      Navigator.pop(ctx);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? BuildHausTheme.ok.withValues(alpha: 0.14)
+                            : context.surface2,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected
+                              ? BuildHausTheme.ok.withValues(alpha: 0.5)
+                              : context.line,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            opt.$3,
+                            size: 18,
+                            color: isSelected
+                                ? BuildHausTheme.ok
+                                : context.muted,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              opt.$2,
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: context.ink,
+                              ),
+                            ),
+                          ),
+                          if (isSelected)
+                            Icon(
+                              Icons.check_circle_rounded,
+                              size: 18,
+                              color: BuildHausTheme.ok,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -166,6 +481,8 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                                 fontSize: 11,
                                 color: context.muted,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -272,167 +589,158 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
             ),
           ),
 
-          // Category & Smart Filter Chips
+          // Filter & Sort Option Bar (opens clean bottom-sheet modal without horizontal scrolling)
           SliverToBoxAdapter(
             child: FutureBuilder<List<String>>(
               future: db.getAllSparepartCategories(),
               builder: (context, snap) {
                 final dbCategories = snap.data ?? [];
-                final smartFilters = [
-                  'Semua',
-                  if (activeMotor != null) 'Rekomendasi Budget',
-                  if (activeMotor != null) 'Perhatian Kesehatan',
-                  ...dbCategories,
-                ];
+                final hasCustomFilter = _selectedCategory != 'Semua';
+                final isBudget = _selectedCategory == 'Rekomendasi Budget';
+                final isHealth = _selectedCategory == 'Perhatian Kesehatan';
+                final filterAccent = isBudget
+                    ? Colors.green
+                    : (isHealth ? Colors.orange : BuildHausTheme.ok);
 
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                   child: Row(
-                    children: smartFilters.map((cat) {
-                      final isSelected = _selectedCategory == cat;
-                      final isBudget = cat == 'Rekomendasi Budget';
-                      final isHealth = cat == 'Perhatian Kesehatan';
-
-                      Color activeBg = context.ink;
-                      Color activeText = context.bg;
-                      IconData? icon;
-
-                      if (isBudget) {
-                        icon = Icons.account_balance_wallet_outlined;
-                        if (isSelected) {
-                          activeBg = Colors.green.shade700;
-                          activeText = Colors.white;
-                        }
-                      } else if (isHealth) {
-                        icon = Icons.health_and_safety_outlined;
-                        if (isSelected) {
-                          activeBg = Colors.orange.shade800;
-                          activeText = Colors.white;
-                        }
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
+                    children: [
+                      Expanded(
+                        flex: 3,
                         child: TapScale(
-                          onTap: () => setState(() => _selectedCategory = cat),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeOutCubic,
+                          onTap: () => _showFilterModal(
+                            context,
+                            dbCategories: dbCategories,
+                            hasActiveMotor: activeMotor != null,
+                          ),
+                          child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
-                              vertical: 7,
+                              vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: isSelected ? activeBg : context.surface2,
-                              borderRadius: BorderRadius.circular(99),
+                              color: hasCustomFilter
+                                  ? filterAccent.withValues(alpha: 0.14)
+                                  : context.surface2,
+                              borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: isSelected
-                                    ? activeBg
-                                    : (isBudget
-                                        ? Colors.green.withValues(alpha: 0.4)
-                                        : (isHealth
-                                            ? Colors.orange
-                                                .withValues(alpha: 0.4)
-                                            : context.line)),
+                                color: hasCustomFilter
+                                    ? filterAccent.withValues(alpha: 0.55)
+                                    : context.line,
                               ),
                             ),
                             child: Row(
-                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (icon != null) ...[
+                                Icon(
+                                  Icons.tune_rounded,
+                                  size: 16,
+                                  color: hasCustomFilter
+                                      ? filterAccent
+                                      : context.muted,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Filter: ${_formatPartCategoryLabel(_selectedCategory)}',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: hasCustomFilter
+                                          ? FontWeight.bold
+                                          : FontWeight.w600,
+                                      color: context.ink,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (hasCustomFilter)
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () => setState(
+                                      () => _selectedCategory = 'Semua',
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 4),
+                                      child: Icon(
+                                        Icons.close_rounded,
+                                        size: 16,
+                                        color: filterAccent,
+                                      ),
+                                    ),
+                                  )
+                                else
                                   Icon(
-                                    icon,
-                                    size: 13,
-                                    color: isSelected
-                                        ? activeText
-                                        : (isBudget
-                                            ? Colors.green
-                                            : Colors.orange),
+                                    Icons.keyboard_arrow_down_rounded,
+                                    size: 18,
+                                    color: context.muted,
                                   ),
-                                  const SizedBox(width: 5),
-                                ],
-                                Text(
-                                  _formatPartCategoryLabel(cat),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.w500,
-                                    color: isSelected
-                                        ? activeText
-                                        : context.ink,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 2,
+                        child: TapScale(
+                          onTap: () => _showSortModal(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 11,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _sortBy != 'priority'
+                                  ? context.ink.withValues(alpha: 0.12)
+                                  : context.surface2,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: _sortBy != 'priority'
+                                    ? context.ink.withValues(alpha: 0.45)
+                                    : context.line,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.swap_vert_rounded,
+                                  size: 16,
+                                  color: _sortBy != 'priority'
+                                      ? context.ink
+                                      : context.muted,
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    _sortLabel(_sortBy),
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: context.ink,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
+                                ),
+                                Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  size: 18,
+                                  color: context.muted,
                                 ),
                               ],
                             ),
                           ),
                         ),
-                      );
-                    }).toList(),
+                      ),
+                    ],
                   ),
                 );
               },
             ),
           ),
 
-          // Sort Row
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Row(
-                children: [
-                  Text(
-                    'Urutan: ',
-                    style: TextStyle(fontSize: 12, color: context.muted),
-                  ),
-                  ...[
-                    ('priority', 'Rekomendasi'),
-                    ('price_low', 'Harga ⬆'),
-                    ('price_high', 'Harga ⬇'),
-                    ('name', 'Nama'),
-                  ].map((s) {
-                    final isSelected = _sortBy == s.$1;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: TapScale(
-                        onTap: () => setState(() => _sortBy = s.$1),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeOutCubic,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? context.ink
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            s.$2,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: isSelected ? context.bg : context.muted,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+          const SliverToBoxAdapter(child: SizedBox(height: 6)),
 
           // Prioritized Main Grid Content
           prioritizedPartsAsync.when(
@@ -446,8 +754,11 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                   return p.isHealthRecommended;
                 }
                 if (_selectedCategory != 'Semua') {
-                  return p.part.category.toLowerCase() ==
-                      _selectedCategory.toLowerCase();
+                  final targetLabel = _formatPartCategoryLabel(
+                    _selectedCategory,
+                  );
+                  return _formatPartCategoryLabel(p.part.category) ==
+                      targetLabel;
                 }
                 return true;
               }).toList();
@@ -514,6 +825,20 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                             'Suku cadang tidak ditemukan',
                             style: TextStyle(color: context.muted),
                           ),
+                          if (_selectedCategory != 'Semua' ||
+                              _searchQuery.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            OutlinedButton(
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _selectedCategory = 'Semua';
+                                  _searchQuery = '';
+                                });
+                              },
+                              child: const Text('Reset Filter'),
+                            ),
+                          ],
                         ],
                       ),
                     ),

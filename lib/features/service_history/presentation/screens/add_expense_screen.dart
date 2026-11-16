@@ -181,8 +181,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       return;
     }
 
-    final partsCost = int.tryParse(_amountController.text.trim()) ?? 0;
-    final laborCost = int.tryParse(_laborController.text.trim()) ?? 0;
+    final partsCost = Formatters.parseCurrencyInt(_amountController.text) ?? 0;
+    final laborCost = Formatters.parseCurrencyInt(_laborController.text) ?? 0;
     if (partsCost + laborCost <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Masukkan nominal pengeluaran lebih dari Rp 0.')),
@@ -394,14 +394,15 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                         key: const ValueKey('expense_amount_field'),
                         controller: _amountController,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [IdrTextInputFormatter()],
                         decoration: const InputDecoration(
-                          hintText: 'Contoh: 65000',
+                          hintText: 'Contoh: 65.000',
                           prefixText: 'Rp ',
                         ),
                         validator: (v) {
                           final raw = v?.trim() ?? '';
                           if (raw.isEmpty) return 'Masukkan nominal';
-                          final n = int.tryParse(raw);
+                          final n = Formatters.parseCurrencyInt(raw);
                           if (n == null || n < 0) return 'Angka tidak valid';
                           return null;
                         },
@@ -427,6 +428,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                         key: const ValueKey('expense_labor_field'),
                         controller: _laborController,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [IdrTextInputFormatter()],
                         decoration: const InputDecoration(
                           hintText: '0 (opsional)',
                           prefixText: 'Rp ',
@@ -434,7 +436,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                         validator: (v) {
                           final raw = v?.trim() ?? '';
                           if (raw.isEmpty) return null;
-                          final n = int.tryParse(raw);
+                          final n = Formatters.parseCurrencyInt(raw);
                           if (n == null || n < 0) return 'Angka tidak valid';
                           return null;
                         },

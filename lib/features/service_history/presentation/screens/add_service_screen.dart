@@ -346,11 +346,13 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
               Expanded(
                 child: TextFormField(
                   initialValue: item.partsCost > 0
-                      ? item.partsCost.toString()
+                      ? Formatters.formatIdrNumber(item.partsCost)
                       : '',
                   keyboardType: TextInputType.number,
+                  inputFormatters: [IdrTextInputFormatter()],
                   decoration: const InputDecoration(
                     labelText: 'Biaya Part',
+                    prefixText: 'Rp ',
                     hintText: '0',
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 12,
@@ -358,18 +360,21 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                     ),
                   ),
                   onChanged: (v) =>
-                      _items[index].partsCost = int.tryParse(v) ?? 0,
+                      _items[index].partsCost =
+                          Formatters.parseCurrencyInt(v) ?? 0,
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: TextFormField(
                   initialValue: item.laborCost > 0
-                      ? item.laborCost.toString()
+                      ? Formatters.formatIdrNumber(item.laborCost)
                       : '',
                   keyboardType: TextInputType.number,
+                  inputFormatters: [IdrTextInputFormatter()],
                   decoration: const InputDecoration(
                     labelText: 'Jasa',
+                    prefixText: 'Rp ',
                     hintText: '0',
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 12,
@@ -377,7 +382,8 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                     ),
                   ),
                   onChanged: (v) =>
-                      _items[index].laborCost = int.tryParse(v) ?? 0,
+                      _items[index].laborCost =
+                          Formatters.parseCurrencyInt(v) ?? 0,
                 ),
               ),
             ],

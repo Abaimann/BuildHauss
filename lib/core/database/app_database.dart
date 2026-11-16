@@ -2569,7 +2569,10 @@ class AppDatabase extends _$AppDatabase {
   Future<BudgetPlan?> getActiveBudgetPlan(int motorcycleId) =>
       (select(budgetPlans)
             ..where((t) => t.motorcycleId.equals(motorcycleId))
-            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+            ..orderBy([
+              (t) => OrderingTerm.desc(t.createdAt),
+              (t) => OrderingTerm.desc(t.id),
+            ])
             ..limit(1))
           .getSingleOrNull();
 
@@ -2636,7 +2639,10 @@ class AppDatabase extends _$AppDatabase {
   Future<List<BudgetPlan>> getBudgetPlanHistory(int motorcycleId) =>
       (select(budgetPlans)
             ..where((t) => t.motorcycleId.equals(motorcycleId))
-            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+            ..orderBy([
+              (t) => OrderingTerm.desc(t.createdAt),
+              (t) => OrderingTerm.desc(t.id),
+            ]))
           .get();
 
   Future<int> deleteBudgetPlan(int id) => transaction(() async {

@@ -1514,7 +1514,7 @@
           <div class="download-left">
             <span class="section-badge" style="background: rgba(0, 245, 160, 0.16); color: var(--accent); border-color: rgba(0, 245, 160, 0.35);">Build Resmi Android • v1.1.0</span>
             <h2>BuildHaus Android Release v1.1.0</h2>
-            <p>Pembaruan terbaru v1.1.0 menghadirkan tampilan katalog &amp; beranda lebih rapi bebas duplikat, Smart Filter komponen 4 merek resmi (Matic CVT, Manual Rantai, Radiator, Pendingin Udara), pencatatan pengeluaran cepat, Laporan Kondisi Motor, serta seeder 5 jenis motor berbeda di menu Akun.</p>
+            <p>Pembaruan terbaru v1.1.0 menghadirkan tampilan katalog &amp; beranda lebih rapi bebas duplikat, Filter Kategori &amp; Urutan berbasis modal, format input nominal IDR otomatis, ekspor laporan .txt langsung ke folder Download, Smart Filter komponen 4 merek resmi, serta seeder 5 jenis motor berbeda di menu Akun.</p>
 
             <div class="download-actions-group">
               <a href="https://github.com/Abaimann/BuildHauss/releases/download/v1.1.0/buildhaus.apk" class="dl-main-btn">
@@ -1548,7 +1548,7 @@
                 <span>Versi:</span> <b>v1.1.0 (Latest Release)</b>
               </div>
               <div class="apk-spec-row">
-                <span>Ukuran File:</span> <b>28.5 MB (29,838,940 Bytes)</b>
+                <span>Ukuran File:</span> <b>28.5 MB (29,919,300 Bytes)</b>
               </div>
               <div class="apk-spec-row">
                 <span>Kompatibilitas:</span> <b>Android 8.0+ s/d Android 15</b>
@@ -1561,7 +1561,7 @@
                   <span>SHA-256 Checksum:</span>
                   <button type="button" id="copy-hash-btn" onclick="copySha256()" style="background:transparent; border:none; color:var(--accent); font-size:11px; font-weight:700; cursor:pointer; padding:2px 6px;">Salin SHA-256 📋</button>
                 </div>
-                <code style="font-size:10.5px; color:var(--muted); word-break:break-all; font-family:'JetBrains Mono', monospace; display:block; background:var(--surface3); padding:6px 8px; border-radius:6px; border:1px solid var(--line);">485AAABB01FABA07A8185C856E215299D10F3CAA938BF30FA8D328B113D22723</code>
+                <code style="font-size:10.5px; color:var(--muted); word-break:break-all; font-family:'JetBrains Mono', monospace; display:block; background:var(--surface3); padding:6px 8px; border-radius:6px; border:1px solid var(--line);">025EC12FF21A3199BEE058709D6A0A8CE99BCB931C05300F35D54578A615E754</code>
               </div>
             </div>
           </div>
@@ -2177,7 +2177,7 @@ const views = {
       }
 
       function copySha256() {
-        const hash = '485AAABB01FABA07A8185C856E215299D10F3CAA938BF30FA8D328B113D22723';
+        const hash = '025EC12FF21A3199BEE058709D6A0A8CE99BCB931C05300F35D54578A615E754';
         navigator.clipboard.writeText(hash).then(() => {
           const btn = document.getElementById('copy-hash-btn');
           if (btn) {

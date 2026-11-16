@@ -105,16 +105,55 @@ class VehicleHealthReportScreen extends ConsumerWidget {
     return buf.toString();
   }
 
-  Future<void> _exportTextFile(BuildContext context, String reportText, String nickname) async {
+  static const _downloadsChannel = MethodChannel(
+    'com.buildhaus.buildhaus/downloads',
+  );
+
+  Future<void> _exportTextFile(
+    BuildContext context,
+    String reportText,
+    String nickname,
+  ) async {
     try {
-      final dir = await getApplicationDocumentsDirectory();
-      final safeName = nickname.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+      final safeName = nickname.toLowerCase().replaceAll(
+        RegExp(r'[^a-z0-9]+'),
+        '_',
+      );
       final ts = DateTime.now().millisecondsSinceEpoch;
-      final file = File(p.join(dir.path, 'laporan_${safeName}_$ts.txt'));
-      await file.writeAsString(reportText);
+      final fileName = 'laporan_${safeName}_$ts.txt';
+
+      String? savedPath;
+      if (Platform.isAndroid) {
+        try {
+          savedPath = await _downloadsChannel.invokeMethod<String>(
+            'saveToDownloads',
+            {
+              'fileName': fileName,
+              'content': reportText,
+              'mimeType': 'text/plain',
+            },
+          );
+        } on MissingPluginException {
+          // Fallback saat pengujian headless/unit test di luar Android runtime.
+          savedPath = null;
+        }
+      }
+
+      if (savedPath == null) {
+        final dir =
+            (await getDownloadsDirectory()) ??
+            await getApplicationDocumentsDirectory();
+        if (!await dir.exists()) {
+          await dir.create(recursive: true);
+        }
+        final file = File(p.join(dir.path, fileName));
+        await file.writeAsString(reportText);
+        savedPath = file.path;
+      }
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Laporan disimpan ke: ${file.path}')),
+          SnackBar(content: Text('Laporan disimpan ke: $savedPath')),
         );
       }
     } catch (e) {
