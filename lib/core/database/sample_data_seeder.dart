@@ -94,10 +94,6 @@ class SampleDataSeeder {
       (c) => c.name.toLowerCase().contains('radiator coolant'),
       orElse: () => filterUdara,
     );
-    final rantaiGir = componentTypes.firstWhere(
-      (c) => c.name.toLowerCase().contains('rantai'),
-      orElse: () => cvt,
-    );
     final suspensi = componentTypes.firstWhere(
       (c) => c.name.toLowerCase().contains('suspensi'),
       orElse: () => componentTypes.first,
@@ -227,14 +223,6 @@ class SampleDataSeeder {
           partsCost: const Value(15000),
           laborCost: const Value(10000),
           notes: const Value('Gasket Paking Knalpot Tembaga Matic'),
-        ),
-        ServiceItemsCompanion.insert(
-          serviceRecordId: 0,
-          componentTypeId: Value(rantaiGir.id),
-          action: 'replace',
-          partsCost: const Value(85000),
-          laborCost: const Value(25000),
-          notes: const Value('Final Gear Bearing Set Matic'),
         ),
       ],
       odometerKm: 13000.0,
@@ -500,14 +488,6 @@ class SampleDataSeeder {
           laborCost: const Value(15000),
           notes: const Value('Paking Knalpot Yamaha Aerox Original'),
         ),
-        ServiceItemsCompanion.insert(
-          serviceRecordId: 0,
-          componentTypeId: Value(rantaiGir.id),
-          action: 'replace',
-          partsCost: const Value(95000),
-          laborCost: const Value(30000),
-          notes: const Value('Final Gear Bearing Set Yamaha Matic'),
-        ),
       ],
       odometerKm: 26200.0,
     );
@@ -660,14 +640,6 @@ class SampleDataSeeder {
         ),
         ServiceItemsCompanion.insert(
           serviceRecordId: 0,
-          componentTypeId: Value(coolant.id),
-          action: 'replace',
-          partsCost: const Value(22000),
-          laborCost: const Value(10000),
-          notes: const Value('Prestone Radiator Coolant 1L'),
-        ),
-        ServiceItemsCompanion.insert(
-          serviceRecordId: 0,
           componentTypeId: Value(filterOli.id),
           action: 'replace',
           partsCost: const Value(18000),
@@ -689,14 +661,6 @@ class SampleDataSeeder {
           partsCost: const Value(15000),
           laborCost: const Value(10000),
           notes: const Value('Gasket Paking Knalpot Tembaga'),
-        ),
-        ServiceItemsCompanion.insert(
-          serviceRecordId: 0,
-          componentTypeId: Value(rantaiGir.id),
-          action: 'replace',
-          partsCost: const Value(65000),
-          laborCost: const Value(25000),
-          notes: const Value('Final Gear Inspection & Bearing Matic'),
         ),
       ],
       odometerKm: 31800.0,
@@ -819,4 +783,631 @@ class SampleDataSeeder {
 
     return createdIds;
   }
+
+  /// Mendaftarkan 5 jenis motor yang berbeda beserta data lengkap lintas
+  /// 4 merek resmi:
+  /// 1. Honda Vario 160 — Skutik Maxi Harian (Matic, Radiator)
+  /// 2. Yamaha NMAX — Skutik Touring Premium (Matic, Radiator)
+  /// 3. Suzuki Smash FI — Motor Bebek Komuter (Manual Rantai, Air-Cooled)
+  /// 4. Honda CBR150R — Motor Sport Fairing 150cc (Manual Rantai, Radiator)
+  /// 5. Kawasaki W175 — Motor Retro Klasik (Manual Rantai, Air-Cooled)
+  Future<List<int>> seedDiverseFiveMotorcycles({bool force = false}) async {
+    final existing = await db.getAllMotorcycles();
+    if (existing.isNotEmpty && !force) {
+      return existing.map((m) => m.id).toList();
+    }
+
+    if (force) {
+      await db.clearAllUserData();
+    }
+
+    await db.ensureReferenceData();
+    final models = await db.getAllMotorcycleModels();
+    final componentTypes = await db.getAllComponentTypes();
+    final spareparts = await db.getAllSpareparts();
+
+    MotorcycleModel findModel(String brand, String keyword) {
+      return models.firstWhere(
+        (m) =>
+            m.brand.toLowerCase() == brand.toLowerCase() &&
+            m.model.toLowerCase().contains(keyword.toLowerCase()),
+        orElse: () => models.firstWhere(
+          (m) => m.brand.toLowerCase() == brand.toLowerCase(),
+          orElse: () => models.first,
+        ),
+      );
+    }
+
+    int? findComponentId(String keyword) {
+      final k = keyword.toLowerCase();
+      for (final c in componentTypes) {
+        if (c.name.toLowerCase().contains(k)) return c.id;
+      }
+      return null;
+    }
+
+    int? findSparepartId(String? keyword) {
+      if (keyword == null || keyword.isEmpty) return null;
+      final k = keyword.toLowerCase();
+      for (final p in spareparts) {
+        if (p.name.toLowerCase().contains(k)) return p.id;
+      }
+      return null;
+    }
+
+    final specs = <_DiverseMotorSpec>[
+      _DiverseMotorSpec(
+        brand: 'Honda',
+        modelKeyword: 'Vario 160',
+        nickname: 'Vario 160 Maxi Harian',
+        manufactureYear: 2024,
+        plateNumber: 'B 4512 VRO',
+        emoji: '🛵',
+        usageProfile: 'harian_dalam_kota',
+        isPrimary: true,
+        baselineDaysAgo: 95,
+        baselineKm: 9200,
+        baselineNote: 'Odometer awal pencatatan skutik harian',
+        odometerLogs: const [
+          (60, 10450.0, 'Update bulanan rute kantor Jakarta'),
+          (30, 11680.0, 'Catat kilometer sebelum servis berkala'),
+          (4, 12450.0, 'Pencatatan terbaru akhir pekan'),
+        ],
+        services: const [
+          _SeedServiceSpec(
+            daysAgo: 25,
+            odometerKm: 11850.0,
+            workshop: 'AHASS Astra Motor Dewi Sartika',
+            notes: 'Servis berkala 12.000 km: ganti oli mesin, gardan & kuras coolant.',
+            resolveComplaints: true,
+            items: [
+              ('oli mesin', 'spx2', 'replace', 65000, 15000, 'AHM Oil SPX2 10W-30 0.8L'),
+              ('oli gardan', 'ahm oil scooter gear', 'replace', 18000, 10000, 'AHM Oil Scooter Gear Oil 120ml'),
+              ('radiator coolant', 'ahm radiator coolant', 'replace', 24000, 15000, 'AHM Radiator Coolant Pre-mix 1L'),
+              ('kampas rem', 'kampas', 'inspect', 0, 10000, 'Kampas rem depan masih tebal 70%'),
+            ],
+          ),
+          _SeedServiceSpec(
+            daysAgo: 9,
+            odometerKm: 12250.0,
+            workshop: 'Spooring & Steam BuildHaus Point',
+            notes: 'Perawatan bodi & cek tekanan ban tubeless',
+            resolveComplaints: false,
+            items: [
+              ('ban', 'ban', 'repair', 35000, 25000, 'Isi nitrogen & tambal ban belakang'),
+            ],
+          ),
+        ],
+        inspectionRisk: 'rendah',
+        inspectionAnswers: const {
+          'oli': 'bersih',
+          'rem': 'pakem',
+          'ban': 'baik',
+          'mesin': 'halus',
+        },
+        inspectionNotes: 'Kondisi prima untuk komuter harian dalam kota.',
+        budgetAmount: 450000,
+        budgetNotes: 'Budget perawatan bulanan Honda Vario 160',
+        complaint: _SeedComplaintSpec(
+          daysAgo: 6,
+          title: 'Tarikan awal sedikit berat saat macet',
+          description: 'Saat stop & go di kemacetan terasa sedikit gredek ringan.',
+          status: 'open',
+          userMsg: 'Vario 160 saya tarikan bawahnya agak bergetar pelan pas macet.',
+          assistantMsg:
+              'Gejala gredek ringan pada CVT skutik 160cc umum terjadi akibat debu menumpuk di mangkok kopling ganda. Disarankan pembersihan CVT saat servis berikutnya.',
+          riskLevel: 'sedang',
+          summary: 'Perlu pembersihan rumah kopling & area CVT',
+          symptomsJson: '["gredek", "tarikan_berat"]',
+          componentsJson: '["CVT"]',
+        ),
+      ),
+      _DiverseMotorSpec(
+        brand: 'Yamaha',
+        modelKeyword: 'NMAX',
+        nickname: 'NMAX 155 Touring',
+        manufactureYear: 2023,
+        plateNumber: 'D 6188 NMX',
+        emoji: '🏍️',
+        usageProfile: 'perjalanan_jauh',
+        isPrimary: false,
+        baselineDaysAgo: 92,
+        baselineKm: 14200,
+        baselineNote: 'Start pencatatan skutik touring Bandung',
+        odometerLogs: const [
+          (58, 16100.0, 'Selesai turing Lembang - Ciwidey'),
+          (28, 17850.0, 'Cek kilometer menuju interval 18.000 km'),
+          (3, 18900.0, 'Odometer terkini pasca turing akhir pekan'),
+        ],
+        services: const [
+          _SeedServiceSpec(
+            daysAgo: 40,
+            odometerKm: 16900.0,
+            workshop: 'Yamaha Flagship Shop Bandung',
+            notes: 'Servis CVT lengkap + ganti V-Belt & oli gardan untuk persiapan touring.',
+            resolveComplaints: true,
+            items: [
+              ('oli mesin', 'yamalube', 'replace', 62000, 15000, 'Yamalube Power Matic 10W-40'),
+              ('oli gardan', 'yamalube motor gear', 'replace', 17500, 10000, 'Yamalube Motor Gear Oil 100ml'),
+              ('cvt', 'v-belt yamaha genuine', 'replace', 135000, 35000, 'V-Belt Yamaha Genuine Aerox/NMAX'),
+            ],
+          ),
+          _SeedServiceSpec(
+            daysAgo: 12,
+            odometerKm: 18450.0,
+            workshop: 'Planet Ban Soekarno Hatta',
+            notes: 'Pengeluaran penggantian pentil tubeless & cairan anti bocor',
+            resolveComplaints: false,
+            items: [
+              ('ban', 'ban', 'repair', 85000, 20000, 'Balancing ringan & cairan tubeless'),
+            ],
+          ),
+        ],
+        inspectionRisk: 'sedang',
+        inspectionAnswers: const {
+          'oli': 'wajar',
+          'cvt': 'agak_bergetar',
+          'ban': 'mulai_aus',
+          'mesin': 'halus',
+        },
+        inspectionNotes: 'Filter udara perlu dibersihkan karena rute turing berdebu.',
+        budgetAmount: 650000,
+        budgetNotes: 'Dana perawatan rutin skutik touring NMAX 155',
+        complaint: _SeedComplaintSpec(
+          daysAgo: 5,
+          title: 'Tarikan menanjak terasa tertahan',
+          description: 'Filter udara terasa kotor setelah melewati jalur pegunungan berdebu.',
+          status: 'open',
+          userMsg: 'NMAX saya napas atasnya agak berat waktu dipakai nanjak setelah hujan dan debu.',
+          assistantMsg:
+              'Filter udara kotor mengurangi suplai udara ke ruang bakar sehingga tenaga terasa tertahan di tanjakan. Cek kondisi filter udara & lakukan penggantian bila elemen kertas menghitam.',
+          riskLevel: 'sedang',
+          summary: 'Inspeksi atau ganti elemen filter udara',
+          symptomsJson: '["tenaga_hilang", "filter_kotor"]',
+          componentsJson: '["Filter udara", "CVT"]',
+        ),
+      ),
+      _DiverseMotorSpec(
+        brand: 'Suzuki',
+        modelKeyword: 'Smash',
+        nickname: 'Smash FI Bebek Kerja',
+        manufactureYear: 2022,
+        plateNumber: 'B 3891 SMH',
+        emoji: '⚙️',
+        usageProfile: 'campuran',
+        isPrimary: false,
+        baselineDaysAgo: 90,
+        baselineKm: 19100,
+        baselineNote: 'Odometer awal motor bebek manual pekerja keras',
+        odometerLogs: const [
+          (55, 20800.0, 'Dipakai operasional kurir harian'),
+          (22, 22100.0, 'Pencatatan kilometer pasca setel rantai'),
+          (2, 23400.0, 'Odometer terkini motor bebek komuter'),
+        ],
+        services: const [
+          _SeedServiceSpec(
+            daysAgo: 18,
+            odometerKm: 22250.0,
+            workshop: 'Bengkel Resmi Suzuki Kalimalang',
+            notes: 'Ganti rantai set lengkap & oli mesin 4T bebek manual.',
+            resolveComplaints: true,
+            items: [
+              ('oli mesin', 'enduro', 'replace', 42000, 15000, 'Oli 4T 10W-40 bebek harian'),
+              ('rantai', 'rantai set suzuki smash', 'replace', 145000, 30000, 'Rantai Set Suzuki Smash FI Genuine'),
+              ('busi', 'busi', 'replace', 25000, 10000, 'Ganti busi standar pengapian bersih'),
+            ],
+          ),
+          _SeedServiceSpec(
+            daysAgo: 6,
+            odometerKm: 23050.0,
+            workshop: 'Toko Aksesoris Sumber Jaya',
+            notes: 'Pembelian cover jok anti panas & pelumas rantai',
+            resolveComplaints: false,
+            items: [
+              ('rantai', 'rantai', 'inspect', 45000, 0, 'Pelumas rantai semprot & cover jok'),
+            ],
+          ),
+        ],
+        inspectionRisk: 'rendah',
+        inspectionAnswers: const {
+          'oli': 'bersih',
+          'rantai': 'kencang_terlumasi',
+          'rem': 'pakem',
+          'aki': 'kuat',
+        },
+        inspectionNotes: 'Bebek manual irit tanpa radiator — rantai baru & terlumasi.',
+        budgetAmount: 300000,
+        budgetNotes: 'Anggaran hemat motor bebek komuter Suzuki Smash FI',
+        complaint: _SeedComplaintSpec(
+          daysAgo: 21,
+          title: 'Rantai kendur berdecit saat oper gigi',
+          description: 'Bunyi gemeretak dari roda belakang sebelum penggantian rantai set.',
+          status: 'resolved',
+          userMsg: 'Rantai Suzuki Smash saya bunyi kasar tiap akselerasi gigi 2 ke 3.',
+          assistantMsg:
+              'Gir belakang yang runcing dan rantai aus memicu bunyi kasar saat torsi berpindah. Penggantian 1 set rantai dan gir sudah mengatasi sumber bunyi.',
+          riskLevel: 'rendah',
+          summary: 'Sudah diganti dengan Rantai Set Suzuki Smash FI Genuine',
+          symptomsJson: '["rantai_berisik"]',
+          componentsJson: '["Rantai & gir"]',
+        ),
+      ),
+      _DiverseMotorSpec(
+        brand: 'Honda',
+        modelKeyword: 'CBR150R',
+        nickname: 'CBR150R Sport Fairing',
+        manufactureYear: 2023,
+        plateNumber: 'F 2190 CBR',
+        emoji: '🏁',
+        usageProfile: 'perjalanan_jauh',
+        isPrimary: false,
+        baselineDaysAgo: 88,
+        baselineKm: 11500,
+        baselineNote: 'Odometer awal motor sport fairing 150cc',
+        odometerLogs: const [
+          (52, 13200.0, 'Sunmori rute Puncak - Bogor'),
+          (24, 14700.0, 'Catat odometer pasca kuras radiator'),
+          (2, 15600.0, 'Kilometer terbaru sport fairing'),
+        ],
+        services: const [
+          _SeedServiceSpec(
+            daysAgo: 32,
+            odometerKm: 14100.0,
+            workshop: 'AHASS Wing Big Bike Bogor',
+            notes: 'Servis motor sport: oli full synthetic SPX1, kuras coolant & minyak rem DOT 4.',
+            resolveComplaints: true,
+            items: [
+              ('oli mesin', 'spx1', 'replace', 72000, 25000, 'AHM Oil SPX1 10W-30 sport'),
+              ('radiator coolant', 'ahm radiator coolant', 'replace', 24000, 20000, 'AHM Radiator Coolant Pre-mix 1L'),
+              ('minyak rem', 'honda genuine brake fluid', 'replace', 18000, 20000, 'Honda Genuine Brake Fluid DOT 4 50ml'),
+            ],
+          ),
+          _SeedServiceSpec(
+            daysAgo: 10,
+            odometerKm: 15250.0,
+            workshop: 'SpeedShop Biker Bogor',
+            notes: 'Pengeluaran paddock stand & perawatan rantai O-ring',
+            resolveComplaints: false,
+            items: [
+              ('suspensi', 'shock', 'inspect', 180000, 35000, 'Inspeksi preload suspensi & seal shock'),
+            ],
+          ),
+        ],
+        inspectionRisk: 'tinggi',
+        inspectionAnswers: const {
+          'oli': 'bersih',
+          'rem_depan': 'hampir_habis',
+          'rantai': 'perlu_pelumas',
+          'coolant': 'penuh',
+        },
+        inspectionNotes: 'Kampas rem depan menipis dan butuh pengecekan segera.',
+        budgetAmount: 750000,
+        budgetNotes: 'Alokasi perawatan motor sport CBR150R',
+        complaint: _SeedComplaintSpec(
+          daysAgo: 3,
+          title: 'Kampas rem depan kurang menggigit saat kecepatan tinggi',
+          description: 'Tuas rem depan harus ditarik lebih dalam & terasa getar halus.',
+          status: 'open',
+          userMsg: 'Rem depan CBR150R saya terasa kurang pakem waktu ngerem mendadak di jalan menurun.',
+          assistantMsg:
+              'PERHATIAN KESELAMATAN: Ketebalan kampas rem depan yang menipis mengurangi daya cengkeram cakram. Segera inspeksi ketebalan kampas dan bersihkan piston kaliper sebelum dipakai perjalanan jauh.',
+          riskLevel: 'tinggi',
+          summary: 'Prioritas keselamatan: segera cek & ganti kampas rem depan',
+          symptomsJson: '["rem_kurang_pakem", "tuas_dalam"]',
+          componentsJson: '["Kampas rem", "Minyak rem"]',
+        ),
+      ),
+      _DiverseMotorSpec(
+        brand: 'Kawasaki',
+        modelKeyword: 'W175',
+        nickname: 'W175 Retro Klasik',
+        manufactureYear: 2021,
+        plateNumber: 'B 5704 KAW',
+        emoji: '🕶️',
+        usageProfile: 'campuran',
+        isPrimary: false,
+        baselineDaysAgo: 85,
+        baselineKm: 5400,
+        baselineNote: 'Odometer awal motor retro klasik akhir pekan',
+        odometerLogs: const [
+          (48, 6200.0, 'Riding pagi kota tua & kemang'),
+          (18, 7100.0, 'Cek odometer pasca servis karburator'),
+          (1, 7850.0, 'Odometer terkini Kawasaki W175'),
+        ],
+        services: const [
+          _SeedServiceSpec(
+            daysAgo: 15,
+            odometerKm: 7300.0,
+            workshop: 'Kawasaki Greentech Classic Garage',
+            notes: 'Servis motor retro: ganti oli Kawasaki Genuine 4T + penyetelan rantai & klep.',
+            resolveComplaints: true,
+            items: [
+              ('oli mesin', 'oli mesin kawasaki', 'replace', 88000, 35000, 'Oli Mesin Kawasaki Genuine 4T 10W-40 1L'),
+              ('rantai', 'rantai & gir set kawasaki w175', 'replace', 265000, 45000, 'Rantai & Gir Set Kawasaki W175 / Ninja 250SL'),
+            ],
+          ),
+          _SeedServiceSpec(
+            daysAgo: 3,
+            odometerKm: 7780.0,
+            workshop: 'Retro Shine Detailing',
+            notes: 'Detailing chrome tangki & poles pelek jari-jari',
+            resolveComplaints: false,
+            items: [
+              ('aki', 'aki', 'inspect', 150000, 0, 'Cek voltase aki 12.7V & detailing bodi klasik'),
+            ],
+          ),
+        ],
+        inspectionRisk: 'rendah',
+        inspectionAnswers: const {
+          'oli': 'bersih',
+          'aki': 'normal',
+          'rantai': 'kencang',
+          'mesin': 'halus',
+        },
+        inspectionNotes: 'Motor klasik berpendingin udara dalam kondisi terawat dan siap riding.',
+        budgetAmount: 500000,
+        budgetNotes: 'Dana perawatan rutin Kawasaki W175 retro klasik',
+        complaint: _SeedComplaintSpec(
+          daysAgo: 17,
+          title: 'Mesin sedikit susah langsam saat pagi dingin',
+          description: 'Butuh choke sebentar saat starter pagi sebelum servis karburator.',
+          status: 'resolved',
+          userMsg: 'W175 saya agak susah langsam kalau dinyalakan pagi hari.',
+          assistantMsg:
+              'Pada motor retro karburator berpendingin udara, penyetelan pilot screw dan pembersihan spuyer mengembalikan idle stabil di pagi hari.',
+          riskLevel: 'rendah',
+          summary: 'Sudah disetel ulang saat servis karburator & ganti oli',
+          symptomsJson: '["langsam_tidak_stabil"]',
+          componentsJson: '["Busi", "Filter udara"]',
+        ),
+      ),
+    ];
+
+    final createdIds = <int>[];
+    final now = DateTime.now();
+
+    await db.transaction(() async {
+      for (final spec in specs) {
+      final model = findModel(spec.brand, spec.modelKeyword);
+      final motorId = await db.createMotorcycle(
+        motorcycle: MotorcyclesCompanion.insert(
+          modelId: Value(model.id),
+          nickname: spec.nickname,
+          manufactureYear: spec.manufactureYear,
+          plateNumber: Value(spec.plateNumber),
+          emoji: Value(spec.emoji),
+          usageProfile: Value(spec.usageProfile),
+          isPrimary: Value(spec.isPrimary),
+        ),
+      );
+      createdIds.add(motorId);
+
+      await db.insertOdometerLog(
+        OdometerLogsCompanion.insert(
+          motorcycleId: motorId,
+          odometerKm: spec.baselineKm,
+          recordedAt: now.subtract(Duration(days: spec.baselineDaysAgo)),
+          source: const Value('manual'),
+          note: Value(spec.baselineNote),
+        ),
+      );
+
+      for (final (daysAgo, km, note) in spec.odometerLogs) {
+        await db.insertOdometerLog(
+          OdometerLogsCompanion.insert(
+            motorcycleId: motorId,
+            odometerKm: km,
+            recordedAt: now.subtract(Duration(days: daysAgo)),
+            source: const Value('manual'),
+            note: Value(note),
+          ),
+        );
+      }
+
+      for (final srv in spec.services) {
+        final companions = <ServiceItemsCompanion>[];
+        var partsSum = 0;
+        var laborSum = 0;
+        for (final (compKw, partKw, action, partsCost, laborCost, itemNotes)
+            in srv.items) {
+          final compId = findComponentId(compKw);
+          final partId = findSparepartId(partKw);
+          partsSum += partsCost;
+          laborSum += laborCost;
+          companions.add(
+            ServiceItemsCompanion.insert(
+              serviceRecordId: 0,
+              componentTypeId: Value(compId),
+              sparepartId: Value(partId),
+              action: action,
+              partsCost: Value(partsCost),
+              laborCost: Value(laborCost),
+              totalCost: Value(partsCost + laborCost),
+              notes: Value(itemNotes),
+            ),
+          );
+        }
+
+        await db.createServiceWithItems(
+          record: ServiceRecordsCompanion.insert(
+            motorcycleId: motorId,
+            servicedAt: now.subtract(Duration(days: srv.daysAgo)),
+            odometerKm: Value(srv.odometerKm),
+            workshopName: Value(srv.workshop),
+            notes: Value(srv.notes),
+            totalCost: Value(partsSum + laborSum),
+          ),
+          items: companions,
+          odometerKm: srv.odometerKm,
+          resolveComplaints: srv.resolveComplaints,
+        );
+      }
+
+      await db.saveCompleteSelfInspection(
+        motorcycleId: motorId,
+        riskLevel: spec.inspectionRisk,
+        answers: spec.inspectionAnswers,
+        notes: spec.inspectionNotes,
+      );
+
+      await db.saveCompleteBudgetPlan(
+        motorcycleId: motorId,
+        budgetAmount: spec.budgetAmount,
+        period: 'bulanan',
+        recommendations: const [],
+        notes: spec.budgetNotes,
+      );
+
+      if (spec.complaint != null) {
+        final c = spec.complaint!;
+        final cId = await db.insertComplaint(
+          ComplaintsCompanion.insert(
+            motorcycleId: motorId,
+            openedAt: Value(now.subtract(Duration(days: c.daysAgo))),
+            title: c.title,
+            description: c.description,
+            status: Value(c.status),
+          ),
+        );
+        await db.insertComplaintMessage(
+          ComplaintMessagesCompanion.insert(
+            complaintId: cId,
+            role: 'user',
+            content: c.userMsg,
+            createdAt: Value(now.subtract(Duration(days: c.daysAgo))),
+          ),
+        );
+        await db.insertComplaintMessage(
+          ComplaintMessagesCompanion.insert(
+            complaintId: cId,
+            role: 'assistant',
+            content: c.assistantMsg,
+            createdAt: Value(now.subtract(Duration(days: c.daysAgo))),
+          ),
+        );
+        await db.insertComplaintAnalysis(
+          ComplaintAnalysesCompanion.insert(
+            complaintId: cId,
+            analyzedAt: Value(now.subtract(Duration(days: c.daysAgo))),
+            analysisMode: 'rule_based',
+            riskLevel: c.riskLevel,
+            summary: c.summary,
+            symptomsJson: c.symptomsJson,
+            componentCandidatesJson: Value(c.componentsJson),
+          ),
+        );
+      }
+
+      final oliId = findComponentId('oli mesin');
+      await db.insertReminder(
+        LocalRemindersCompanion.insert(
+          motorcycleId: motorId,
+          componentTypeId: Value(oliId),
+          reminderType: 'odometer',
+          dueOdometerKm: Value(spec.odometerLogs.last.$2 + 2000),
+          dueDate: Value(now.add(const Duration(days: 35))),
+          enabled: const Value(true),
+          lastScheduledAt: Value(now),
+        ),
+      );
+
+      await db.recalculateComponentStatuses(motorId);
+    }
+    });
+
+    final reminderEngine = ReminderEngine(db: db);
+    for (final id in createdIds) {
+      await reminderEngine.syncRemindersForMotorcycle(id);
+    }
+
+    return createdIds;
+  }
+}
+
+class _DiverseMotorSpec {
+  final String brand;
+  final String modelKeyword;
+  final String nickname;
+  final int manufactureYear;
+  final String plateNumber;
+  final String emoji;
+  final String usageProfile;
+  final bool isPrimary;
+  final int baselineDaysAgo;
+  final double baselineKm;
+  final String baselineNote;
+  final List<(int, double, String)> odometerLogs;
+  final List<_SeedServiceSpec> services;
+  final String inspectionRisk;
+  final Map<String, String> inspectionAnswers;
+  final String inspectionNotes;
+  final int budgetAmount;
+  final String budgetNotes;
+  final _SeedComplaintSpec? complaint;
+
+  const _DiverseMotorSpec({
+    required this.brand,
+    required this.modelKeyword,
+    required this.nickname,
+    required this.manufactureYear,
+    required this.plateNumber,
+    required this.emoji,
+    required this.usageProfile,
+    required this.isPrimary,
+    required this.baselineDaysAgo,
+    required this.baselineKm,
+    required this.baselineNote,
+    required this.odometerLogs,
+    required this.services,
+    required this.inspectionRisk,
+    required this.inspectionAnswers,
+    required this.inspectionNotes,
+    required this.budgetAmount,
+    required this.budgetNotes,
+    this.complaint,
+  });
+}
+
+class _SeedServiceSpec {
+  final int daysAgo;
+  final double odometerKm;
+  final String workshop;
+  final String notes;
+  final bool resolveComplaints;
+  final List<(String, String?, String, int, int, String)> items;
+
+  const _SeedServiceSpec({
+    required this.daysAgo,
+    required this.odometerKm,
+    required this.workshop,
+    required this.notes,
+    required this.resolveComplaints,
+    required this.items,
+  });
+}
+
+class _SeedComplaintSpec {
+  final int daysAgo;
+  final String title;
+  final String description;
+  final String status;
+  final String userMsg;
+  final String assistantMsg;
+  final String riskLevel;
+  final String summary;
+  final String symptomsJson;
+  final String componentsJson;
+
+  const _SeedComplaintSpec({
+    required this.daysAgo,
+    required this.title,
+    required this.description,
+    required this.status,
+    required this.userMsg,
+    required this.assistantMsg,
+    required this.riskLevel,
+    required this.summary,
+    required this.symptomsJson,
+    required this.componentsJson,
+  });
 }

@@ -40,7 +40,15 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
 
   Future<void> _loadComponentTypes() async {
     final db = ref.read(databaseProvider);
-    final types = await db.getAllComponentTypes();
+    final targetMotorId =
+        widget.motorcycleId ?? ref.read(activeMotorcycleProvider)?.id;
+    Motorcycle? targetMotor;
+    if (targetMotorId != null) {
+      targetMotor = await db.getMotorcycle(targetMotorId);
+    }
+    final types = await db.getApplicableComponentsForModel(
+      targetMotor?.modelId,
+    );
     if (mounted) {
       setState(() {
         _componentTypes = types;
@@ -466,6 +474,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       );
 
       ref.invalidate(serviceRecordsProvider(motorId));
+      ref.invalidate(motorcycleExpenseSummaryProvider(motorId));
       ref.invalidate(latestOdometerProvider(motorId));
       ref.invalidate(odometerLogsProvider(motorId));
       ref.invalidate(mileagePredictorProvider(motorId));

@@ -213,13 +213,16 @@ void main() {
         await tester.pump(const Duration(milliseconds: 500));
         await tester.pumpAndSettle();
 
-        // 3. Verify motorcycle & all 14 component health statuses were created!
+        // 3. Verify motorcycle & applicable component health statuses were created!
         final motors = await db.getAllMotorcycles();
         expect(motors.length, 1);
         expect(motors.first.nickname, 'Vario Budi');
 
+        final applicable = await db.getApplicableComponentsForModel(
+          motors.first.modelId,
+        );
         final statuses = await db.getComponentStatuses(motors.first.id);
-        expect(statuses.length, 14);
+        expect(statuses.length, applicable.length);
         expect(statuses.every((s) => s.score != null && s.score! > 0), isTrue);
 
         // Drain pending timers

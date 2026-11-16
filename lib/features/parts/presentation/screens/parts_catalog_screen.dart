@@ -8,6 +8,39 @@ import '../../../../shared/widgets/buildhaus_logo.dart';
 import '../../domain/sparepart_image_helper.dart';
 import '../providers/parts_providers.dart';
 
+String _formatPartCategoryLabel(String raw) {
+  switch (raw) {
+    case 'Semua':
+    case 'Rekomendasi Budget':
+    case 'Perhatian Kesehatan':
+      return raw;
+  }
+  const exactMap = {
+    'oli': 'Oli Mesin',
+    'oli_mesin': 'Oli Mesin',
+    'oli_gardan': 'Oli Gardan',
+    'minyak_rem': 'Minyak Rem',
+    'filter_oli': 'Filter Oli',
+    'filter_udara': 'Filter Udara',
+    'kampas_rem': 'Kampas Rem',
+    'cvt': 'CVT & V-Belt',
+    'vbelt': 'V-Belt',
+    'aki': 'Aki / Baterai',
+    'busi': 'Busi',
+    'ban': 'Ban',
+    'rantai': 'Rantai & Gir',
+    'shockbreaker': 'Shockbreaker',
+    'coolant': 'Radiator Coolant',
+  };
+  final key = raw.trim().toLowerCase();
+  if (exactMap.containsKey(key)) return exactMap[key]!;
+  return key
+      .split('_')
+      .where((p) => p.isNotEmpty)
+      .map((p) => p[0].toUpperCase() + p.substring(1))
+      .join(' ');
+}
+
 class PartsCatalogScreen extends ConsumerStatefulWidget {
   const PartsCatalogScreen({super.key});
 
@@ -44,54 +77,43 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
         slivers: [
           // AppBar
           SliverAppBar(
-            expandedHeight: 120,
             pinned: true,
+            toolbarHeight: 72,
             backgroundColor: context.bg,
             surfaceTintColor: Colors.transparent,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [context.surface, context.bg],
+            titleSpacing: 16,
+            title: Row(
+              children: [
+                const BuildHausLogoCompact(size: 38),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Katalog Sparepart',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: context.ink,
+                        ),
+                      ),
+                      Text(
+                        activeMotor != null
+                            ? 'Rekomendasi untuk ${activeMotor.nickname}'
+                            : 'Semua katalog suku cadang',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.muted,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                padding: const EdgeInsets.fromLTRB(16, 60, 16, 0),
-                child: Row(
-                  children: [
-                    const BuildHausLogoCompact(size: 40),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Katalog Sparepart',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: context.ink,
-                            ),
-                          ),
-                          Text(
-                            activeMotor != null
-                                ? 'Rekomendasi untuk ${activeMotor.nickname}'
-                                : 'Semua katalog suku cadang',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: context.muted,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              ],
             ),
           ),
 
@@ -334,7 +356,7 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                                   const SizedBox(width: 5),
                                 ],
                                 Text(
-                                  cat,
+                                  _formatPartCategoryLabel(cat),
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: isSelected
@@ -504,9 +526,9 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 0.68,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.59,
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, i) => FadeSlideIn(
@@ -641,66 +663,82 @@ class _PartCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Image / Icon Area with Recommendation Badge
+            // Top Studio Image Bay (unobstructed rounded studio frame)
             Container(
-              height: 85,
+              height: 102,
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
               decoration: BoxDecoration(
-                color: context.surface3,
+                color: context.surface3.withValues(alpha: 0.7),
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(15),
                 ),
               ),
-              child: Stack(
-                children: [
-                  Center(
-                    child: Builder(
-                      builder: (ctx) {
-                        final assetPath = SparepartImageHelper.getAssetPath(
-                          part.category,
-                          part.name,
-                        );
-                        if (assetPath != null) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Image.asset(
-                              assetPath,
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.contain,
-                              cacheWidth: 180,
-                              errorBuilder: (ctx, err, stack) => Icon(
-                                _getPartIcon(part.name, part.category),
-                                size: 40,
-                                color: item.isBudgetRecommended
-                                    ? Colors.green
-                                    : (item.isHealthRecommended
-                                        ? Colors.deepOrange
-                                        : context.ink),
-                              ),
+              child: Builder(
+                builder: (ctx) {
+                  final assetPath = SparepartImageHelper.getAssetPath(
+                    part.category,
+                    part.name,
+                  );
+                  if (assetPath != null) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3F6FA),
+                        borderRadius: BorderRadius.circular(11),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.14),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(6),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          assetPath,
+                          fit: BoxFit.contain,
+                          cacheWidth: 220,
+                          errorBuilder: (ctx, err, stack) => Center(
+                            child: Icon(
+                              _getPartIcon(part.name, part.category),
+                              size: 38,
+                              color: context.muted,
                             ),
-                          );
-                        }
-                        return Icon(
-                          _getPartIcon(part.name, part.category),
-                          size: 42,
-                          color: item.isBudgetRecommended
-                              ? Colors.green
-                              : (item.isHealthRecommended
-                                  ? Colors.deepOrange
-                                  : context.ink),
-                        );
-                      },
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: context.surface2,
+                      borderRadius: BorderRadius.circular(11),
                     ),
-                  ),
-                  if (item.badgeText != null)
-                    Positioned(
-                      top: 6,
-                      left: 6,
-                      right: 6,
-                      child: Container(
+                    child: Center(
+                      child: Icon(
+                        _getPartIcon(part.name, part.category),
+                        size: 38,
+                        color: item.isBudgetRecommended
+                            ? Colors.green
+                            : (item.isHealthRecommended
+                                ? Colors.deepOrange
+                                : context.ink),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(11, 8, 11, 11),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (item.badgeText != null) ...[
+                      Container(
+                        width: double.infinity,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
+                          horizontal: 7,
+                          vertical: 3,
                         ),
                         decoration: BoxDecoration(
                           color: badgeBg,
@@ -711,13 +749,13 @@ class _PartCard extends StatelessWidget {
                           children: [
                             if (badgeIcon != null) ...[
                               Icon(badgeIcon, size: 10, color: badgeTextCol),
-                              const SizedBox(width: 3),
+                              const SizedBox(width: 4),
                             ],
                             Expanded(
                               child: Text(
                                 item.badgeText!,
                                 style: TextStyle(
-                                  fontSize: 9,
+                                  fontSize: 9.5,
                                   fontWeight: FontWeight.bold,
                                   color: badgeTextCol,
                                 ),
@@ -728,62 +766,97 @@ class _PartCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                    ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.soft,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        part.category,
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: context.muted,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(height: 6),
+                    ],
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: context.soft,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Text(
+                              _formatPartCategoryLabel(part.category),
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                color: context.muted,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
-                      ),
+                        if (part.isVerified) ...[
+                          const SizedBox(width: 4),
+                          Tooltip(
+                            message: 'Katalog Resmi Terverifikasi',
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: BuildHausTheme.ok.withValues(alpha: 0.14),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Icon(
+                                Icons.verified_rounded,
+                                size: 11,
+                                color: BuildHausTheme.ok,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       part.name,
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12.5,
+                        height: 1.25,
                         color: context.ink,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (part.brand != null && part.brand!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Text(
                         part.brand!,
-                        style: TextStyle(fontSize: 10, color: context.muted),
+                        style: TextStyle(fontSize: 10.5, color: context.muted),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                     const Spacer(),
-                    Text(
-                      'Est. $priceText',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                        color: BuildHausTheme.warn,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Est. $priceText',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11.5,
+                              color: BuildHausTheme.warn,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 10,
+                          color: context.muted,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -978,41 +1051,49 @@ class _PartCard extends StatelessWidget {
               // Part Image / Icon Header Container
               Container(
                 width: double.infinity,
-                height: 130,
+                height: 148,
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: context.surface2,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: context.line),
                 ),
-                child: Center(
-                  child: Builder(
-                    builder: (ctx) {
-                      final assetPath = SparepartImageHelper.getAssetPath(
-                        part.category,
-                        part.name,
-                      );
-                      if (assetPath != null) {
-                        return Padding(
-                          padding: const EdgeInsets.all(12.0),
+                child: Builder(
+                  builder: (ctx) {
+                    final assetPath = SparepartImageHelper.getAssetPath(
+                      part.category,
+                      part.name,
+                    );
+                    if (assetPath != null) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F6FA),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.all(10),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
                           child: Image.asset(
                             assetPath,
-                            width: 100,
-                            height: 100,
                             fit: BoxFit.contain,
-                            cacheWidth: 300,
-                            errorBuilder: (ctx, err, stack) => Icon(
-                              _getPartIcon(part.name, part.category),
-                              size: 56,
-                              color: item.isBudgetRecommended
-                                  ? Colors.green
-                                  : (item.isHealthRecommended
-                                      ? Colors.deepOrange
-                                      : context.ink),
+                            cacheWidth: 320,
+                            errorBuilder: (ctx, err, stack) => Center(
+                              child: Icon(
+                                _getPartIcon(part.name, part.category),
+                                size: 56,
+                                color: item.isBudgetRecommended
+                                    ? Colors.green
+                                    : (item.isHealthRecommended
+                                        ? Colors.deepOrange
+                                        : context.ink),
+                              ),
                             ),
                           ),
-                        );
-                      }
-                      return Icon(
+                        ),
+                      );
+                    }
+                    return Center(
+                      child: Icon(
                         _getPartIcon(part.name, part.category),
                         size: 56,
                         color: item.isBudgetRecommended
@@ -1020,9 +1101,9 @@ class _PartCard extends StatelessWidget {
                             : (item.isHealthRecommended
                                 ? Colors.deepOrange
                                 : context.ink),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 16),
@@ -1033,7 +1114,7 @@ class _PartCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  part.category,
+                  _formatPartCategoryLabel(part.category),
                   style: TextStyle(
                     fontSize: 11,
                     color: context.muted,
@@ -1050,6 +1131,62 @@ class _PartCard extends StatelessWidget {
                   style: TextStyle(fontSize: 12, color: context.muted),
                 ),
               ],
+              const SizedBox(height: 10),
+              Consumer(
+                builder: (bCtx, ref, _) {
+                  final activeMotor = ref.watch(activeMotorcycleProvider);
+                  final fitments =
+                      ref.watch(allSparepartFitmentsProvider).value ?? [];
+                  final isMatchedForActive =
+                      activeMotor?.modelId != null &&
+                      fitments.any(
+                        (f) =>
+                            f.sparepartId == part.id &&
+                            f.modelId == activeMotor!.modelId,
+                      );
+                  final badgeCol = isMatchedForActive
+                      ? BuildHausTheme.ok
+                      : BuildHausTheme.warn;
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: badgeCol.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: badgeCol.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isMatchedForActive
+                              ? Icons.verified_outlined
+                              : Icons.info_outline,
+                          size: 16,
+                          color: badgeCol,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            isMatchedForActive
+                                ? 'Terverifikasi cocok untuk ${activeMotor!.nickname}'
+                                : 'Referensi katalog umum — verifikasi part number untuk motor Anda',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: badgeCol,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 12),
               if (price != null) ...[
                 Text(

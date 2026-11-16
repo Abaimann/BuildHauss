@@ -5,6 +5,7 @@ import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/animated_widgets.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -130,33 +131,183 @@ class _ServiceTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final db = ref.watch(databaseProvider);
+    final recordsAsync = ref.watch(serviceRecordsProvider(motorId));
+    final expenseAsync = ref.watch(motorcycleExpenseSummaryProvider(motorId));
 
-    return FutureBuilder<List<ServiceRecord>>(
-      future: db.getServiceRecords(motorId),
-      builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final records = snap.data ?? [];
+    return recordsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Gagal memuat riwayat: $e')),
+      data: (records) {
+        final summary =
+            expenseAsync.value ??
+            const MotorcycleExpenseSummary(
+              totalAllCost: 0,
+              totalMonthCost: 0,
+              totalPartsCost: 0,
+              totalLaborCost: 0,
+              recordCount: 0,
+            );
+
         if (records.isEmpty) {
-          return _EmptyStateWidget(
-            icon: Icons.build_outlined,
-            title: 'Belum ada riwayat servis',
-            subtitle: 'Catat servis pertama kamu',
-            onAdd: () => context.push('/history/add'),
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: _ExpenseSummaryCard(motorId: motorId, summary: summary),
+              ),
+              Expanded(
+                child: _EmptyStateWidget(
+                  icon: Icons.build_outlined,
+                  title: 'Belum ada riwayat servis',
+                  subtitle: 'Catat servis atau pengeluaran pertama kamu',
+                  onAdd: () => context.push('/history/add'),
+                ),
+              ),
+            ],
           );
         }
+
         return ListView.separated(
           padding: const EdgeInsets.all(16),
-          itemCount: records.length,
+          itemCount: records.length + 1,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, i) => FadeSlideIn(
-            index: i,
-            child: _ServiceCard(record: records[i]),
-          ),
+          itemBuilder: (context, i) {
+            if (i == 0) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: _ExpenseSummaryCard(motorId: motorId, summary: summary),
+              );
+            }
+            return FadeSlideIn(
+              index: i - 1,
+              child: _ServiceCard(record: records[i - 1]),
+            );
+          },
         );
       },
+    );
+  }
+}
+
+class _ExpenseSummaryCard extends StatelessWidget {
+  final int motorId;
+  final MotorcycleExpenseSummary summary;
+
+  const _ExpenseSummaryCard({required this.motorId, required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.surface2,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.payments_outlined,
+                color: BuildHausTheme.warn,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Ringkasan Biaya Perawatan',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: context.ink,
+                ),
+              ),
+              const Spacer(),
+              TextButton.icon(
+                key: const ValueKey('history_add_expense_button'),
+                onPressed: () => context.push('/motor/$motorId/expense/add'),
+                icon: const Icon(Icons.receipt_long_outlined, size: 15),
+                label: const Text('+ Pengeluaran'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: const Size(0, 30),
+                  textStyle: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _ExpenseStatChip(
+                  label: 'Total Semua',
+                  value: Formatters.currency(summary.totalAllCost),
+                  color: BuildHausTheme.warn,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _ExpenseStatChip(
+                  label: 'Bulan Ini',
+                  value: Formatters.currency(summary.totalMonthCost),
+                  color: BuildHausTheme.ok,
+                ),
+              ),
+            ],
+          ),
+          if (summary.totalPartsCost > 0 || summary.totalLaborCost > 0) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Part: ${Formatters.currency(summary.totalPartsCost)}  •  Jasa: ${Formatters.currency(summary.totalLaborCost)}',
+              style: TextStyle(fontSize: 11, color: context.muted),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ExpenseStatChip extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  const _ExpenseStatChip({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: context.soft,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(fontSize: 10, color: context.muted)),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: color,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }

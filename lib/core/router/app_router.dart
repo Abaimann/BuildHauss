@@ -4,6 +4,7 @@ import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/motorcycles/presentation/screens/add_motorcycle_screen.dart';
 import '../../features/motorcycles/presentation/screens/edit_motorcycle_screen.dart';
 import '../../features/health/presentation/screens/health_screen.dart';
+import '../../features/health/presentation/screens/vehicle_health_report_screen.dart';
 import '../../features/parts/presentation/screens/parts_catalog_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/account/presentation/screens/account_screen.dart';
@@ -12,6 +13,7 @@ import '../../features/complaints/presentation/screens/complaints_screen.dart';
 import '../../features/complaints/presentation/screens/complaint_detail_screen.dart';
 import '../../features/complaints/presentation/screens/new_complaint_screen.dart';
 import '../../features/service_history/presentation/screens/add_service_screen.dart';
+import '../../features/service_history/presentation/screens/add_expense_screen.dart';
 import '../../features/self_inspection/presentation/screens/self_inspection_screen.dart';
 import '../../features/ai_assistant/presentation/screens/ai_assistant_screen.dart';
 import '../../features/ai_assistant/presentation/screens/ai_model_manager_screen.dart';
@@ -22,7 +24,6 @@ import '../../features/settings/presentation/screens/backup_screen.dart';
 import '../../features/settings/presentation/screens/restore_screen.dart';
 import '../../features/settings/presentation/screens/licenses_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
-import '../../features/settings/presentation/screens/coming_soon_screen.dart';
 import '../../features/auth/presentation/screens/auth_screen.dart';
 import '../../features/auth/presentation/screens/initial_motor_setup_screen.dart';
 import '../../shared/widgets/app_shell.dart';
@@ -142,12 +143,14 @@ GoRouter createAppRouter({GlobalKey<NavigatorState>? navigatorKey}) {
       ),
       GoRoute(
         path: '/motor/:id/expense/add',
-        builder: (_, state) => ComingSoonScreen(
-          title: 'Catat Pengeluaran',
-          description:
-              'Catat pengeluaran sparepart dan biaya servis. Akan hadir di versi berikutnya.',
-          icon: Icons.receipt_long_outlined,
-          backRoute: '/home',
+        builder: (_, state) => AddExpenseScreen(
+          motorcycleId: int.tryParse(state.pathParameters['id'] ?? ''),
+        ),
+      ),
+      GoRoute(
+        path: '/motor/:id/report',
+        builder: (_, state) => VehicleHealthReportScreen(
+          motorcycleId: int.tryParse(state.pathParameters['id'] ?? ''),
         ),
       ),
       GoRoute(

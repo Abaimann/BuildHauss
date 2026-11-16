@@ -5,6 +5,7 @@ import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../../core/engines/motorcycle_specs.dart';
 import '../../../../shared/widgets/animated_widgets.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
 import '../../../../core/utils/formatters.dart';
@@ -53,62 +54,72 @@ class HealthScreen extends ConsumerWidget {
         slivers: [
           // Bilah Aplikasi (AppBar) Layar Kesehatan
           SliverAppBar(
-            expandedHeight: 120,
             pinned: true,
+            toolbarHeight: 72,
             backgroundColor: context.bg,
             surfaceTintColor: Colors.transparent,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [context.surface, context.bg],
-                  ),
-                ),
-                padding: const EdgeInsets.fromLTRB(16, 60, 16, 0),
-                child: Row(
-                  children: [
-                    const BuildHausLogoCompact(size: 40),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
+            titleSpacing: 16,
+            title: Row(
+              children: [
+                const BuildHausLogoCompact(size: 38),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Kesehatan Motor',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: context.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
                         children: [
-                          Text(
-                            'Kesehatan Motor',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: context.ink,
+                          Flexible(
+                            child: Text(
+                              activeMotor.nickname,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: context.muted,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Text(
-                            activeMotor.nickname,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: context.muted,
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: context.soft,
+                              borderRadius: BorderRadius.circular(99),
+                            ),
+                            child: _HealthBrandLabel(
+                              modelId: activeMotor.modelId,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.soft,
-                        borderRadius: BorderRadius.circular(99),
-                      ),
-                      child: _HealthBrandLabel(modelId: activeMotor.modelId),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
+            actions: [
+              IconButton(
+                tooltip: 'Laporan Kondisi Motor',
+                icon: const Icon(Icons.assignment_outlined),
+                onPressed: () =>
+                    context.push('/motor/${activeMotor.id}/report'),
+              ),
+              const SizedBox(width: 4),
+            ],
           ),
 
           SliverPadding(
@@ -411,6 +422,50 @@ class _HealthScoreCard extends ConsumerWidget {
                       Text(
                         'Profil: ${motorcycle.usageProfile.replaceAll('_', ' ')}',
                         style: TextStyle(fontSize: 11, color: context.muted),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      if (motorcycle.modelId != null)
+                        Expanded(
+                          child: ref
+                              .watch(
+                                motorcycleModelByIdProvider(motorcycle.modelId),
+                              )
+                              .maybeWhen(
+                                data: (model) => model == null
+                                    ? const SizedBox.shrink()
+                                    : Text(
+                                        '${MotorcycleSpecs.transmissionLabel(model)} • ${MotorcycleSpecs.coolingLabel(model)}',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: context.muted,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                orElse: () => const SizedBox.shrink(),
+                              ),
+                        ),
+                      TextButton.icon(
+                        key: const ValueKey('open_health_report_button'),
+                        onPressed: () =>
+                            context.push('/motor/${motorcycle.id}/report'),
+                        icon: const Icon(Icons.assignment_outlined, size: 15),
+                        label: const Text('Kartu Laporan'),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          minimumSize: const Size(0, 30),
+                          textStyle: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -1139,6 +1194,18 @@ class _ComponentTile extends ConsumerWidget {
                   ),
                 ],
               ),
+              if (score != null) ...[
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: LinearProgressIndicator(
+                    value: (score / 100).clamp(0.0, 1.0),
+                    minHeight: 5,
+                    backgroundColor: color.withValues(alpha: 0.14),
+                    color: color,
+                  ),
+                ),
+              ],
               if (matchedParts.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Container(

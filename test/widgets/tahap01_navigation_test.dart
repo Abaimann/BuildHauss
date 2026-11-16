@@ -14,6 +14,7 @@ import 'package:buildhaus/features/ai_assistant/presentation/screens/ai_model_ma
 import 'package:buildhaus/features/budget/presentation/screens/budget_screen.dart';
 import 'package:buildhaus/features/complaints/presentation/screens/complaints_screen.dart';
 import 'package:buildhaus/features/health/presentation/screens/health_screen.dart';
+import 'package:buildhaus/features/health/presentation/screens/vehicle_health_report_screen.dart';
 import 'package:buildhaus/features/history/presentation/screens/history_screen.dart';
 import 'package:buildhaus/features/home/presentation/screens/home_screen.dart';
 import 'package:buildhaus/features/mileage/presentation/screens/odometer_history_screen.dart';
@@ -23,9 +24,9 @@ import 'package:buildhaus/features/motorcycles/presentation/screens/edit_motorcy
 import 'package:buildhaus/features/parts/presentation/screens/parts_catalog_screen.dart';
 import 'package:buildhaus/features/reminders/presentation/screens/reminders_screen.dart';
 import 'package:buildhaus/features/self_inspection/presentation/screens/self_inspection_screen.dart';
+import 'package:buildhaus/features/service_history/presentation/screens/add_expense_screen.dart';
 import 'package:buildhaus/features/service_history/presentation/screens/add_service_screen.dart';
 import 'package:buildhaus/features/settings/presentation/screens/backup_screen.dart';
-import 'package:buildhaus/features/settings/presentation/screens/coming_soon_screen.dart';
 import 'package:buildhaus/features/settings/presentation/screens/licenses_screen.dart';
 import 'package:buildhaus/features/settings/presentation/screens/restore_screen.dart';
 
@@ -310,14 +311,29 @@ void main() {
     });
 
     testWidgets(
-      '/motor/:id/expense/add membuka placeholder, bukan layar servis',
+      '/motor/:id/expense/add membuka AddExpenseScreen, bukan layar servis',
       (tester) async {
         await pumpApp(tester);
         final motors = await db.getAllMotorcycles();
         await goTo(tester, '/motor/${motors.first.id}/expense/add');
 
-        expect(find.byType(ComingSoonScreen), findsOneWidget);
+        expect(find.byType(AddExpenseScreen), findsOneWidget);
         expect(find.byType(AddServiceScreen), findsNothing);
+        expect(find.text('Page not found'), findsNothing);
+
+        await drain(tester);
+      },
+    );
+
+    testWidgets(
+      '/motor/:id/report membuka VehicleHealthReportScreen',
+      (tester) async {
+        await pumpApp(tester);
+        final motors = await db.getAllMotorcycles();
+        await goTo(tester, '/motor/${motors.first.id}/report');
+
+        expect(find.byType(VehicleHealthReportScreen), findsOneWidget);
+        expect(find.text('Laporan Kondisi Motor'), findsOneWidget);
         expect(find.text('Page not found'), findsNothing);
 
         await drain(tester);

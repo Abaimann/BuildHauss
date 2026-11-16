@@ -172,10 +172,12 @@ class AiContextRetriever {
       }
     }
 
-    // Component health calculation
+    // Component health calculation (filtered to applicable components for model)
     final componentHealths = <String, ComponentHealthResult>{};
     try {
-      final componentTypes = await _db.getAllComponentTypes();
+      final componentTypes = await _db.getApplicableComponentsForModel(
+        motor.modelId,
+      );
       final services = await _db.getServiceRecords(motorcycleId);
       final rules = await _db.getAllMaintenanceRules();
 

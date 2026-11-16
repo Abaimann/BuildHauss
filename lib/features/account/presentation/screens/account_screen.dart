@@ -19,11 +19,38 @@ class AccountScreen extends ConsumerWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 160,
             pinned: true,
+            toolbarHeight: 72,
             backgroundColor: context.bg,
             surfaceTintColor: Colors.transparent,
-            title: const Text('Akun'),
+            titleSpacing: 16,
+            title: Row(
+              children: [
+                const BuildHausLogoCompact(size: 38),
+                const SizedBox(width: 12),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Akun',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: context.ink,
+                      ),
+                    ),
+                    Text(
+                      'Profil & Pengelolaan Garasi',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings_outlined),
@@ -32,19 +59,6 @@ class AccountScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
             ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [context.surface, context.bg],
-                  ),
-                ),
-                padding: const EdgeInsets.fromLTRB(16, 60, 16, 0),
-                child: const Row(children: [BuildHausLogo(size: 44)]),
-              ),
-            ),
           ),
 
           SliverPadding(
@@ -738,6 +752,76 @@ class _DataManagementSection extends ConsumerWidget {
     return Column(
       children: [
         _SettingsTile(
+          icon: Icons.garage_outlined,
+          iconColor: BuildHausTheme.ok,
+          title: 'Muat 5 Motor Beragam Jenis',
+          subtitle: 'Skutik maxi, sport fairing, bebek & retro + data lengkap',
+          onTap: () async {
+            final confirm = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Muat 5 Motor Beragam Jenis?'),
+                content: const Text(
+                  'Ini akan mendaftarkan 5 jenis motor berbeda (Honda Vario 160, '
+                  'Yamaha NMAX, Suzuki Smash FI, Honda CBR150R, Kawasaki W175) '
+                  'lengkap dengan odometer, riwayat servis & pengeluaran, '
+                  'inspeksi mandiri, rencana budget, pengingat, dan keluhan AI.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Batal'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text('Muat 5 Motor'),
+                  ),
+                ],
+              ),
+            );
+            if (confirm == true) {
+              if (!context.mounted) return;
+              final container = ProviderScope.containerOf(context);
+              final messenger = ScaffoldMessenger.of(context);
+              final db = container.read(databaseProvider);
+              final createdIds = await SampleDataSeeder(
+                db,
+              ).seedDiverseFiveMotorcycles(force: true);
+              container.invalidate(motorcyclesProvider);
+              for (final id in createdIds) {
+                container.invalidate(latestOdometerProvider(id));
+                container.invalidate(odometerLogsProvider(id));
+                container.invalidate(componentStatusesWithNamesProvider(id));
+                container.invalidate(serviceRecordsProvider(id));
+                container.invalidate(motorcycleExpenseSummaryProvider(id));
+                container.invalidate(complaintsProvider(id));
+              }
+              if (createdIds.isNotEmpty) {
+                final motors = await db.getAllMotorcycles();
+                final firstMotor = motors.cast<Motorcycle?>().firstWhere(
+                  (m) => m?.id == createdIds.first,
+                  orElse: () => null,
+                );
+                if (firstMotor != null) {
+                  await container
+                      .read(activeMotorcycleProvider.notifier)
+                      .setActiveMotorcycle(firstMotor);
+                }
+              } else {
+                container.invalidate(activeMotorcycleProvider);
+              }
+              messenger.showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    '5 motor beragam jenis & data lengkap berhasil dimuat!',
+                  ),
+                ),
+              );
+            }
+          },
+        ),
+        const SizedBox(height: 8),
+        _SettingsTile(
           icon: Icons.two_wheeler_outlined,
           iconColor: Colors.teal.shade700,
           title: 'Muat Data Motor Contoh',
@@ -763,16 +847,40 @@ class _DataManagementSection extends ConsumerWidget {
                 ],
               ),
             );
-            if (confirm == true && context.mounted) {
-              final db = ref.read(databaseProvider);
-              await SampleDataSeeder(db).seedRealisticSampleMotorcycles(force: true);
-              ref.invalidate(motorcyclesProvider);
-              ref.invalidate(activeMotorcycleProvider);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('3 motor contoh berhasil dimuat!')),
-                );
+            if (confirm == true) {
+              if (!context.mounted) return;
+              final container = ProviderScope.containerOf(context);
+              final messenger = ScaffoldMessenger.of(context);
+              final db = container.read(databaseProvider);
+              final createdIds = await SampleDataSeeder(
+                db,
+              ).seedRealisticSampleMotorcycles(force: true);
+              container.invalidate(motorcyclesProvider);
+              for (final id in createdIds) {
+                container.invalidate(latestOdometerProvider(id));
+                container.invalidate(odometerLogsProvider(id));
+                container.invalidate(componentStatusesWithNamesProvider(id));
+                container.invalidate(serviceRecordsProvider(id));
+                container.invalidate(motorcycleExpenseSummaryProvider(id));
+                container.invalidate(complaintsProvider(id));
               }
+              if (createdIds.isNotEmpty) {
+                final motors = await db.getAllMotorcycles();
+                final firstMotor = motors.cast<Motorcycle?>().firstWhere(
+                  (m) => m?.id == createdIds.first,
+                  orElse: () => null,
+                );
+                if (firstMotor != null) {
+                  await container
+                      .read(activeMotorcycleProvider.notifier)
+                      .setActiveMotorcycle(firstMotor);
+                }
+              } else {
+                container.invalidate(activeMotorcycleProvider);
+              }
+              messenger.showSnackBar(
+                const SnackBar(content: Text('3 motor contoh berhasil dimuat!')),
+              );
             }
           },
         ),

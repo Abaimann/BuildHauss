@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
+import '../../../../core/engines/motorcycle_specs.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart'
     show Motorcycle, MotorcycleModel;
@@ -63,7 +64,12 @@ class HomeScreen extends ConsumerWidget {
           if (motors.isEmpty) {
             return _buildEmptyState(context, ref);
           }
-          return _HomeContent(motors: motors, activeMotor: activeMotor);
+          final effectiveActive =
+              (activeMotor != null &&
+                  motors.any((m) => m.id == activeMotor.id))
+              ? activeMotor
+              : motors.first;
+          return _HomeContent(motors: motors, activeMotor: effectiveActive);
         },
       ),
     );
@@ -131,33 +137,31 @@ class _HomeContent extends ConsumerWidget {
       slivers: [
         // Bilah Aplikasi (AppBar) dengan Logo BuildHaus
         SliverAppBar(
-          expandedHeight: 120,
           floating: true,
           pinned: true,
+          toolbarHeight: 68,
           backgroundColor: context.bg,
           surfaceTintColor: Colors.transparent,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [context.surface, context.bg],
+          titleSpacing: 16,
+          title: Row(
+            children: [
+              const BuildHausLogo(size: 36),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: _GreetingChip(context),
+                  ),
                 ),
               ),
-              padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
-              child: Row(
-                children: [
-                  const BuildHausLogo(size: 44),
-                  const Spacer(),
-                  _GreetingChip(context),
-                ],
-              ),
-            ),
+            ],
           ),
           actions: [
             IconButton(
               icon: const Icon(Icons.person_outline),
+              tooltip: 'Akun',
               onPressed: () => context.go('/account'),
             ),
             const SizedBox(width: 8),
@@ -258,6 +262,36 @@ class _HomeContent extends ConsumerWidget {
                         ),
                       ],
                     ),
+                    if (activeMotor != null) ...[
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _QuickActionCard(
+                              icon: Icons.receipt_long_outlined,
+                              label: 'Catat Biaya',
+                              subtitle: 'Part & perawatan',
+                              color: Colors.teal,
+                              onTap: () => context.push(
+                                '/motor/${activeMotor!.id}/expense/add',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _QuickActionCard(
+                              icon: Icons.assignment_outlined,
+                              label: 'Laporan Unit',
+                              subtitle: 'Sertifikat kondisi',
+                              color: Colors.cyan,
+                              onTap: () => context.push(
+                                '/motor/${activeMotor!.id}/report',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -373,9 +407,44 @@ class _MotorSelector extends ConsumerWidget {
       height: 80,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: motors.length,
+        itemCount: motors.length + 1,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
+          if (i == motors.length) {
+            return TapScale(
+              onTap: () => context.push('/add-motor'),
+              child: Container(
+                width: 78,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: BoxDecoration(
+                  color: context.surface2.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFF00F5A0).withValues(alpha: 0.32),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.add_circle_outline_rounded,
+                      size: 22,
+                      color: const Color(0xFF00F5A0),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Tambah',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: context.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
           final m = motors[i];
           final isActive = activeMotor?.id == m.id;
           return TapScale(
@@ -463,6 +532,27 @@ class _BikeCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final odoAsync = ref.watch(latestOdometerProvider(motorcycle.id));
+    final modelAsync = motorcycle.modelId != null
+        ? ref.watch(motorcycleModelByIdProvider(motorcycle.modelId!))
+        : const AsyncValue<MotorcycleModel?>.data(null);
+    final statuses =
+        ref.watch(componentStatusesWithNamesProvider(motorcycle.id)).value ??
+        [];
+    final scored = statuses
+        .where((s) => s.status.score != null)
+        .map((s) => s.status.score!)
+        .toList();
+    final avgHealthScore = scored.isEmpty
+        ? null
+        : (scored.reduce((a, b) => a + b) / scored.length).round();
+    final healthColor = avgHealthScore == null
+        ? Colors.white70
+        : avgHealthScore >= 75
+            ? BuildHausTheme.ok
+            : avgHealthScore >= 50
+                ? BuildHausTheme.warn
+                : BuildHausTheme.danger;
+    final modelInfo = modelAsync.value;
 
     return odoAsync.when(
       loading: () => Container(
@@ -540,10 +630,34 @@ class _BikeCard extends ConsumerWidget {
                       ),
                     ),
                     const Spacer(),
+                    if (avgHealthScore != null) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: healthColor.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(99),
+                          border: Border.all(
+                            color: healthColor.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Text(
+                          'Skor $avgHealthScore',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w800,
+                            color: healthColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     Flexible(
                       child: _BrandBadge(
                         modelId: motorcycle.modelId,
-                        fontSize: 14,
+                        fontSize: 13,
                         color: Colors.white,
                       ),
                     ),
@@ -553,7 +667,7 @@ class _BikeCard extends ConsumerWidget {
                 Text(
                   motorcycle.nickname,
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 23,
                     fontWeight: FontWeight.w900,
                     color: Colors.white,
                     letterSpacing: -0.5,
@@ -561,29 +675,60 @@ class _BikeCard extends ConsumerWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (motorcycle.plateNumber != null) ...[
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.1),
-                      ),
-                    ),
-                    child: Text(
-                      motorcycle.plateNumber!,
-                      style: TextStyle(
-                        fontSize: 11,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white.withValues(alpha: 0.8),
-                      ),
-                    ),
+                if (motorcycle.plateNumber != null || modelInfo != null) ...[
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (motorcycle.plateNumber != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.07),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.12),
+                            ),
+                          ),
+                          child: Text(
+                            motorcycle.plateNumber!,
+                            style: TextStyle(
+                              fontSize: 11,
+                              letterSpacing: 1.4,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white.withValues(alpha: 0.85),
+                            ),
+                          ),
+                        ),
+                      if (modelInfo != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF00F5A0).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: const Color(0xFF00F5A0)
+                                  .withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Text(
+                            '${modelInfo.model} • ${MotorcycleSpecs.transmissionLabel(modelInfo)}',
+                            style: const TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF9DF7D6),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ],
                 const SizedBox(height: 20),

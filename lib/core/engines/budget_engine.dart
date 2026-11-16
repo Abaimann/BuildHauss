@@ -25,6 +25,7 @@ class BudgetEngine {
 
   // Extended context for full dynamic calculation
   final Motorcycle? activeMotorcycle;
+  final MotorcycleModel? activeMotorcycleModel;
   final List<ComponentStatusWithName>? componentStatusesWithNames;
   final List<MaintenanceRule>? maintenanceRules;
   final double? currentOdometer;
@@ -41,6 +42,7 @@ class BudgetEngine {
     required int budgetAmount,
     Map<String, int>? componentCostEstimates,
     this.activeMotorcycle,
+    this.activeMotorcycleModel,
     this.componentStatusesWithNames,
     this.maintenanceRules,
     this.currentOdometer,
@@ -535,6 +537,9 @@ class BudgetEngine {
   }
 
   String? _extractBrandFromModel(Motorcycle m) {
+    if (activeMotorcycleModel != null) {
+      return activeMotorcycleModel!.brand.toLowerCase();
+    }
     return m.nickname.toLowerCase();
   }
 

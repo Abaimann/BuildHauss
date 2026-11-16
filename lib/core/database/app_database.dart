@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'tables/all_tables.dart';
 import '../engines/self_inspection_engine.dart';
 import '../engines/budget_engine.dart';
 import '../engines/health_engine.dart';
+import '../engines/motorcycle_specs.dart';
 
 part 'app_database.g.dart';
 
@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
@@ -56,6 +56,7 @@ class AppDatabase extends _$AppDatabase {
       onCreate: (Migrator m) async {
         await m.createAll();
         await _seedReferenceData();
+        await _createPerformanceIndexes();
       },
       onUpgrade: (Migrator m, int from, int to) async {
         // v3: backfill missing master records.
@@ -77,12 +78,55 @@ class AppDatabase extends _$AppDatabase {
           await m.alterTable(TableMigration(serviceItems));
           await m.alterTable(TableMigration(recommendationItems));
         }
+        // v6: add query performance indexes and backfill component applies_to
+        // tags so matic/manual/liquid-cooled filtering works on upgraded DBs.
+        if (from < 6) {
+          await _createPerformanceIndexes();
+          await _backfillComponentAppliesTo();
+        }
+        // v7: merge duplicate sparepart rows caused by mismatched local vs OEM
+        // part numbers between offline seeds and verified catalog fitments.
+        if (from < 7) {
+          await _deduplicateSpareparts();
+        }
       },
       beforeOpen: (details) async {
         await customStatement('PRAGMA foreign_keys = ON');
         await ensureReferenceData();
       },
     );
+  }
+
+  Future<void> _createPerformanceIndexes() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_odometer_logs_motor_date '
+      'ON odometer_logs (motorcycle_id, recorded_at DESC);',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_component_statuses_motor '
+      'ON component_statuses (motorcycle_id);',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_service_records_motor_date '
+      'ON service_records (motorcycle_id, serviced_at DESC);',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_local_reminders_motor_enabled '
+      'ON local_reminders (motorcycle_id, enabled);',
+    );
+  }
+
+  Future<void> _backfillComponentAppliesTo() async {
+    const updates = {
+      'CVT': 'matic',
+      'Oli gardan': 'matic',
+      'Rantai & gir': 'manual',
+      'Radiator coolant': 'liquid_cooled',
+    };
+    for (final entry in updates.entries) {
+      await (update(componentTypes)..where((t) => t.name.equals(entry.key)))
+          .write(ComponentTypesCompanion(appliesTo: Value(entry.value)));
+    }
   }
 
   /// Set `sparepart_id` to NULL where it references a row that no longer exists.
@@ -99,6 +143,116 @@ class AppDatabase extends _$AppDatabase {
       'WHERE sparepart_id IS NOT NULL '
       'AND sparepart_id NOT IN (SELECT id FROM spareparts)',
     );
+  }
+
+  /// Merges duplicate sparepart entries sharing the same product name so the
+  /// catalog and service picker never display repeated identical parts.
+  Future<void> _deduplicateSpareparts() async {
+    await (update(spareparts)..where(
+          (t) => t.name.equals('Yamaha Yamalube Brake Fluid DOT 4 50ml'),
+        ))
+        .write(
+          const SparepartsCompanion(
+            name: Value('Yamalube Brake Fluid DOT 4 50ml'),
+          ),
+        );
+
+    final allParts = await (select(
+      spareparts,
+    )..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
+    final byNormalizedName = <String, List<Sparepart>>{};
+    for (final part in allParts) {
+      final key = part.name.trim().toLowerCase();
+      byNormalizedName.putIfAbsent(key, () => []).add(part);
+    }
+
+    for (final group in byNormalizedName.values) {
+      if (group.length <= 1) continue;
+
+      group.sort((a, b) {
+        if (a.isVerified != b.isVerified) return a.isVerified ? -1 : 1;
+        return a.id.compareTo(b.id);
+      });
+      final keeper = group.first;
+      final duplicates = group.skip(1).toList();
+
+      String? bestPartNumber = keeper.partNumber;
+      String? bestBrand = keeper.brand;
+      int? bestPrice = keeper.referencePrice;
+      int? bestSourceId = keeper.sourceId;
+      String? bestProductUrl = keeper.productUrl;
+      DateTime? bestPriceUpdatedAt = keeper.priceUpdatedAt;
+      String? bestCatalogVersion = keeper.catalogVersion;
+      bool bestVerified = keeper.isVerified;
+
+      for (final dup in duplicates) {
+        if (dup.isVerified && !bestVerified) {
+          bestVerified = true;
+          bestPartNumber = dup.partNumber ?? bestPartNumber;
+          bestPrice = dup.referencePrice ?? bestPrice;
+          bestSourceId = dup.sourceId ?? bestSourceId;
+          bestProductUrl = dup.productUrl ?? bestProductUrl;
+          bestPriceUpdatedAt = dup.priceUpdatedAt ?? bestPriceUpdatedAt;
+          bestCatalogVersion = dup.catalogVersion ?? bestCatalogVersion;
+        } else {
+          bestPartNumber ??= dup.partNumber;
+          bestPrice ??= dup.referencePrice;
+          bestSourceId ??= dup.sourceId;
+          bestProductUrl ??= dup.productUrl;
+          bestPriceUpdatedAt ??= dup.priceUpdatedAt;
+          bestCatalogVersion ??= dup.catalogVersion;
+        }
+        bestBrand ??= dup.brand;
+
+        await (update(serviceItems)
+              ..where((t) => t.sparepartId.equals(dup.id)))
+            .write(ServiceItemsCompanion(sparepartId: Value(keeper.id)));
+        await (update(recommendationItems)
+              ..where((t) => t.sparepartId.equals(dup.id)))
+            .write(RecommendationItemsCompanion(sparepartId: Value(keeper.id)));
+
+        final dupFitments = await (select(
+          sparepartFitments,
+        )..where((t) => t.sparepartId.equals(dup.id))).get();
+        for (final fitment in dupFitments) {
+          final existingForKeeper = await (select(sparepartFitments)
+                ..where(
+                  (t) =>
+                      t.sparepartId.equals(keeper.id) &
+                      (fitment.modelId == null
+                          ? t.modelId.isNull()
+                          : t.modelId.equals(fitment.modelId!)),
+                ))
+              .get();
+          if (existingForKeeper.isEmpty) {
+            await (update(sparepartFitments)
+                  ..where((t) => t.id.equals(fitment.id)))
+                .write(
+                  SparepartFitmentsCompanion(sparepartId: Value(keeper.id)),
+                );
+          } else {
+            await (delete(
+              sparepartFitments,
+            )..where((t) => t.id.equals(fitment.id))).go();
+          }
+        }
+
+        await (delete(spareparts)..where((t) => t.id.equals(dup.id))).go();
+      }
+
+      await (update(spareparts)..where((t) => t.id.equals(keeper.id))).write(
+        SparepartsCompanion(
+          partNumber: Value(bestPartNumber),
+          brand: Value(bestBrand),
+          referencePrice: Value(bestPrice),
+          sourceId: Value(bestSourceId),
+          productUrl: Value(bestProductUrl),
+          priceUpdatedAt: Value(bestPriceUpdatedAt),
+          catalogVersion: Value(bestCatalogVersion),
+          isVerified: Value(bestVerified),
+        ),
+      );
+    }
   }
 
   Future<void> _seedReferenceData() async {
@@ -140,11 +294,13 @@ class AppDatabase extends _$AppDatabase {
       ComponentTypesCompanion.insert(
         name: 'CVT',
         category: 'transmisi',
+        appliesTo: const Value('matic'),
       ),
       ComponentTypesCompanion.insert(name: 'Knalpot', category: 'mesin'),
       ComponentTypesCompanion.insert(
         name: 'Oli gardan',
         category: 'transmisi',
+        appliesTo: const Value('matic'),
       ),
       ComponentTypesCompanion.insert(
         name: 'Minyak rem',
@@ -154,11 +310,13 @@ class AppDatabase extends _$AppDatabase {
       ComponentTypesCompanion.insert(
         name: 'Radiator coolant',
         category: 'pendingin',
+        appliesTo: const Value('liquid_cooled'),
       ),
       ComponentTypesCompanion.insert(
         name: 'Rantai & gir',
         category: 'transmisi',
         safetyCritical: const Value(true),
+        appliesTo: const Value('manual'),
       ),
       ComponentTypesCompanion.insert(
         name: 'Suspensi',
@@ -174,6 +332,7 @@ class AppDatabase extends _$AppDatabase {
     for (final c in components) {
       await into(componentTypes).insert(c, mode: InsertMode.insertOrIgnore);
     }
+    await _backfillComponentAppliesTo();
   }
 
   Future<void> _seedSpareparts() async {
@@ -773,13 +932,14 @@ class AppDatabase extends _$AppDatabase {
 
     for (final item in items) {
       final code = item.partNumber.value;
+      final nameVal = item.name.value;
       final existing = code != null
-          ? await (select(
-              spareparts,
-            )..where((t) => t.partNumber.equals(code))).get()
+          ? await (select(spareparts)..where(
+                (t) => t.partNumber.equals(code) | t.name.equals(nameVal),
+              )).get()
           : await (select(
               spareparts,
-            )..where((t) => t.name.equals(item.name.value))).get();
+            )..where((t) => t.name.equals(nameVal))).get();
       if (existing.isNotEmpty) continue;
       // These entries are local examples, not official manufacturer catalog data.
       // Keep isVerified=false and do not claim that prices or fitments are current.
@@ -787,230 +947,451 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
+  Future<int> _ensureCatalogSource(String providerName, String websiteUrl) async {
+    final existing = await (select(catalogSources)
+          ..where((t) => t.providerName.equals(providerName)))
+        .getSingleOrNull();
+    if (existing != null) return existing.id;
+    return into(catalogSources).insert(
+      CatalogSourcesCompanion.insert(
+        providerName: providerName,
+        websiteUrl: websiteUrl,
+        licenseOrPermission: const Value('Public catalog reference'),
+        verifiedAt: Value(DateTime(2026, 1, 15)),
+      ),
+    );
+  }
+
   Future<void> _seedCatalogSourcesAndFitments() async {
-    // 1. Seed official catalog sources
-    final existingAstra =
-        await (select(catalogSources)
-              ..where((t) => t.providerName.equals('Astra Honda Motor')))
-            .getSingleOrNull();
+    // 1. Seed official catalog sources across all 4 supported brands
+    final astraId = await _ensureCatalogSource(
+      'Astra Honda Motor',
+      'https://www.astra-honda.com',
+    );
+    final yamahaId = await _ensureCatalogSource(
+      'Yamaha Indonesia',
+      'https://www.yamaha-motor.co.id',
+    );
+    final suzukiId = await _ensureCatalogSource(
+      'Suzuki Indomobil',
+      'https://www.suzuki.co.id',
+    );
+    final kawasakiId = await _ensureCatalogSource(
+      'Kawasaki Motor Indonesia',
+      'https://www.kawasaki-motor.co.id',
+    );
 
-    final astraId =
-        existingAstra?.id ??
-        await into(catalogSources).insert(
-          CatalogSourcesCompanion.insert(
-            providerName: 'Astra Honda Motor',
-            websiteUrl: 'https://www.astra-honda.com',
-            licenseOrPermission: const Value('Public catalog reference'),
-            verifiedAt: Value(DateTime(2026, 1, 15)),
-          ),
-        );
-
-    final existingYamaha =
-        await (select(catalogSources)
-              ..where((t) => t.providerName.equals('Yamaha Indonesia')))
-            .getSingleOrNull();
-
-    final yamahaId =
-        existingYamaha?.id ??
-        await into(catalogSources).insert(
-          CatalogSourcesCompanion.insert(
-            providerName: 'Yamaha Indonesia',
-            websiteUrl: 'https://www.yamaha-motor.co.id',
-            licenseOrPermission: const Value('Public catalog reference'),
-            verifiedAt: Value(DateTime(2026, 1, 15)),
-          ),
-        );
-
-    // 2. Fetch models
+    // 2. Fetch models by (brand, model)
     final models = await select(motorcycleModels).get();
-    final vario160 = models
-        .where((m) => m.brand == 'Honda' && m.model == 'Vario 160')
-        .firstOrNull;
-    final nmax = models
-        .where((m) => m.brand == 'Yamaha' && m.model == 'NMAX')
-        .firstOrNull;
+    final modelIdByKey = <String, int>{
+      for (final m in models) '${m.brand}|${m.model}': m.id,
+    };
+    List<int> resolveModels(List<(String, String)> keys) => keys
+        .map((k) => modelIdByKey['${k.$1}|${k.$2}'])
+        .whereType<int>()
+        .toList();
 
-    // 3. Verified spareparts from official catalogs
-    final verifiedCatalogParts = [
-      // Honda Vario 160 genuine parts
-      (
-        'Oli Mesin Honda ASM 10W-30 SL',
-        'ASM 10W-30 SL',
-        'oli_mesin',
-        'Honda',
-        65000,
-        astraId,
-        'https://www.astra-honda.com',
-        vario160?.id,
-      ),
-      (
-        'Kampas Rem Depan Honda Vario 160/125',
-        '45251-KVR-E10',
-        'kampas_rem',
-        'Honda',
-        85000,
-        astraId,
-        'https://www.astra-honda.com',
-        vario160?.id,
-      ),
-      (
-        'Filter Udara Honda Vario 160',
-        '17210-K15-T00',
-        'filter_udara',
-        'Honda',
-        55000,
-        astraId,
-        'https://www.astra-honda.com',
-        vario160?.id,
-      ),
-      (
-        'Busi NGK CR7HSA',
-        'CR7HSA',
-        'busi',
-        'NGK',
-        35000,
-        astraId,
-        'https://www.astra-honda.com',
-        vario160?.id,
-      ),
-      (
-        'Aki GS YTZ6V MF',
-        'YTZ6V',
-        'aki',
-        'GS',
-        180000,
-        astraId,
-        'https://www.astra-honda.com',
-        vario160?.id,
-      ),
-      (
-        'Sabuk CVT (V-Belt) Honda Vario 160',
-        '23100-KYZ-E00',
-        'cvt',
-        'Honda',
-        145000,
-        astraId,
-        'https://www.astra-honda.com',
-        vario160?.id,
-      ),
-      (
-        'AHM Oil Scooter Gear Oil 120ml',
-        '08234-M99-K0NZ1',
-        'oli_gardan',
-        'Honda',
-        16000,
-        astraId,
-        'https://www.astra-honda.com',
-        vario160?.id,
-      ),
-      (
-        'Honda Genuine Brake Fluid DOT 4 50ml',
-        '08260-M99-01NZ1',
-        'minyak_rem',
-        'Honda',
-        18000,
-        astraId,
-        'https://www.astra-honda.com',
-        vario160?.id,
-      ),
-      (
-        'AHM Radiator Coolant Pre-mix 1L',
-        '08CLA-G01-W01',
-        'coolant',
-        'Honda',
-        24000,
-        astraId,
-        'https://www.astra-honda.com',
-        vario160?.id,
-      ),
-      (
-        'Saringan Kasa Filter Oli Honda Vario 160',
-        '15421-K0R-V00',
-        'filter_oli',
-        'Honda',
-        18000,
-        astraId,
-        'https://www.astra-honda.com',
-        vario160?.id,
-      ),
-      // Yamaha NMAX genuine parts
-      (
-        'Oli Mesin Yamalube Matic 10W-40',
-        'Yamalube 10W-40',
-        'oli_mesin',
-        'Yamaha',
-        70000,
-        yamahaId,
-        'https://www.yamaha-motor.co.id',
-        nmax?.id,
-      ),
-      (
-        'Kampas Rem Depan Yamaha NMAX Genuine',
-        'NS-NMAXFR-GEN',
-        'kampas_rem',
-        'Yamaha',
-        60000,
-        yamahaId,
-        'https://www.yamaha-motor.co.id',
-        nmax?.id,
-      ),
-      (
-        'Filter Udara Yamaha NMAX Genuine',
-        'YM-NMAXFL-GEN',
-        'filter_udara',
-        'Yamaha',
-        50000,
-        yamahaId,
-        'https://www.yamaha-motor.co.id',
-        nmax?.id,
-      ),
-      (
-        'Yamalube Motor Gear Oil 100ml',
-        '90793-AJ827',
-        'oli_gardan',
-        'Yamaha',
-        17500,
-        yamahaId,
-        'https://www.yamaha-motor.co.id',
-        nmax?.id,
-      ),
-      (
-        'Yamaha Yamalube Brake Fluid DOT 4 50ml',
-        '90793-AJ811',
-        'minyak_rem',
-        'Yamaha',
-        20000,
-        yamahaId,
-        'https://www.yamaha-motor.co.id',
-        nmax?.id,
-      ),
-      (
-        'Yamalube Yamacoolant 1L',
-        '90793-AJ803',
-        'coolant',
-        'Yamaha',
-        38000,
-        yamahaId,
-        'https://www.yamaha-motor.co.id',
-        nmax?.id,
-      ),
-      (
-        'V-Belt Yamaha Genuine Aerox/NMAX',
-        'B65-E7641-00',
-        'cvt',
-        'Yamaha',
-        135000,
-        yamahaId,
-        'https://www.yamaha-motor.co.id',
-        nmax?.id,
-      ),
-    ];
+    // 3. Verified spareparts & fitments covering Honda, Yamaha, Suzuki, Kawasaki
+    final verifiedCatalogParts =
+        <(String, String, String, String, int, int, String, List<int>)>[
+          // --- HONDA ---
+          (
+            'Oli Mesin Honda ASM 10W-30 SL',
+            'ASM 10W-30 SL',
+            'oli_mesin',
+            'Honda',
+            65000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([
+              ('Honda', 'Vario 160'),
+              ('Honda', 'Vario 125'),
+              ('Honda', 'Beat Street'),
+              ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 160'),
+            ]),
+          ),
+          (
+            'Oli Mesin Honda ASM 20W-50 SG',
+            'ASM 20W-50 SG',
+            'oli_mesin',
+            'Honda',
+            58000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([('Honda', 'Supra X 125 FI'), ('Honda', 'CBR150R')]),
+          ),
+          (
+            'Kampas Rem Depan Honda Vario 160/125',
+            '45251-KVR-E10',
+            'kampas_rem',
+            'Honda',
+            85000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([
+              ('Honda', 'Vario 160'),
+              ('Honda', 'Vario 125'),
+              ('Honda', 'Beat Street'),
+              ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 160'),
+            ]),
+          ),
+          (
+            'Filter Udara Honda Vario 160',
+            '17210-K15-T00',
+            'filter_udara',
+            'Honda',
+            55000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([
+              ('Honda', 'Vario 160'),
+              ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 160'),
+            ]),
+          ),
+          (
+            'Busi NGK CR7HSA',
+            'CR7HSA',
+            'busi',
+            'NGK',
+            35000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([
+              ('Honda', 'Vario 160'),
+              ('Honda', 'Vario 125'),
+              ('Honda', 'Beat Street'),
+              ('Honda', 'Supra X 125 FI'),
+            ]),
+          ),
+          (
+            'Aki GS YTZ6V MF',
+            'YTZ6V',
+            'aki',
+            'GS',
+            180000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([
+              ('Honda', 'Vario 160'),
+              ('Honda', 'Vario 125'),
+              ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 160'),
+              ('Honda', 'CBR150R'),
+            ]),
+          ),
+          (
+            'Sabuk CVT (V-Belt) Honda Vario 160',
+            '23100-KYZ-E00',
+            'cvt',
+            'Honda',
+            145000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([
+              ('Honda', 'Vario 160'),
+              ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 160'),
+            ]),
+          ),
+          (
+            'V-Belt Honda Beat Original',
+            'HN-BEATVB',
+            'cvt',
+            'Honda',
+            85000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([('Honda', 'Beat Street'), ('Honda', 'Vario 125')]),
+          ),
+          (
+            'AHM Oil Scooter Gear Oil 120ml',
+            '08234-M99-K0NZ1',
+            'oli_gardan',
+            'Honda',
+            16000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([
+              ('Honda', 'Vario 160'),
+              ('Honda', 'Vario 125'),
+              ('Honda', 'Beat Street'),
+              ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 160'),
+            ]),
+          ),
+          (
+            'Honda Genuine Brake Fluid DOT 4 50ml',
+            '08260-M99-01NZ1',
+            'minyak_rem',
+            'Honda',
+            18000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([
+              ('Honda', 'Vario 160'),
+              ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 160'),
+              ('Honda', 'CBR150R'),
+              ('Honda', 'Supra X 125 FI'),
+            ]),
+          ),
+          (
+            'AHM Radiator Coolant Pre-mix 1L',
+            '08CLA-G01-W01',
+            'coolant',
+            'Honda',
+            24000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([
+              ('Honda', 'Vario 160'),
+              ('Honda', 'Vario 125'),
+              ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 160'),
+              ('Honda', 'CBR150R'),
+            ]),
+          ),
+          (
+            'Saringan Kasa Filter Oli Honda Vario 160',
+            '15421-K0R-V00',
+            'filter_oli',
+            'Honda',
+            18000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([
+              ('Honda', 'Vario 160'),
+              ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 160'),
+            ]),
+          ),
+          (
+            'Rantai Set AHM Supra X / CBR150R',
+            '06401-K45-N00',
+            'rantai',
+            'Honda',
+            195000,
+            astraId,
+            'https://www.astra-honda.com',
+            resolveModels([('Honda', 'Supra X 125 FI'), ('Honda', 'CBR150R')]),
+          ),
 
-    for (final (name, pNum, cat, brand, price, sourceId, url, targetModelId)
+          // --- YAMAHA ---
+          (
+            'Oli Mesin Yamalube Matic 10W-40',
+            'Yamalube 10W-40',
+            'oli_mesin',
+            'Yamaha',
+            70000,
+            yamahaId,
+            'https://www.yamaha-motor.co.id',
+            resolveModels([
+              ('Yamaha', 'NMAX'),
+              ('Yamaha', 'Aerox'),
+              ('Yamaha', 'Mio M3'),
+              ('Yamaha', 'FreeGo'),
+              ('Yamaha', 'X-Ride'),
+            ]),
+          ),
+          (
+            'Kampas Rem Depan Yamaha NMAX Genuine',
+            'NS-NMAXFR-GEN',
+            'kampas_rem',
+            'Yamaha',
+            60000,
+            yamahaId,
+            'https://www.yamaha-motor.co.id',
+            resolveModels([
+              ('Yamaha', 'NMAX'),
+              ('Yamaha', 'Aerox'),
+              ('Yamaha', 'Mio M3'),
+              ('Yamaha', 'FreeGo'),
+              ('Yamaha', 'X-Ride'),
+            ]),
+          ),
+          (
+            'Filter Udara Yamaha NMAX Genuine',
+            'YM-NMAXFL-GEN',
+            'filter_udara',
+            'Yamaha',
+            50000,
+            yamahaId,
+            'https://www.yamaha-motor.co.id',
+            resolveModels([('Yamaha', 'NMAX'), ('Yamaha', 'Aerox')]),
+          ),
+          (
+            'Yamalube Motor Gear Oil 100ml',
+            '90793-AJ827',
+            'oli_gardan',
+            'Yamaha',
+            17500,
+            yamahaId,
+            'https://www.yamaha-motor.co.id',
+            resolveModels([
+              ('Yamaha', 'NMAX'),
+              ('Yamaha', 'Aerox'),
+              ('Yamaha', 'Mio M3'),
+              ('Yamaha', 'FreeGo'),
+              ('Yamaha', 'X-Ride'),
+            ]),
+          ),
+          (
+            'Yamalube Brake Fluid DOT 4 50ml',
+            '90793-AJ811',
+            'minyak_rem',
+            'Yamaha',
+            20000,
+            yamahaId,
+            'https://www.yamaha-motor.co.id',
+            resolveModels([('Yamaha', 'NMAX'), ('Yamaha', 'Aerox')]),
+          ),
+          (
+            'Yamalube Yamacoolant 1L',
+            '90793-AJ803',
+            'coolant',
+            'Yamaha',
+            38000,
+            yamahaId,
+            'https://www.yamaha-motor.co.id',
+            resolveModels([('Yamaha', 'NMAX'), ('Yamaha', 'Aerox')]),
+          ),
+          (
+            'V-Belt Yamaha Genuine Aerox/NMAX',
+            'B65-E7641-00',
+            'cvt',
+            'Yamaha',
+            135000,
+            yamahaId,
+            'https://www.yamaha-motor.co.id',
+            resolveModels([('Yamaha', 'NMAX'), ('Yamaha', 'Aerox')]),
+          ),
+          (
+            'V-Belt Yamaha Mio M3 / FreeGo Genuine',
+            '2PH-E7641-00',
+            'cvt',
+            'Yamaha',
+            98000,
+            yamahaId,
+            'https://www.yamaha-motor.co.id',
+            resolveModels([
+              ('Yamaha', 'Mio M3'),
+              ('Yamaha', 'FreeGo'),
+              ('Yamaha', 'X-Ride'),
+            ]),
+          ),
+
+          // --- SUZUKI ---
+          (
+            'Oli Mesin Suzuki Ecostar SGO 10W-40 0.8L',
+            'SGO-10W40-800',
+            'oli_mesin',
+            'Suzuki',
+            52000,
+            suzukiId,
+            'https://www.suzuki.co.id',
+            resolveModels([
+              ('Suzuki', 'Address 110'),
+              ('Suzuki', 'Nex II'),
+              ('Suzuki', 'Smash FI'),
+            ]),
+          ),
+          (
+            'V-Belt Suzuki Address / Nex II Genuine',
+            '27601-40J00',
+            'cvt',
+            'Suzuki',
+            128000,
+            suzukiId,
+            'https://www.suzuki.co.id',
+            resolveModels([('Suzuki', 'Address 110'), ('Suzuki', 'Nex II')]),
+          ),
+          (
+            'Suzuki Gear Oil SGO 100ml',
+            '99000-22B00',
+            'oli_gardan',
+            'Suzuki',
+            18000,
+            suzukiId,
+            'https://www.suzuki.co.id',
+            resolveModels([('Suzuki', 'Address 110'), ('Suzuki', 'Nex II')]),
+          ),
+          (
+            'Rantai Set Suzuki Smash FI Genuine',
+            '27600-09G10',
+            'rantai',
+            'Suzuki',
+            145000,
+            suzukiId,
+            'https://www.suzuki.co.id',
+            resolveModels([('Suzuki', 'Smash FI')]),
+          ),
+
+          // --- KAWASAKI ---
+          (
+            'Oli Mesin Kawasaki Genuine 4T 10W-40 1L',
+            'KGO-10W40-1L',
+            'oli_mesin',
+            'Kawasaki',
+            88000,
+            kawasakiId,
+            'https://www.kawasaki-motor.co.id',
+            resolveModels([
+              ('Kawasaki', 'Ninja 250SL'),
+              ('Kawasaki', 'W175'),
+              ('Kawasaki', 'Z125'),
+            ]),
+          ),
+          (
+            'Filter Oli Kawasaki Ninja 250SL Genuine',
+            '52010-1053',
+            'filter_oli',
+            'Kawasaki',
+            45000,
+            kawasakiId,
+            'https://www.kawasaki-motor.co.id',
+            resolveModels([
+              ('Kawasaki', 'Ninja 250SL'),
+              ('Kawasaki', 'Z125'),
+            ]),
+          ),
+          (
+            'Rantai & Gir Set Kawasaki W175 / Ninja 250SL',
+            'KAW-428H-KIT',
+            'rantai',
+            'Kawasaki',
+            265000,
+            kawasakiId,
+            'https://www.kawasaki-motor.co.id',
+            resolveModels([
+              ('Kawasaki', 'Ninja 250SL'),
+              ('Kawasaki', 'W175'),
+              ('Kawasaki', 'Z125'),
+            ]),
+          ),
+          (
+            'Kawasaki Alabaster Coolant Pre-Mix 1L',
+            'KAW-COOL-1L',
+            'coolant',
+            'Kawasaki',
+            48000,
+            kawasakiId,
+            'https://www.kawasaki-motor.co.id',
+            resolveModels([('Kawasaki', 'Ninja 250SL')]),
+          ),
+        ];
+
+    await _deduplicateSpareparts();
+
+    for (final (name, pNum, cat, brand, price, sourceId, url, targetModelIds)
         in verifiedCatalogParts) {
-      final existing = await (select(
-        spareparts,
-      )..where((t) => t.partNumber.equals(pNum))).getSingleOrNull();
+      final existingMatches = await (select(spareparts)
+            ..where((t) => t.partNumber.equals(pNum) | t.name.equals(name))
+            ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+          .get();
+      final existing = existingMatches.isEmpty ? null : existingMatches.first;
 
       final int partId;
       if (existing == null) {
@@ -1032,16 +1413,21 @@ class AppDatabase extends _$AppDatabase {
         partId = existing.id;
         await (update(spareparts)..where((t) => t.id.equals(partId))).write(
           SparepartsCompanion(
+            partNumber: Value(pNum),
+            category: Value(cat),
+            brand: Value(brand),
             isVerified: const Value(true),
             sourceId: Value(sourceId),
             productUrl: Value(url),
             referencePrice: Value(price),
+            priceUpdatedAt: Value(DateTime(2026, 1, 15)),
+            catalogVersion: const Value('1.0.0'),
           ),
         );
       }
 
-      // Add fitment if target model exists
-      if (targetModelId != null) {
+      // Add fitment for every verified target model that exists in DB
+      for (final targetModelId in targetModelIds) {
         final existingFitment =
             await (select(sparepartFitments)..where(
                   (t) =>
@@ -1055,7 +1441,7 @@ class AppDatabase extends _$AppDatabase {
             SparepartFitmentsCompanion.insert(
               sparepartId: partId,
               modelId: Value(targetModelId),
-              yearStart: 2020,
+              yearStart: 2019,
               verifiedAt: Value(DateTime(2026, 1, 15)),
               sourceUrl: Value(url),
             ),
@@ -1072,9 +1458,9 @@ class AppDatabase extends _$AppDatabase {
       'odometer_reminder_days': '30',
       'ai_model_name': 'qwen3-0.6b',
       'ai_model_status': 'not_downloaded',
-      'user_name': 'Aiman',
-      'user_email': 'kacangdong2@gmail.com',
-      'user_initial': 'A',
+      'user_name': 'Rider BuildHaus',
+      'user_email': '',
+      'user_initial': 'BH',
       'backup_last_at': '',
     };
 
@@ -1084,38 +1470,6 @@ class AppDatabase extends _$AppDatabase {
         mode: InsertMode.insertOrIgnore,
       );
     }
-
-    // Pre-seed Aiman's user account
-    final existingUsersRaw = await getSetting('registered_users_json');
-    List<Map<String, dynamic>> users = [];
-    if (existingUsersRaw != null && existingUsersRaw.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(existingUsersRaw) as List<dynamic>;
-        users = decoded
-            .whereType<Map>()
-            .map((m) => Map<String, dynamic>.from(m))
-            .toList();
-      } catch (_) {}
-    }
-
-    final aimanIndex = users.indexWhere(
-      (u) =>
-          (u['email']?.toString().toLowerCase() ?? '') ==
-          'kacangdong2@gmail.com',
-    );
-    if (aimanIndex < 0) {
-      users.add({
-        'name': 'Aiman',
-        'email': 'kacangdong2@gmail.com',
-        'password': 'Aiman123',
-        'initial': 'A',
-        'createdAt': DateTime(2026, 1, 1).toIso8601String(),
-      });
-    } else {
-      users[aimanIndex]['password'] = 'Aiman123';
-      users[aimanIndex]['name'] = 'Aiman';
-    }
-    await setSetting('registered_users_json', jsonEncode(users));
   }
 
   /// Seed motorcycle_models table from JSON catalog.
@@ -1508,7 +1862,7 @@ class AppDatabase extends _$AppDatabase {
 
     final motor = await getMotorcycle(motorId);
     final usageMultiplier = motor?.usageProfile == 'jarak_jauh' ? 0.8 : 1.0;
-    final allComponents = await getAllComponentTypes();
+    final allComponents = await getApplicableComponentsForModel(motor?.modelId);
 
     final Map<String, List<(ComponentType, String)>> buckets = {};
     final Map<String, (DateTime, double)> bucketMeta = {};
@@ -1768,10 +2122,23 @@ class AppDatabase extends _$AppDatabase {
   Future<List<ComponentType>> getAllComponentTypes() =>
       select(componentTypes).get();
 
-  Future<List<ComponentType>> getApplicableComponents(
-    String? usageProfile,
+  Future<List<ComponentType>> getApplicableComponentsForModel(
+    int? modelId,
   ) async {
-    return select(componentTypes).get();
+    final all = await getAllComponentTypes();
+    if (modelId == null) return all;
+    final model = await getMotorcycleModelById(modelId);
+    if (model == null) return all;
+    return all
+        .where((c) => MotorcycleSpecs.isComponentApplicable(model, c))
+        .toList();
+  }
+
+  Future<List<ComponentType>> getApplicableComponents(
+    String? usageProfile, {
+    int? modelId,
+  }) async {
+    return getApplicableComponentsForModel(modelId);
   }
 
   // ============================================================
@@ -1834,6 +2201,7 @@ class AppDatabase extends _$AppDatabase {
     required ServiceRecordsCompanion record,
     required List<ServiceItemsCompanion> items,
     double? odometerKm,
+    bool resolveComplaints = true,
   }) => transaction(() async {
     if (items.isEmpty) {
       throw ArgumentError('Minimal satu tindakan servis diperlukan.');
@@ -1898,38 +2266,40 @@ class AppDatabase extends _$AppDatabase {
     }
 
     // Automatically resolve open complaints that match any serviced component
-    final allTypes = await getAllComponentTypes();
-    final typeNameById = {for (final t in allTypes) t.id: t.name};
-    var openComplaints = (await getComplaints(record.motorcycleId.value))
-        .where(
-          (c) =>
-              c.closedAt == null &&
-              c.status.trim() != 'selesai' &&
-              c.status.trim() != 'ditangani',
-        )
-        .toList();
+    if (resolveComplaints) {
+      final allTypes = await getAllComponentTypes();
+      final typeNameById = {for (final t in allTypes) t.id: t.name};
+      var openComplaints = (await getComplaints(record.motorcycleId.value))
+          .where(
+            (c) =>
+                c.closedAt == null &&
+                c.status.trim() != 'selesai' &&
+                c.status.trim() != 'ditangani',
+          )
+          .toList();
 
-    for (final item in items) {
-      final compId = item.componentTypeId.value;
-      final compName = compId != null ? typeNameById[compId] : null;
-      if (compName == null || openComplaints.isEmpty) continue;
+      for (final item in items) {
+        final compId = item.componentTypeId.value;
+        final compName = compId != null ? typeNameById[compId] : null;
+        if (compName == null || openComplaints.isEmpty) continue;
 
-      while (true) {
-        final matched = HealthEngine.findMatchingActiveComplaint(
-          compName,
-          openComplaints,
-        );
-        if (matched == null) break;
-        await updateComplaint(
-          ComplaintsCompanion(
-            status: const Value('selesai'),
-            closedAt: Value(record.servicedAt.value),
-            resolvedByServiceId: Value(recordId),
-            updatedAt: Value(DateTime.now()),
-          ),
-          matched.id,
-        );
-        openComplaints.removeWhere((c) => c.id == matched.id);
+        while (true) {
+          final matched = HealthEngine.findMatchingActiveComplaint(
+            compName,
+            openComplaints,
+          );
+          if (matched == null) break;
+          await updateComplaint(
+            ComplaintsCompanion(
+              status: const Value('selesai'),
+              closedAt: Value(record.servicedAt.value),
+              resolvedByServiceId: Value(recordId),
+              updatedAt: Value(DateTime.now()),
+            ),
+            matched.id,
+          );
+          openComplaints.removeWhere((c) => c.id == matched.id);
+        }
       }
     }
 
@@ -2529,18 +2899,23 @@ class AppDatabase extends _$AppDatabase {
   // AGGREGATE / HELPER QUERIES
   // ============================================================
 
-  /// Returns all component statuses joined with component type names
+  /// Returns all applicable component statuses joined with component type names
   Future<List<ComponentStatusWithName>> getComponentStatusesWithNames(
     int motorcycleId,
   ) async {
-    var statuses = await getComponentStatuses(motorcycleId);
-    final applicable = await getApplicableComponents(null);
-    if (statuses.length < applicable.length) {
+    final motor = await getMotorcycle(motorcycleId);
+    final applicable = await getApplicableComponentsForModel(motor?.modelId);
+    final applicableIds = applicable.map((c) => c.id).toSet();
+    var statuses = (await getComponentStatuses(motorcycleId))
+        .where((s) => applicableIds.contains(s.componentTypeId))
+        .toList();
+    if (statuses.length != applicable.length) {
       await recalculateComponentStatuses(motorcycleId);
-      statuses = await getComponentStatuses(motorcycleId);
+      statuses = (await getComponentStatuses(motorcycleId))
+          .where((s) => applicableIds.contains(s.componentTypeId))
+          .toList();
     }
-    final types = await getAllComponentTypes();
-    final typeMap = {for (var t in types) t.id: t.name};
+    final typeMap = {for (var t in applicable) t.id: t.name};
 
     return statuses
         .map(
@@ -2550,6 +2925,41 @@ class AppDatabase extends _$AppDatabase {
           ),
         )
         .toList();
+  }
+
+  /// Ringkasan biaya perawatan dan pengeluaran untuk satu motor.
+  Future<MotorcycleExpenseSummary> getMotorcycleExpenseSummary(
+    int motorcycleId,
+  ) async {
+    final records = await getServiceRecords(motorcycleId);
+    final itemsWithRecords = await getAllServiceItemsForMotorcycle(motorcycleId);
+    final now = DateTime.now();
+
+    int totalAll = 0;
+    int totalThisMonth = 0;
+    int totalParts = 0;
+    int totalLabor = 0;
+
+    for (final rec in records) {
+      totalAll += rec.totalCost;
+      if (rec.servicedAt.year == now.year &&
+          rec.servicedAt.month == now.month) {
+        totalThisMonth += rec.totalCost;
+      }
+    }
+
+    for (final entry in itemsWithRecords) {
+      totalParts += entry.item.partsCost;
+      totalLabor += entry.item.laborCost;
+    }
+
+    return MotorcycleExpenseSummary(
+      totalAllCost: totalAll,
+      totalMonthCost: totalThisMonth,
+      totalPartsCost: totalParts,
+      totalLaborCost: totalLabor,
+      recordCount: records.length,
+    );
   }
 
   /// Returns upcoming (enabled + due in future) reminders
@@ -2667,7 +3077,16 @@ class AppDatabase extends _$AppDatabase {
     if (motor == null) return;
     final current = (await getLatestOdometer(motorcycleId))?.odometerKm;
     final history = await getAllServiceItemsForMotorcycle(motorcycleId);
-    final components = await getApplicableComponents(motor.usageProfile);
+    final components = await getApplicableComponentsForModel(motor.modelId);
+    final applicableIds = components.map((c) => c.id).toList();
+    if (applicableIds.isNotEmpty) {
+      await (delete(componentStatuses)..where(
+            (t) =>
+                t.motorcycleId.equals(motorcycleId) &
+                t.componentTypeId.isNotIn(applicableIds),
+          ))
+          .go();
+    }
     final activeComplaints = await getComplaints(motorcycleId);
     final usageMultiplier = motor.usageProfile == 'jarak_jauh' ? 0.8 : 1.0;
     final now = DateTime.now();
@@ -2839,6 +3258,23 @@ class AppDatabase extends _$AppDatabase {
       );
     }
   }
+}
+
+/// Ringkasan total biaya servis & pengeluaran motor.
+class MotorcycleExpenseSummary {
+  final int totalAllCost;
+  final int totalMonthCost;
+  final int totalPartsCost;
+  final int totalLaborCost;
+  final int recordCount;
+
+  const MotorcycleExpenseSummary({
+    required this.totalAllCost,
+    required this.totalMonthCost,
+    required this.totalPartsCost,
+    required this.totalLaborCost,
+    required this.recordCount,
+  });
 }
 
 /// Helper class: service item joined with its service record

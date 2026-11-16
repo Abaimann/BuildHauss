@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/app_database.dart';
@@ -127,6 +129,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  static String _generateSalt() {
+    final rng = Random.secure();
+    final bytes = List<int>.generate(16, (_) => rng.nextInt(256));
+    return base64UrlEncode(bytes);
+  }
+
+  static String _hashPassword(String password, String salt) {
+    final bytes = utf8.encode('$salt:$password');
+    return sha256.convert(bytes).toString();
+  }
+
   Future<String?> register({
     required String name,
     required String email,
@@ -148,10 +161,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
 
     final initial = _computeInitials(cleanName);
+    final salt = _generateSalt();
+    final passwordHash = _hashPassword(password, salt);
     users.add({
       'name': cleanName,
       'email': cleanEmail,
-      'password': password,
+      'passwordSalt': salt,
+      'passwordHash': passwordHash,
       'initial': initial,
       'createdAt': DateTime.now().toIso8601String(),
     });
@@ -184,16 +200,35 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     final db = ref.read(databaseProvider);
     final users = await _getRegisteredUsers();
-    final matched = users.where(
+    final matchedIdx = users.indexWhere(
       (u) => (u['email']?.toString().toLowerCase() ?? '') == cleanEmail,
     );
 
-    if (matched.isEmpty) {
+    if (matchedIdx < 0) {
       return 'Akun belum terdaftar. Silakan buat akun di tab Daftar Akun.';
     }
 
-    final account = matched.first;
-    if (account['password']?.toString() != password) {
+    final account = users[matchedIdx];
+    final storedHash = account['passwordHash']?.toString();
+    final storedSalt = account['passwordSalt']?.toString();
+    final legacyPlain = account['password']?.toString();
+
+    bool verified = false;
+    if (storedHash != null && storedSalt != null) {
+      verified = _hashPassword(password, storedSalt) == storedHash;
+    } else if (legacyPlain != null) {
+      verified = legacyPlain == password;
+      // Upgrade akun lama yang masih plaintext ke hash SHA-256 + salt
+      if (verified) {
+        final salt = _generateSalt();
+        account['passwordSalt'] = salt;
+        account['passwordHash'] = _hashPassword(password, salt);
+        account.remove('password');
+        await db.setSetting('registered_users_json', jsonEncode(users));
+      }
+    }
+
+    if (!verified) {
       return 'Kata sandi yang Anda masukkan salah.';
     }
 
@@ -287,19 +322,24 @@ class ActiveMotorcycleNotifier extends StateNotifier<Motorcycle?> {
   Future<void> _load() async {
     final db = ref.read(databaseProvider);
     final idStr = await db.getSetting('active_motorcycle_id');
+    Motorcycle? resolved;
     if (idStr != null && idStr.isNotEmpty) {
       final id = int.tryParse(idStr);
       if (id != null) {
-        state = await db.getMotorcycle(id);
+        resolved = await db.getMotorcycle(id);
       }
     }
+    if (!mounted || state != null) return;
+    if (resolved != null) {
+      state = resolved;
+      return;
+    }
     // Jika belum ada motor yang tersimpan aktif, gunakan motor pertama sebagai default
-    if (state == null) {
-      final motors = await db.getAllMotorcycles();
-      if (motors.isNotEmpty) {
-        state = motors.first;
-        await db.setSetting('active_motorcycle_id', state!.id.toString());
-      }
+    final motors = await db.getAllMotorcycles();
+    if (!mounted || state != null) return;
+    if (motors.isNotEmpty) {
+      state = motors.first;
+      await db.setSetting('active_motorcycle_id', state!.id.toString());
     }
   }
 
@@ -602,11 +642,15 @@ final budgetPlanSummaryProvider =
       final rules = await db.getAllMaintenanceRules();
       final spareparts = await db.getAllSpareparts();
       final fitments = await db.getAllSparepartFitments();
+      final activeModel = motor.modelId != null
+          ? await db.getMotorcycleModelById(motor.modelId!)
+          : null;
 
       final engine = BudgetEngine(
         componentHealths: [],
         budgetAmount: budgetAmount,
         activeMotorcycle: motor,
+        activeMotorcycleModel: activeModel,
         componentStatusesWithNames: statuses,
         maintenanceRules: rules,
         currentOdometer: latestOdo?.odometerKm,
@@ -618,6 +662,21 @@ final budgetPlanSummaryProvider =
       );
 
       return engine.calculateSummary();
+    });
+
+// Provider ringkasan biaya perawatan & pengeluaran motor
+final motorcycleExpenseSummaryProvider =
+    FutureProvider.family<MotorcycleExpenseSummary, int>((ref, motorcycleId) {
+      final db = ref.watch(databaseProvider);
+      return db.getMotorcycleExpenseSummary(motorcycleId);
+    });
+
+// Provider detail model motor berdasarkan modelId
+final motorcycleModelByIdProvider =
+    FutureProvider.family<MotorcycleModel?, int?>((ref, modelId) async {
+      if (modelId == null) return null;
+      final db = ref.watch(databaseProvider);
+      return db.getMotorcycleModelById(modelId);
     });
 
 // Provider riwayat rencana anggaran servis (Budget Plan History)

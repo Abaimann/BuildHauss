@@ -3,6 +3,7 @@ import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/engines/budget_engine.dart';
+import '../../../../core/engines/motorcycle_specs.dart';
 
 /// Recommendation tier determining priority order
 enum RecommendationTier {
@@ -112,12 +113,15 @@ final prioritizedSparepartsProvider =
       // (motor nicknamed "Mio Beat" akan dianggap Honda) dan tidak pernah
       // considers model yang benar-benar dipilih pengguna.
       String? activeBrand;
+      MotorcycleModel? activeModel;
       if (motor.modelId != null) {
-        final model = await db.getMotorcycleModelById(motor.modelId!);
-        if (model != null) {
-          activeBrand = model.brand.toLowerCase();
+        activeModel = await db.getMotorcycleModelById(motor.modelId!);
+        if (activeModel != null) {
+          activeBrand = activeModel.brand.toLowerCase();
         }
       }
+      final isMatic = MotorcycleSpecs.isMaticOrNull(activeModel);
+      final isLiquid = MotorcycleSpecs.isLiquidCooledOrNull(activeModel);
 
       final Map<int, PrioritizedSparepart> prioritizedMap = {};
 
@@ -159,20 +163,52 @@ final prioritizedSparepartsProvider =
                 (score != null && score < 70);
           }).toList();
 
-      final categoryKeywords = <String, List<String>>{
-        'oli': ['oli', 'oli_mesin'],
-        'rem': ['rem', 'kampas_rem', 'minyak_rem'],
-        'ban': ['ban', 'roda'],
-        'busi': ['busi'],
-        'filter': ['filter', 'filter_udara', 'filter_oli'],
-        'cvt': ['cvt', 'transmisi'],
-        'aki': ['aki', 'kelistrikan', 'baterai'],
-        'knalpot': ['knalpot'],
-        'gardan': ['oli_gardan', 'gardan'],
-        'radiator': ['coolant', 'radiator', 'pendingin'],
-        'rantai': ['rantai', 'gear'],
-        'suspensi': ['shock', 'suspensi'],
-      };
+      bool doesComponentMatchPart(String compName, Sparepart part) {
+        final partCat = part.category.toLowerCase().trim();
+        if (compName.contains('oli gardan')) {
+          return partCat == 'oli_gardan';
+        }
+        if (compName.contains('filter oli')) {
+          return partCat == 'filter_oli';
+        }
+        if (compName.contains('filter udara')) {
+          return partCat == 'filter_udara';
+        }
+        if (compName.contains('oli mesin') || compName == 'oli') {
+          return partCat == 'oli' || partCat == 'oli_mesin';
+        }
+        if (compName.contains('minyak rem')) {
+          return partCat == 'minyak_rem';
+        }
+        if (compName.contains('rem')) {
+          return partCat == 'kampas_rem' || partCat == 'rem';
+        }
+        if (compName.contains('ban')) {
+          return partCat == 'ban';
+        }
+        if (compName.contains('busi')) {
+          return partCat == 'busi';
+        }
+        if (compName.contains('cvt')) {
+          return partCat == 'cvt' || partCat == 'vbelt';
+        }
+        if (compName.contains('aki')) {
+          return partCat == 'aki';
+        }
+        if (compName.contains('knalpot')) {
+          return partCat == 'knalpot';
+        }
+        if (compName.contains('radiator') || compName.contains('coolant')) {
+          return partCat == 'coolant';
+        }
+        if (compName.contains('rantai')) {
+          return partCat == 'rantai';
+        }
+        if (compName.contains('suspensi') || compName.contains('shock')) {
+          return partCat == 'shockbreaker' || partCat == 'suspensi';
+        }
+        return false;
+      }
 
       for (final cs in criticalStatuses) {
         final compName = cs.componentName.toLowerCase();
@@ -185,30 +221,43 @@ final prioritizedSparepartsProvider =
           // Reject parts specifically branded for a conflicting motorcycle brand
           final pBrand = (part.brand ?? '').toLowerCase();
           final pName = part.name.toLowerCase();
+          final pCat = part.category.toLowerCase().trim();
           if (activeBrand != null) {
-            if (activeBrand == 'honda' &&
+            if (activeBrand != 'honda' &&
+                (pBrand.contains('honda') || pName.contains('ahm'))) {
+              continue;
+            }
+            if (activeBrand != 'yamaha' &&
                 (pBrand.contains('yamaha') || pName.contains('yamalube'))) {
               continue;
             }
-            if (activeBrand == 'yamaha' &&
-                (pBrand.contains('honda') || pName.contains('ahm'))) {
+            if (activeBrand != 'suzuki' &&
+                (pBrand.contains('suzuki') || pName.contains('sgo'))) {
+              continue;
+            }
+            if (activeBrand != 'kawasaki' &&
+                (pBrand.contains('kawasaki') || pName.contains('kgo'))) {
               continue;
             }
           }
 
-          // Check if category or name matches
-          bool matches = false;
-          final partCat = part.category.toLowerCase();
-          for (final entry in categoryKeywords.entries) {
-            if (compName.contains(entry.key)) {
-              if (entry.value.any(
-                (k) => partCat.contains(k) || pName.contains(k),
-              )) {
-                matches = true;
-                break;
-              }
-            }
+          // Reject parts incompatible with transmission / cooling type
+          if (isMatic == false &&
+              (pCat == 'cvt' ||
+                  pCat == 'vbelt' ||
+                  pCat == 'oli_gardan' ||
+                  pName.contains('scooter') ||
+                  pName.contains('matic'))) {
+            continue;
           }
+          if (isMatic == true && pCat == 'rantai') {
+            continue;
+          }
+          if (isLiquid == false && pCat == 'coolant') {
+            continue;
+          }
+
+          final matches = doesComponentMatchPart(compName, part);
 
           if (matches) {
             final isReplace =

@@ -361,8 +361,11 @@ void main() {
         isTrue,
       );
 
-      // Kedua motor harus punya tepat satu baris status per komponen.
-      final componentCount = (await db.getAllComponentTypes()).length;
+      // Kedua motor harus punya tepat satu baris status per komponen yang berlaku.
+      final motorAData = await db.getMotorcycle(motorA);
+      final componentCount = (await db.getApplicableComponentsForModel(
+        motorAData?.modelId,
+      )).length;
       expect(statusesA, hasLength(componentCount));
       expect(statusesB, hasLength(componentCount));
 
