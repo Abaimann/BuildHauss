@@ -1,7 +1,7 @@
 name: buildhaus
 description: "BuildHaus - Built for every ride. Asisten perawatan motor pribadi."
 publish_to: 'none'
-version: 1.1.0+2
+version: 1.2.0+3
 
 environment:
   sdk: ^3.10.0
