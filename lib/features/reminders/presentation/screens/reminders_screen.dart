@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/database/app_database.dart';
+import '../../../../core/engines/reminder_sample_helper.dart';
 import '../../../../core/notifications/notification_id_generator.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
@@ -30,7 +31,46 @@ class RemindersScreen extends ConsumerStatefulWidget {
 
 class _RemindersScreenState extends ConsumerState<RemindersScreen> {
   bool _isSyncing = false;
+  bool _isSendingSample = false;
   bool _didAutoOpenAddSheet = false;
+
+  Future<void> _triggerSampleReminder(Motorcycle motor) async {
+    setState(() => _isSendingSample = true);
+    try {
+      final db = ref.read(databaseProvider);
+      final notifService = ref.read(notificationServiceProvider);
+      final inserted = await ReminderSampleHelper.createSampleRemindersAndNotify(
+        db: db,
+        notificationService: notifService,
+        motor: motor,
+      );
+      ref.invalidate(remindersProvider(motor.id));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              inserted > 0
+                  ? 'Ditambahkan $inserted contoh pengingat & notifikasi contoh dikirim!'
+                  : 'Notifikasi contoh dikirim ke perangkat Anda!',
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal membuat contoh pengingat: $e'),
+            backgroundColor: BuildHausTheme.danger,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSendingSample = false);
+    }
+  }
 
   Future<void> _syncReminders(int motorId) async {
     setState(() => _isSyncing = true);
@@ -203,6 +243,18 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                       icon: const Icon(Icons.sync, size: 18),
                       label: const Text('Sinkronkan Sekarang'),
                     ),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      key: const ValueKey('sample_reminder_button'),
+                      onPressed: _isSendingSample
+                          ? null
+                          : () => _triggerSampleReminder(activeMotor),
+                      icon: const Icon(
+                        Icons.notifications_active_outlined,
+                        size: 18,
+                      ),
+                      label: const Text('Contoh Pengingat'),
+                    ),
                   ],
                 ),
               ),
@@ -222,42 +274,66 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: context.line),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade700.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.notifications_active_outlined,
-                        color: Colors.amber.shade700,
-                        size: 22,
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade700.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.notifications_active_outlined,
+                            color: Colors.amber.shade700,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$activeCount Pengingat Aktif',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: context.ink,
+                                ),
+                              ),
+                              Text(
+                                'Total ${reminders.length} pengingat terjadwal untuk ${activeMotor.nickname}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: context.muted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '$activeCount Pengingat Aktif',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: context.ink,
-                            ),
-                          ),
-                          Text(
-                            'Total ${reminders.length} pengingat terjadwal untuk ${activeMotor.nickname}',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: context.muted,
-                            ),
-                          ),
-                        ],
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        key: const ValueKey('sample_reminder_button'),
+                        onPressed: _isSendingSample
+                            ? null
+                            : () => _triggerSampleReminder(activeMotor),
+                        icon: const Icon(
+                          Icons.notifications_active_outlined,
+                          size: 16,
+                        ),
+                        label: Text(
+                          _isSendingSample
+                              ? 'Mengirim...'
+                              : 'Contoh Pengingat',
+                        ),
                       ),
                     ),
                   ],
@@ -438,17 +514,7 @@ class _ReminderCardItem extends ConsumerWidget {
   }
 
   String _getReminderTitle(String type) {
-    switch (type) {
-      case 'odometer':
-        return 'Pembaruan Odometer';
-      case 'complaint':
-        return 'Tindak Lanjut Keluhan';
-      case 'inspection':
-        return 'Pemeriksaan Mandiri';
-      case 'date':
-      default:
-        return 'Jadwal Servis Berkala';
-    }
+    return ReminderSampleHelper.formatReminderTypeTitle(type);
   }
 }
 

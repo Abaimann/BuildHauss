@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:buildhaus/core/database/app_database.dart';
+import 'package:buildhaus/core/notifications/notification_service.dart';
 import 'package:buildhaus/core/providers/app_providers.dart';
 import 'package:buildhaus/core/providers/database_provider.dart';
 import 'package:buildhaus/core/router/app_router.dart';
@@ -14,10 +15,34 @@ import 'package:buildhaus/core/utils/formatters.dart';
 import 'package:buildhaus/features/budget/presentation/screens/budget_screen.dart';
 import 'package:buildhaus/features/parts/presentation/providers/parts_providers.dart';
 import 'package:buildhaus/features/parts/presentation/screens/parts_catalog_screen.dart';
+import 'package:buildhaus/features/reminders/presentation/screens/reminders_screen.dart';
 
 class _TestActiveMotorNotifier extends ActiveMotorcycleNotifier {
   _TestActiveMotorNotifier(super.ref, Motorcycle? motor) {
     state = motor;
+  }
+}
+
+class _SpyNotificationService extends NotificationService {
+  String? lastShownTitle;
+  String? lastShownBody;
+
+  @override
+  Future<bool> requestPermission() async => true;
+
+  @override
+  Future<void> showNotification({
+    required int id,
+    required String title,
+    required String body,
+    String? payload,
+    String channelId = 'buildhaus_reminders',
+    String channelName = 'Pengingat Perawatan BuildHaus',
+    String channelDescription =
+        'Notifikasi jadwal servis, ganti oli, odometer, dan keluhan motor',
+  }) async {
+    lastShownTitle = title;
+    lastShownBody = body;
   }
 }
 
@@ -269,6 +294,59 @@ void main() {
         sparepartRecommendationStatsProvider.future,
       );
       expect(stats.budgetAmount, 100000);
+    },
+  );
+
+  testWidgets(
+    'Tombol Contoh Pengingat mengisi jadwal contoh dan mengirim notifikasi pratinjau',
+    (tester) async {
+      final models = await db.getAllMotorcycleModels();
+      final vario = models.firstWhere((m) => m.model == 'Vario 160');
+      final motorId = await db.createMotorcycle(
+        motorcycle: MotorcyclesCompanion.insert(
+          modelId: Value(vario.id),
+          nickname: 'Vario Uji Pengingat',
+          manufactureYear: 2023,
+        ),
+        initialOdometerKm: 12000,
+      );
+      final motor = (await db.getMotorcycle(motorId))!;
+      final spyNotif = _SpyNotificationService();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(db),
+            notificationServiceProvider.overrideWithValue(spyNotif),
+            activeMotorcycleProvider.overrideWith(
+              (ref) => _TestActiveMotorNotifier(ref, motor),
+            ),
+          ],
+          child: MaterialApp(home: RemindersScreen(motorcycleId: motorId)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final sampleBtn = find.byKey(const ValueKey('sample_reminder_button'));
+      expect(sampleBtn, findsOneWidget);
+
+      await tester.tap(sampleBtn);
+      await tester.pumpAndSettle();
+
+      final reminders = await db.getReminders(motorId);
+      expect(reminders.length, 3);
+      expect(
+        reminders.map((r) => r.reminderType).toSet(),
+        {'date', 'odometer', 'inspection'},
+      );
+      expect(find.text('Jadwal Servis Berkala'), findsOneWidget);
+      expect(find.text('Pembaruan Odometer'), findsOneWidget);
+      expect(find.text('Pemeriksaan Mandiri'), findsOneWidget);
+      expect(spyNotif.lastShownTitle, contains('Vario Uji Pengingat'));
+      expect(spyNotif.lastShownBody, contains('13500 km'));
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 5));
     },
   );
 }

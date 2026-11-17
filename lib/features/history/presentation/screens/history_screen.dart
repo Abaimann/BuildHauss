@@ -5,6 +5,7 @@ import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../../core/engines/reminder_sample_helper.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/animated_widgets.dart';
 
@@ -493,33 +494,116 @@ class _ReminderTab extends ConsumerWidget {
   final int motorId;
   const _ReminderTab({required this.motorId});
 
+  Future<void> _onSampleReminderTap(BuildContext context, WidgetRef ref) async {
+    final db = ref.read(databaseProvider);
+    final motor = await db.getMotorcycle(motorId);
+    if (motor == null) return;
+    final notifService = ref.read(notificationServiceProvider);
+    final inserted = await ReminderSampleHelper.createSampleRemindersAndNotify(
+      db: db,
+      notificationService: notifService,
+      motor: motor,
+    );
+    ref.invalidate(remindersProvider(motorId));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            inserted > 0
+                ? 'Ditambahkan $inserted contoh pengingat & notifikasi contoh dikirim!'
+                : 'Notifikasi contoh dikirim ke perangkat Anda!',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final db = ref.watch(databaseProvider);
+    final remindersAsync = ref.watch(remindersProvider(motorId));
 
-    return FutureBuilder<List<LocalReminder>>(
-      future: db.getReminders(motorId),
-      builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final reminders = snap.data ?? [];
+    return remindersAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) => Center(child: Text('Gagal memuat pengingat: $err')),
+      data: (reminders) {
         if (reminders.isEmpty) {
-          return _EmptyStateWidget(
-            icon: Icons.schedule,
-            title: 'Belum ada pengingat',
-            subtitle: 'Tambah pengingat untuk pantau servis',
-            onAdd: () => context.push('/history/add'),
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.schedule, size: 56, color: context.muted),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Belum ada pengingat',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: context.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Tambah pengingat atau coba contoh pengingat untuk memantau jadwal servis.',
+                    style: TextStyle(fontSize: 12, color: context.muted),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => context.push('/motor/$motorId/reminder/add'),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Tambah Pengingat'),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    key: const ValueKey('history_sample_reminder_button'),
+                    onPressed: () => _onSampleReminderTap(context, ref),
+                    icon: const Icon(
+                      Icons.notifications_active_outlined,
+                      size: 18,
+                    ),
+                    label: const Text('Contoh Pengingat'),
+                  ),
+                ],
+              ),
+            ),
           );
         }
+
         return ListView.separated(
           padding: const EdgeInsets.all(16),
-          itemCount: reminders.length,
+          itemCount: reminders.length + 1,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, i) => FadeSlideIn(
-            index: i,
-            child: _ReminderCard(reminder: reminders[i]),
-          ),
+          itemBuilder: (context, i) {
+            if (i == 0) {
+              return Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      key: const ValueKey('history_sample_reminder_button'),
+                      onPressed: () => _onSampleReminderTap(context, ref),
+                      icon: const Icon(
+                        Icons.notifications_active_outlined,
+                        size: 16,
+                      ),
+                      label: const Text('Contoh Pengingat'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton.icon(
+                    onPressed: () => context.push('/motor/$motorId/reminders'),
+                    icon: const Icon(Icons.tune_rounded, size: 16),
+                    label: const Text('Kelola'),
+                  ),
+                ],
+              );
+            }
+            return FadeSlideIn(
+              index: i - 1,
+              child: _ReminderCard(reminder: reminders[i - 1]),
+            );
+          },
         );
       },
     );
@@ -590,7 +674,9 @@ class _ReminderCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  reminder.reminderType,
+                  ReminderSampleHelper.formatReminderTypeTitle(
+                    reminder.reminderType,
+                  ),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
