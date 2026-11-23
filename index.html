@@ -1199,7 +1199,7 @@
           <ul class="nav-links">
             <li><a href="#fitur">Fitur</a></li>
             <li><a href="#demo">Live Demo</a></li>
-            <li><a href="prototype/index.html" target="_blank" style="color:var(--accent); font-weight:800;">Prototipe v2.0 ↗</a></li>
+            <li><a href="prototype/index.html" target="_blank" style="color:var(--accent); font-weight:800;">Prototipe v1.2.0 ↗</a></li>
             <li><a href="#komparasi">Keunggulan</a></li>
             <li><a href="#download">Unduh APK</a></li>
             <li><a href="#faq">FAQ</a></li>
@@ -1242,7 +1242,7 @@
               <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
               <line x1="12" y1="18" x2="12.01" y2="18"></line>
             </svg>
-            Buka Prototipe Web (v2.0) ↗
+            Buka Prototipe Web (v1.2.0) ↗
           </a>
         </div>
 
@@ -1852,8 +1852,8 @@ const views = {
             <div style="display:flex; align-items:center; gap:8px;">
               <span>🛢️</span>
               <div>
-                <b style="font-size:11px;">Oli Mesin AHM MPX2</b>
-                <div style="font-size:9px; color:#94a3b8;">14 Komponen Dipantau</div>
+                <b style="font-size:11px;">Oli Mesin AHM SPX 2</b>
+                <div style="font-size:9px; color:#94a3b8;">11–13 Komponen Adaptif • 4 Merek</div>
               </div>
             </div>
             <span style="font-size:9px; font-weight:800; color:#00f5a0; background:rgba(0,245,160,0.15); padding:2px 6px; border-radius:6px;">AKTIF</span>
@@ -1886,11 +1886,11 @@ const views = {
           <!-- AI Recommendation Card inside health -->
           <div style="background:var(--surface2); border:1px solid rgba(0,245,160,0.3); border-radius:14px; padding:12px; margin-bottom:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <span style="font-size:10.5px; font-weight:700;">🤖 AI Rekomendasi</span>
-              <span style="font-size:8px; font-weight:800; color:var(--accent); background:rgba(0,245,160,0.18); padding:2px 6px; border-radius:99px;">✨ GEMINI AI</span>
+              <span style="font-size:10.5px; font-weight:700;">🤖 AI Rekomendasi & Ekspor .TXT</span>
+              <span style="font-size:8px; font-weight:800; color:var(--accent); background:rgba(0,245,160,0.18); padding:2px 6px; border-radius:99px;">✨ v1.2.0</span>
             </div>
             <div style="font-size:10.5px; color:var(--muted); line-height:1.4;">
-              ✅ 14 komponen dipantau (Profil: harian dalam kota). Seluruh data aman offline.
+              ✅ Pemantauan adaptif sesuai transmisi &amp; pendingin (11–13 dari 14 tipe). Laporan kondisi dapat diekspor ke <b>.TXT</b>.
             </div>
           </div>
 
@@ -1948,11 +1948,11 @@ const views = {
         `,
 
         budget: `
-          <div style="font-size:14px; font-weight:800; margin-bottom:12px;">Smart Budgeting Servis</div>
+          <div style="font-size:14px; font-weight:800; margin-bottom:12px;">Smart Budgeting &amp; Notifikasi</div>
           <div style="background:var(--surface2); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px;">
-            <div style="font-size:10px; color:var(--muted);">Alokasi Anggaran Bulanan</div>
-            <div style="font-size:22px; font-weight:800; color:var(--accent); margin:4px 0;">Rp 250.000</div>
-            <div style="font-size:10px; color:var(--muted);">Terdanai: Rp 165.000 • Sisa: Rp 85.000</div>
+            <div style="font-size:10px; color:var(--muted);">Anggaran Aktif (Format IDR Otomatis)</div>
+            <div style="font-size:22px; font-weight:800; color:var(--accent); margin:4px 0;">Rp 350.000</div>
+            <div style="font-size:10px; color:var(--muted);">Tersinkron ke Sparepart • Contoh Pengingat aktif</div>
           </div>
 
           <div style="font-size:11px; font-weight:700; margin-bottom:8px;">Rekomendasi Berdasarkan Prioritas</div>
@@ -2002,8 +2002,11 @@ const views = {
         `,
 
         catalog: `
-          <div style="font-size:14px; font-weight:800; margin-bottom:10px; color:#f1f5f9;">Katalog Sparepart Resmi</div>
-          <div style="font-size:10px; color:var(--muted); margin-bottom:8px;">Bebas Duplikat • Smart Filter Tipe Motor:</div>
+          <div style="font-size:14px; font-weight:800; margin-bottom:8px; color:#f1f5f9;">Katalog Sparepart Resmi</div>
+          <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <span style="font-size:9px; font-weight:700; background:var(--surface2); border:1px solid var(--line); padding:3px 8px; border-radius:99px; color:var(--ink);">⚙️ Filter: Semua</span>
+            <span style="font-size:9px; font-weight:700; background:var(--surface2); border:1px solid var(--line); padding:3px 8px; border-radius:99px; color:var(--accent);">↕ Urutkan: Prioritas</span>
+          </div>
           <div class="m-comp-tile">
             <div style="display:flex; align-items:center; gap:8px;">
               <img src="assets/images/parts/oli_mesin.webp" style="width:32px; height:32px; border-radius:8px; object-fit:contain; background:#f3f6fa; padding:3px;" onerror="this.style.display='none'"/>
@@ -2016,7 +2019,7 @@ const views = {
           </div>
           <div class="m-comp-tile">
             <div style="display:flex; align-items:center; gap:8px;">
-              <img src="assets/images/parts/kampas_rem.webp" style="width:32px; height:32px; border-radius:8px; object-fit:contain; background:#f3f6fa; padding:3px;" onerror="this.style.display='none'"/>
+              <img src="assets/images/parts/minyak_rem.webp" style="width:32px; height:32px; border-radius:8px; object-fit:contain; background:#f3f6fa; padding:3px;" onerror="this.style.display='none'"/>
               <div>
                 <b style="font-size:11px;">Honda Genuine Brake Fluid DOT 4 ✓</b>
                 <div style="font-size:9px; color:var(--muted);">Minyak Rem • Rekomendasi Budget</div>
@@ -2026,7 +2029,7 @@ const views = {
           </div>
           <div class="m-comp-tile">
             <div style="display:flex; align-items:center; gap:8px;">
-              <img src="assets/images/parts/coolant.webp" style="width:32px; height:32px; border-radius:8px; object-fit:contain; background:#f3f6fa; padding:3px;" onerror="this.style.display='none'"/>
+              <img src="assets/images/parts/radiator_coolant.webp" style="width:32px; height:32px; border-radius:8px; object-fit:contain; background:#f3f6fa; padding:3px;" onerror="this.style.display='none'"/>
               <div>
                 <b style="font-size:11px;">AHM Radiator Coolant Pre-mix 1L ✓</b>
                 <div style="font-size:9px; color:var(--muted);">Radiator Coolant • 08CLA-G01-W01</div>
