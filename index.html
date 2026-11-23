@@ -1361,8 +1361,8 @@
               <p>Chat konsultasi dengan gaya bahasa santai sesama anak motor. Langsung tebak masalah tanpa basa-basi.</p>
             </div>
             <div class="demo-feature-card" id="card-inspection" onclick="switchMockup('inspection')">
-              <h4>🔍 Inspeksi Mandiri 10-Titik</h4>
-              <p>Pemeriksaan visual fisik mandiri untuk deteksi dini rem blong, oli rembes, dan aki soak.</p>
+              <h4>🔍 Inspeksi Mandiri 8-Titik</h4>
+              <p>Pemeriksaan visual fisik mandiri 8 parameter keselamatan untuk deteksi dini rem blong, oli rembes, dan aki soak.</p>
             </div>
             <div class="demo-feature-card" id="card-catalog" onclick="switchMockup('catalog')">
               <h4>🏍️ Kompatibilitas Suku Cadang</h4>
@@ -1418,8 +1418,8 @@
           <!-- Feature 4 -->
           <div class="feature-box">
             <div class="feature-box-icon">🔍</div>
-            <h3>Inspeksi Mandiri 10-Titik</h3>
-            <p>Checklist visual mandiri dengan panduan mudah untuk mendeteksi rembes oli, ketebalan kampas rem, hingga kondisi aki sebelum touring.</p>
+            <h3>Inspeksi Mandiri 8-Titik</h3>
+            <p>Checklist visual mandiri 8 aspek keselamatan dengan panduan mudah untuk mendeteksi rembes oli, ketebalan kampas rem, hingga kondisi aki sebelum touring.</p>
             <span class="badge-feature">Deteksi Dini Masalah ✓</span>
           </div>
 
@@ -1487,7 +1487,7 @@
               </tr>
               <tr>
                 <td><b>Inspeksi Fisik Mandiri</b></td>
-                <td class="col-buildhaus">✅ Checklist 10-titik visual</td>
+                <td class="col-buildhaus">✅ Checklist 8-titik visual</td>
                 <td>❌ Tidak ada panduan</td>
                 <td>❌ Hanya booking antrean</td>
               </tr>
@@ -1672,7 +1672,7 @@
               <span class="arrow">▼</span>
             </div>
             <div class="faq-answer">
-              Sebagian besar fitur BuildHaus bekerja secara <b>100% offline</b> (kalkulasi kesehatan motor deterministik, log odometer, catatan riwayat servis, inspeksi fisik 10-titik, dan katalog suku cadang). Koneksi internet hanya dibutuhkan saat Anda berkonsultasi interaktif dengan AI Riding Buddy (Google Gemini 2.5 Flash).
+              Seluruh fitur inti BuildHaus bekerja secara <b>100% offline</b> (kalkulasi kesehatan motor deterministik, log odometer, catatan riwayat servis, inspeksi fisik 8-titik, pengingat, dan katalog suku cadang). Koneksi internet hanya digunakan saat berkonsultasi dengan AI Cloud (Google Gemini 2.5 Flash), dan bila sedang offline otomatis beralih ke <i>fallback rule-based</i> tanpa crash.
             </div>
           </div>
 
@@ -1682,7 +1682,7 @@
               <span class="arrow">▼</span>
             </div>
             <div class="faq-answer">
-              Di dalam aplikasi, buka menu <b>AI Chat</b> atau halaman profil, lalu masukkan Gemini API Key gratis Anda dari <a href="https://aistudio.google.com" target="_blank" style="color:var(--accent);">Google AI Studio</a>. API key ini tersimpan aman secara terenkripsi di penyimpanan lokal HP Anda dan tidak pernah dikirim ke pihak ketiga.
+              Fitur AI sudah siap digunakan langsung melalui konfigurasi bawaan aplikasi. Jika ingin memakai kuota pribadi, buka menu <b>Akun &gt; Pengaturan Aplikasi</b> lalu masukkan Gemini API Key Anda dari <a href="https://aistudio.google.com" target="_blank" style="color:var(--accent);">Google AI Studio</a>. API key tersimpan lokal di SQLite perangkat Anda.
             </div>
           </div>
 
@@ -1973,10 +1973,10 @@ const views = {
         `,
 
         inspection: `
-          <div style="font-size:14px; font-weight:800; margin-bottom:12px;">Inspeksi Mandiri 10-Titik</div>
+          <div style="font-size:14px; font-weight:800; margin-bottom:12px;">Inspeksi Mandiri 8-Titik</div>
           <div style="background:var(--surface2); border:1px solid var(--line); border-radius:14px; padding:12px; margin-bottom:12px;">
             <b style="font-size:11.5px;">Pemeriksaan Terakhir: Normal</b>
-            <div style="font-size:10px; color:var(--muted); margin-top:2px;">10 dari 10 parameter keselamatan aman.</div>
+            <div style="font-size:10px; color:var(--muted); margin-top:2px;">8 dari 8 parameter keselamatan aman.</div>
           </div>
           <div class="m-comp-tile">
             <div>
@@ -2122,8 +2122,8 @@ const views = {
           desc: "Formulir pendaftaran motor baru, pemilihan model pabrikan, pengisian odometer awal, dan riwayat servis terakhir."
         },
         inspection: {
-          title: "🔍 Inspeksi Mandiri 10-Titik",
-          desc: "Pemeriksaan visual fisik mandiri untuk deteksi dini rem blong, oli rembes, keausan ban, dan kondisi aki sebelum riding."
+          title: "🔍 Inspeksi Mandiri 8-Titik",
+          desc: "Pemeriksaan visual fisik mandiri 8 parameter keselamatan untuk deteksi dini rem blong, oli rembes, keausan ban, dan kondisi aki sebelum riding."
         },
         catalog: {
           title: "🏍️ Katalog Kompatibilitas Suku Cadang",
