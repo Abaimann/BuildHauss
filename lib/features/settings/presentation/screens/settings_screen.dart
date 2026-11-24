@@ -72,14 +72,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Batal', maxLines: 1),
+            ),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
               backgroundColor: BuildHausTheme.danger,
             ),
-            child: const Text('Lanjutkan Hapus'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Lanjutkan Hapus', maxLines: 1),
+            ),
           ),
         ],
       ),
@@ -99,14 +105,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Batal', maxLines: 1),
+            ),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
               backgroundColor: BuildHausTheme.danger,
             ),
-            child: const Text('Ya, Hapus Semua'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Ya, Hapus Semua', maxLines: 1),
+            ),
           ),
         ],
       ),
@@ -169,12 +181,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 : Colors.amber.shade700,
                           ),
                           const SizedBox(width: 10),
-                          Text(
-                            'Tema Aplikasi',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: context.ink,
+                          Expanded(
+                            child: Text(
+                              'Tema Aplikasi',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: context.ink,
+                              ),
                             ),
                           ),
                         ],
@@ -201,17 +217,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               onTap: () => ref
                                   .read(themeModeProvider.notifier)
                                   .setTheme(ThemeMode.dark),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _ChoiceChip(
-                              label: 'Sistem',
-                              icon: Icons.phone_android_outlined,
-                              isSelected: themeMode == ThemeMode.system,
-                              onTap: () => ref
-                                  .read(themeModeProvider.notifier)
-                                  .setTheme(ThemeMode.system),
                             ),
                           ),
                         ],
@@ -412,11 +417,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 color: context.muted,
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                '${stats['motorcycles'] ?? 0} motor • ${stats['service_records'] ?? 0} servis • ${stats['odometer_logs'] ?? 0} log km',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: context.muted,
+                              Expanded(
+                                child: Text(
+                                  '${stats['motorcycles'] ?? 0} motor • ${stats['service_records'] ?? 0} servis • ${stats['odometer_logs'] ?? 0} log km',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: context.muted,
+                                  ),
                                 ),
                               ),
                             ],
@@ -541,7 +550,7 @@ class _ChoiceChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? context.ink : context.surface,
           borderRadius: BorderRadius.circular(12),
@@ -551,12 +560,17 @@ class _ChoiceChip extends StatelessWidget {
           children: [
             Icon(icon, size: 18, color: isSelected ? context.bg : context.ink),
             const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? context.bg : context.ink,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? context.bg : context.ink,
+                ),
               ),
             ),
           ],

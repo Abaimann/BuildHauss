@@ -1,5 +1,6 @@
 import '../database/app_database.dart';
 import 'health_engine.dart';
+import 'motorcycle_specs.dart';
 import 'self_inspection_engine.dart';
 
 /// Smart Budget & Service Advisor Engine for BuildHaus.
@@ -553,6 +554,21 @@ class BudgetEngine {
     }
 
     final compKey = _normalizeKey(componentName);
+    final isMatic = MotorcycleSpecs.isMaticOrNull(activeMotorcycleModel);
+    final isLiquid = MotorcycleSpecs.isLiquidCooledOrNull(
+      activeMotorcycleModel,
+    );
+
+    if (isMatic == false && (compKey == 'cvt' || compKey == 'oli_gardan')) {
+      return _MatchedPart(null, 'unverified');
+    }
+    if (isMatic == true &&
+        (compKey == 'rantai_dan_gir' || compKey == 'rantai_&_gir')) {
+      return _MatchedPart(null, 'unverified');
+    }
+    if (isLiquid == false && compKey == 'radiator_coolant') {
+      return _MatchedPart(null, 'unverified');
+    }
 
     // Map component to sparepart category keywords
     final categoryKeywords = <String, List<String>>{
@@ -575,10 +591,11 @@ class BudgetEngine {
 
     final targetCategories = categoryKeywords[compKey] ?? [compKey];
 
-    // Candidate parts matching category
+    // Candidate parts matching category and vehicle specs (matic/manual, cooling)
     final candidateParts = spareparts!.where((p) {
       final pCat = p.category.toLowerCase();
-      return targetCategories.any((cat) => pCat.contains(cat));
+      if (!targetCategories.any((cat) => pCat.contains(cat))) return false;
+      return _isPartCompatibleWithSpecs(p, isMatic: isMatic, isLiquid: isLiquid);
     }).toList();
 
     if (candidateParts.isEmpty) {
@@ -604,44 +621,143 @@ class BudgetEngine {
     }
 
     // 2. Reject parts specifically branded for another motorcycle
-    // (e.g. Do not recommend Yamalube or Yamaha parts if active motorcycle is Honda)
+    // (e.g. Do not recommend Yamalube/Honda/Suzuki parts for a Kawasaki motor, and vice versa)
+    final normalizedBrand = activeBrand?.toLowerCase();
     final filteredByBrand = candidateParts.where((part) {
-      final pBrand = (part.brand ?? '').toLowerCase();
-      final pName = part.name.toLowerCase();
-
-      if (activeBrand != null) {
-        if (activeBrand.contains('honda')) {
-          if (pBrand.contains('yamaha') || pName.contains('yamaha')) {
-            return false;
-          }
-          if (pBrand.contains('suzuki') || pName.contains('suzuki')) {
-            return false;
-          }
-          if (pBrand.contains('kawasaki') || pName.contains('kawasaki')) {
-            return false;
-          }
-        } else if (activeBrand.contains('yamaha')) {
-          if (pBrand.contains('honda') || pName.contains('honda')) {
-            return false;
-          }
-          if (pBrand.contains('suzuki') || pName.contains('suzuki')) {
-            return false;
-          }
-          if (pBrand.contains('kawasaki') || pName.contains('kawasaki')) {
-            return false;
-          }
-        }
-      }
-      return true;
+      return _isPartCompatibleWithBrand(part, normalizedBrand);
     }).toList();
 
     if (filteredByBrand.isEmpty) {
       return _MatchedPart(null, 'unverified');
     }
 
-    // 3. Fallback to first compatible or universal part as reference
+    // 3. Prefer brand-specific OEM match if available, otherwise first compatible universal part
+    if (normalizedBrand != null) {
+      final brandPreferred = filteredByBrand
+          .where((part) => _isPartPreferredForBrand(part, normalizedBrand))
+          .firstOrNull;
+      if (brandPreferred != null) {
+        return _MatchedPart(brandPreferred, 'reference');
+      }
+    }
+
     final selected = filteredByBrand.first;
     return _MatchedPart(selected, 'reference');
+  }
+
+  bool _isPartCompatibleWithSpecs(
+    Sparepart part, {
+    required bool? isMatic,
+    required bool? isLiquid,
+  }) {
+    final pCat = part.category.toLowerCase().trim();
+    final pName = part.name.toLowerCase();
+
+    if (isMatic == false) {
+      if (pCat == 'cvt' ||
+          pCat == 'vbelt' ||
+          pCat == 'oli_gardan' ||
+          pName.contains('scooter') ||
+          pName.contains('matic') ||
+          pName.contains('cvt') ||
+          pName.contains('v-belt') ||
+          pName.contains('vbelt')) {
+        return false;
+      }
+    } else if (isMatic == true) {
+      if (pCat == 'rantai' || pName.contains('rantai')) {
+        return false;
+      }
+    }
+
+    if (isLiquid == false) {
+      if (pCat == 'coolant' ||
+          pName.contains('coolant') ||
+          pName.contains('radiator')) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool _isPartCompatibleWithBrand(Sparepart part, String? activeBrand) {
+    if (activeBrand == null || activeBrand.isEmpty) return true;
+
+    final pBrand = (part.brand ?? '').toLowerCase();
+    final pName = part.name.toLowerCase();
+    final pNumber = (part.partNumber ?? '').toLowerCase();
+
+    final isHonda =
+        pBrand.contains('honda') ||
+        pName.contains('honda') ||
+        pName.contains('ahm') ||
+        pNumber.contains('ahm');
+    final isYamaha =
+        pBrand.contains('yamaha') ||
+        pName.contains('yamaha') ||
+        pName.contains('yamalube') ||
+        pNumber.contains('yamalube');
+    final isSuzuki =
+        pBrand.contains('suzuki') ||
+        pName.contains('suzuki') ||
+        pName.contains('sgo') ||
+        pName.contains('sgp') ||
+        pNumber.contains('sgo') ||
+        pNumber.contains('sgp');
+    final isKawasaki =
+        pBrand.contains('kawasaki') ||
+        pName.contains('kawasaki') ||
+        pName.contains('kgp') ||
+        pName.contains('kgo') ||
+        pNumber.contains('kgp') ||
+        pNumber.contains('kgo');
+
+    if (activeBrand.contains('honda')) {
+      return !isYamaha && !isSuzuki && !isKawasaki;
+    }
+    if (activeBrand.contains('yamaha')) {
+      return !isHonda && !isSuzuki && !isKawasaki;
+    }
+    if (activeBrand.contains('suzuki')) {
+      return !isHonda && !isYamaha && !isKawasaki;
+    }
+    if (activeBrand.contains('kawasaki')) {
+      return !isHonda && !isYamaha && !isSuzuki;
+    }
+    return true;
+  }
+
+  bool _isPartPreferredForBrand(Sparepart part, String activeBrand) {
+    final pBrand = (part.brand ?? '').toLowerCase();
+    final pName = part.name.toLowerCase();
+    final pNumber = (part.partNumber ?? '').toLowerCase();
+
+    if (activeBrand.contains('honda')) {
+      return pBrand.contains('honda') ||
+          pName.contains('honda') ||
+          pName.contains('ahm');
+    }
+    if (activeBrand.contains('yamaha')) {
+      return pBrand.contains('yamaha') ||
+          pName.contains('yamaha') ||
+          pName.contains('yamalube');
+    }
+    if (activeBrand.contains('suzuki')) {
+      return pBrand.contains('suzuki') ||
+          pName.contains('suzuki') ||
+          pName.contains('sgo') ||
+          pNumber.contains('sgo');
+    }
+    if (activeBrand.contains('kawasaki')) {
+      return pBrand.contains('kawasaki') ||
+          pName.contains('kawasaki') ||
+          pName.contains('kgp') ||
+          pName.contains('kgo') ||
+          pNumber.contains('kgp') ||
+          pNumber.contains('kgo');
+    }
+    return false;
   }
 }
 

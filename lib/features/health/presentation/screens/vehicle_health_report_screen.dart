@@ -58,20 +58,28 @@ class VehicleHealthReportScreen extends ConsumerWidget {
         ? (validScores.reduce((a, b) => a + b) / validScores.length).round()
         : null;
 
+    final ageCategory = MotorcycleSpecs.ageCategoryLabel(motor.manufactureYear);
+    final fuelSystem = MotorcycleSpecs.fuelSystemLabel(
+      model,
+      manufactureYear: motor.manufactureYear,
+    );
+    final transmission = MotorcycleSpecs.transmissionLabel(model);
+    final cooling = MotorcycleSpecs.coolingLabel(model);
+
     final buf = StringBuffer()
       ..writeln('========================================')
       ..writeln('LAPORAN KONDISI MOTOR — BUILDHAUS')
       ..writeln('Tanggal Cetak: ${_fmtDate(DateTime.now())}')
       ..writeln('========================================')
-      ..writeln('Unit       : ${motor.nickname} (${motor.manufactureYear})');
+      ..writeln('Unit       : ${motor.nickname} (${motor.manufactureYear})')
+      ..writeln('Kategori   : $ageCategory');
     if (model != null) {
       buf.writeln(
-        'Model      : ${model.brand} ${model.model} ${model.variant ?? ''}',
-      );
-      buf.writeln(
-        'Spesifikasi: ${MotorcycleSpecs.transmissionLabel(model)} | ${MotorcycleSpecs.coolingLabel(model)}',
+        'Model      : ${model.brand} ${model.model} ${model.variant ?? ''}'
+            .trimRight(),
       );
     }
+    buf.writeln('Spesifikasi: $transmission | $fuelSystem | $cooling');
     if (motor.plateNumber != null && motor.plateNumber!.isNotEmpty) {
       buf.writeln('Plat Nomor : ${motor.plateNumber}');
     }
@@ -302,6 +310,8 @@ class VehicleHealthReportScreen extends ConsumerWidget {
                                       letterSpacing: 1.1,
                                       color: Color(0xFF00F5A0),
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
                                     motor.nickname,
@@ -310,6 +320,8 @@ class VehicleHealthReportScreen extends ConsumerWidget {
                                       fontWeight: FontWeight.w900,
                                       color: Colors.white,
                                     ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
@@ -359,10 +371,23 @@ class VehicleHealthReportScreen extends ConsumerWidget {
                             if (model != null)
                               _ReportBadge(
                                 '${model.brand} ${model.model} (${motor.manufactureYear})',
+                              )
+                            else
+                              _ReportBadge('Tahun ${motor.manufactureYear}'),
+                            _ReportBadge(
+                              MotorcycleSpecs.ageCategoryLabel(
+                                motor.manufactureYear,
                               ),
+                            ),
                             if (motor.plateNumber != null &&
                                 motor.plateNumber!.isNotEmpty)
                               _ReportBadge(motor.plateNumber!),
+                            _ReportBadge(
+                              MotorcycleSpecs.fuelSystemLabel(
+                                model,
+                                manufactureYear: motor.manufactureYear,
+                              ),
+                            ),
                             _ReportBadge(
                               MotorcycleSpecs.transmissionLabel(model),
                             ),
@@ -422,7 +447,14 @@ class VehicleHealthReportScreen extends ConsumerWidget {
                             }
                           },
                           icon: const Icon(Icons.copy_rounded, size: 18),
-                          label: const Text('Salin Teks'),
+                          label: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Salin Teks',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -435,7 +467,14 @@ class VehicleHealthReportScreen extends ConsumerWidget {
                             motor.nickname,
                           ),
                           icon: const Icon(Icons.save_alt_rounded, size: 18),
-                          label: const Text('Simpan .TXT'),
+                          label: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Simpan .TXT',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -566,6 +605,8 @@ class _ReportMetric extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(fontSize: 10, color: Colors.white54),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 2),
         Text(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/database/app_database.dart';
+import '../../../../core/platform/native_platform_service.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -441,123 +443,143 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                   child: Container(
                     margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                     padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: context.surface2,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: context.line),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: context.statusOk.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.two_wheeler_outlined,
-                          size: 20,
-                          color: context.statusOk,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    decoration: BoxDecoration(
+                      color: context.surface2,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: context.line),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Text(
-                              activeMotor.nickname,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: context.ink,
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: context.statusOk.withValues(alpha: 0.12),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.two_wheeler_outlined,
+                                size: 20,
+                                color: context.statusOk,
                               ),
                             ),
-                            Text(
-                              stats.budgetAmount != null
-                                  ? 'Anggaran: ${_formatCurrency(stats.budgetAmount!)}'
-                                  : 'Belum ada anggaran aktif',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: context.muted,
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    activeMotor.nickname,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: context.ink,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    stats.budgetAmount != null
+                                        ? 'Anggaran: ${_formatCurrency(stats.budgetAmount!)}'
+                                        : 'Belum ada anggaran aktif',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: context.muted,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
-                      ),
-                      if (stats.budgetCount > 0)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Colors.green.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                        if (stats.budgetCount > 0 || stats.healthCount > 0) ...[
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
                             children: [
-                              const Icon(
-                                Icons.account_balance_wallet_outlined,
-                                size: 12,
-                                color: Colors.green,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${stats.budgetCount} Budget',
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
+                              if (stats.budgetCount > 0)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Colors.green.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.account_balance_wallet_outlined,
+                                        size: 12,
+                                        color: Colors.green,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${stats.budgetCount} Budget',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
+                              if (stats.healthCount > 0)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.withValues(
+                                      alpha: 0.15,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Colors.orange.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.health_and_safety_outlined,
+                                        size: 12,
+                                        color: Colors.orange,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${stats.healthCount} Servis',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.orange,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                             ],
                           ),
-                        ),
-                      if (stats.healthCount > 0) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Colors.orange.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.health_and_safety_outlined,
-                                size: 12,
-                                color: Colors.orange,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${stats.healthCount} Servis',
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
                 ),
                 loading: () => const SizedBox.shrink(),
                 error: (_, __) => const SizedBox.shrink(),
@@ -594,7 +616,14 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
             child: FutureBuilder<List<String>>(
               future: db.getAllSparepartCategories(),
               builder: (context, snap) {
-                final dbCategories = snap.data ?? [];
+                final compatibleCats = prioritizedPartsAsync.value
+                    ?.map((p) => p.part.category)
+                    .toSet()
+                    .toList();
+                final dbCategories =
+                    (compatibleCats != null && compatibleCats.isNotEmpty)
+                    ? compatibleCats
+                    : (snap.data ?? []);
                 final hasCustomFilter = _selectedCategory != 'Semua';
                 final isBudget = _selectedCategory == 'Rekomendasi Budget';
                 final isHealth = _selectedCategory == 'Perhatian Kesehatan';
@@ -799,12 +828,8 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                   break;
                 case 'priority':
                 default:
-                  // Priority order: Budget Funded -> Budget Deferred -> Health -> General
-                  filtered.sort((a, b) {
-                    final tierCmp = a.tier.index.compareTo(b.tier.index);
-                    if (tierCmp != 0) return tierCmp;
-                    return a.part.name.compareTo(b.part.name);
-                  });
+                  // Priority order: Budget Funded -> Budget Deferred -> Health -> General (urgensi & budget fit)
+                  filtered.sort(PrioritizedSparepart.compareByPriority);
                   break;
               }
 
@@ -853,7 +878,7 @@ class _PartsCatalogScreenState extends ConsumerState<PartsCatalogScreen> {
                     crossAxisCount: 2,
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
-                    childAspectRatio: 0.59,
+                    childAspectRatio: 0.54,
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, i) => FadeSlideIn(
@@ -990,9 +1015,9 @@ class _PartCard extends StatelessWidget {
           children: [
             // Top Studio Image Bay (unobstructed rounded studio frame)
             Container(
-              height: 102,
+              height: 88,
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 5),
               decoration: BoxDecoration(
                 color: context.surface3.withValues(alpha: 0.7),
                 borderRadius: const BorderRadius.vertical(
@@ -1024,7 +1049,7 @@ class _PartCard extends StatelessWidget {
                           errorBuilder: (ctx, err, stack) => Center(
                             child: Icon(
                               _getPartIcon(part.name, part.category),
-                              size: 38,
+                              size: 36,
                               color: context.muted,
                             ),
                           ),
@@ -1040,7 +1065,7 @@ class _PartCard extends StatelessWidget {
                     child: Center(
                       child: Icon(
                         _getPartIcon(part.name, part.category),
-                        size: 38,
+                        size: 36,
                         color: item.isBudgetRecommended
                             ? Colors.green
                             : (item.isHealthRecommended
@@ -1054,7 +1079,7 @@ class _PartCard extends StatelessWidget {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(11, 8, 11, 11),
+                padding: const EdgeInsets.fromLTRB(10, 7, 10, 9),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1062,8 +1087,8 @@ class _PartCard extends StatelessWidget {
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 3,
+                          horizontal: 6,
+                          vertical: 2.5,
                         ),
                         decoration: BoxDecoration(
                           color: badgeBg,
@@ -1091,7 +1116,7 @@ class _PartCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 5),
                     ],
                     Row(
                       children: [
@@ -1140,20 +1165,20 @@ class _PartCard extends StatelessWidget {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     Text(
                       part.name,
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 12.5,
-                        height: 1.25,
+                        height: 1.2,
                         color: context.ink,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (part.brand != null && part.brand!.isNotEmpty) ...[
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Text(
                         part.brand!,
                         style: TextStyle(fontSize: 10.5, color: context.muted),
@@ -1560,18 +1585,55 @@ class _PartCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Buka di browser...')),
-                    );
-                  },
-                  icon: const Icon(Icons.local_offer_outlined),
-                  label: const Text('Cek Toko Terdekat'),
-                ),
+              Consumer(
+                builder: (_, ref, _) {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      key: const ValueKey('nearest_shop_button'),
+                      onPressed: () async {
+                        final activeMotor = ref.read(activeMotorcycleProvider);
+                        MotorcycleModel? activeModel;
+                        if (activeMotor?.modelId != null) {
+                          activeModel =
+                              ref
+                                  .read(
+                                    motorcycleModelByIdProvider(
+                                      activeMotor!.modelId,
+                                    ),
+                                  )
+                                  .value ??
+                              await ref
+                                  .read(databaseProvider)
+                                  .getMotorcycleModelById(activeMotor.modelId!);
+                        }
+                        if (ctx.mounted) {
+                          Navigator.pop(ctx);
+                        }
+                        final opened =
+                            await NativePlatformService.openNearestRepairShop(
+                              brand: activeModel?.brand,
+                              partName: part.name,
+                            );
+                        if (!opened && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Google Maps atau browser tidak tersedia di perangkat ini.',
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.location_on_outlined),
+                      label: const Text(
+                        'Cek Toko Terdekat',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 20),
             ],

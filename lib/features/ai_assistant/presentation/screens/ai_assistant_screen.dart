@@ -65,7 +65,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         role: 'system',
         content:
             'Halo bro! Ada yang kerasa aneh sama motor kamu? 🏍️\n\n'
-            'Ceritain aja gejalanya (misal bunyi kasar, tarikan loyo, gredek CVT, dll). Gue bantu tebak kemungkinan masalahnya secara cepat & simpel!',
+            'Ceritain aja gejalanya (misal bunyi kasar, tarikan loyo, gredek CVT, jadwal oli, atau pilihan sparepart). '
+            'Asisten ini khusus membahas perawatan, keluhan, dan sparepart sepeda motor — pertanyaan di luar topik motor bakal ditolak dengan sopan ya!',
       ),
     );
   }
@@ -87,39 +88,95 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
+        titleSpacing: 0,
         title: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('AI Health Assistant', style: TextStyle(fontSize: 16)),
+            const Text(
+              'AI Health Assistant',
+              style: TextStyle(fontSize: 15),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             if (activeMotor != null)
               Text(
                 activeMotor.nickname,
                 style: TextStyle(fontSize: 11, color: context.muted),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
           ],
         ),
         actions: [
-          Chip(
-            label: Text(
-              '✨ Gemini 2.5 Flash',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: BuildHausTheme.ok,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 124),
+            child: Chip(
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+              label: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '✨ Gemini 2.5 Flash',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: BuildHausTheme.ok,
+                  ),
+                ),
               ),
+              backgroundColor: BuildHausTheme.okBg,
+              side: BorderSide.none,
             ),
-            backgroundColor: BuildHausTheme.okBg,
-            side: BorderSide.none,
           ),
-          const SizedBox(width: 8),
           IconButton(
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+            padding: const EdgeInsets.all(8),
             icon: const Icon(Icons.info_outline, size: 20),
             onPressed: () => _showAiInfo(context),
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: Column(
         children: [
+          // Scope reminder banner
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: context.surface2,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: context.line),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.two_wheeler_outlined,
+                  size: 16,
+                  color: BuildHausTheme.ok,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Khusus membahas perawatan, keluhan, dan sparepart sepeda motor. Pertanyaan di luar topik motor akan ditolak secara sopan.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: context.muted,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // Safety alert banner if critical red flag detected
           if (_lastSafetyAlert != null && _lastSafetyAlert!.hasRedFlag)
             Container(
@@ -259,6 +316,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                     child: Text(
                       'Powered by Gemini 2.5 Flash • Online Cloud AI • Hemat Memori (0 MB)',
                       style: TextStyle(color: context.muted, fontSize: 9),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -275,18 +335,25 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     required String prompt,
   }) {
     return ActionChip(
-      label: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-          color: context.ink,
+      label: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 240),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: context.ink,
+          ),
         ),
       ),
       backgroundColor: context.surface2,
       side: BorderSide(color: context.line),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
       visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       onPressed: _sending
           ? null
           : () {
@@ -363,44 +430,53 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         children: [
           Row(
             children: [
-              Text(
-                isUser
-                    ? 'Anda'
-                    : isSystem
-                    ? 'Sistem BuildHaus'
-                    : 'BuildHaus AI',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: isUser ? context.ink : BuildHausTheme.ok,
+              Expanded(
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      isUser
+                          ? 'Anda'
+                          : isSystem
+                          ? 'Sistem BuildHaus'
+                          : 'BuildHaus AI',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: isUser ? context.ink : BuildHausTheme.ok,
+                      ),
+                    ),
+                    if (m.analysisMode != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: m.analysisMode == 'llm'
+                              ? BuildHausTheme.okBg
+                              : context.surface2,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          m.analysisMode == 'llm'
+                              ? 'Gemini 2.5 Flash'
+                              : 'Aturan Dasar',
+                          style: TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                            color: m.analysisMode == 'llm'
+                                ? BuildHausTheme.ok
+                                : context.muted,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              if (m.analysisMode != null) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: m.analysisMode == 'llm'
-                        ? BuildHausTheme.okBg
-                        : context.surface2,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    m.analysisMode == 'llm' ? 'Gemini 2.5 Flash' : 'Aturan Dasar',
-                    style: TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                      color: m.analysisMode == 'llm'
-                          ? BuildHausTheme.ok
-                          : context.muted,
-                    ),
-                  ),
-                ),
-              ],
-              const Spacer(),
+              const SizedBox(width: 8),
               Text(
                 Formatters.shortDate(m.timestamp),
                 style: TextStyle(fontSize: 9, color: context.muted),
@@ -515,30 +591,37 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Tentang AI Assistant'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'BuildHaus AI Assistant menggunakan Google Gemini 2.5 Flash (Cloud API) secara online sehingga tidak perlu mengunduh file model besar (0 MB penyimpanan) dan hemat RAM.',
-              style: TextStyle(fontSize: 13),
-            ),
-            SizedBox(height: 12),
-            Text(
-              '🔒 Data Tersimpan Lokal: Riwayat motor, servis, dan percakapan tetap tersimpan aman di database SQLite perangkat Anda.',
-              style: TextStyle(fontSize: 12),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '📋 Analisis Dasar: Tersedia otomatis sebagai fallback ketika perangkat tidak terhubung ke internet atau API Key belum diatur.',
-              style: TextStyle(fontSize: 12),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '✨ Google Gemini 2.5 Flash: Sudah tertanam dan aktif otomatis sejak awal untuk analisis cepat dan kontekstual.',
-              style: TextStyle(fontSize: 12),
-            ),
-          ],
+        content: const SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'BuildHaus AI Assistant menggunakan Google Gemini 2.5 Flash (Cloud API) secara online sehingga tidak perlu mengunduh file model besar (0 MB penyimpanan) dan hemat RAM.',
+                style: TextStyle(fontSize: 13),
+              ),
+              SizedBox(height: 12),
+              Text(
+                '🏍️ Fokus Sepeda Motor: Asisten ini khusus membantu seputar perawatan, keluhan, dan sparepart sepeda motor. Pertanyaan di luar topik motor akan ditolak dengan sopan.',
+                style: TextStyle(fontSize: 12),
+              ),
+              SizedBox(height: 8),
+              Text(
+                '🔒 Data Tersimpan Lokal: Riwayat motor, servis, dan percakapan tetap tersimpan aman di database SQLite perangkat Anda.',
+                style: TextStyle(fontSize: 12),
+              ),
+              SizedBox(height: 8),
+              Text(
+                '📋 Analisis Dasar: Tersedia otomatis sebagai fallback ketika perangkat tidak terhubung ke internet atau API Key belum diatur.',
+                style: TextStyle(fontSize: 12),
+              ),
+              SizedBox(height: 8),
+              Text(
+                '✨ Google Gemini 2.5 Flash: Sudah tertanam dan aktif otomatis sejak awal untuk analisis cepat dan kontekstual.',
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
         ),
         actions: [
           FilledButton(

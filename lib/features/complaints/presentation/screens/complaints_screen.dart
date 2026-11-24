@@ -17,21 +17,34 @@ class ComplaintsScreen extends ConsumerWidget {
 
     if (activeMotor == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Keluhan')),
+        appBar: AppBar(
+          title: const Text(
+            'Keluhan',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Tambahkan motor terlebih dahulu',
-                style: TextStyle(color: context.muted),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => context.push('/add-motor'),
-                child: const Text('Tambah Motor'),
-              ),
-            ],
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Tambahkan motor terlebih dahulu',
+                  style: TextStyle(color: context.muted),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => context.push('/add-motor'),
+                  child: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Tambah Motor', maxLines: 1),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -45,7 +58,11 @@ class ComplaintsScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/home'),
         ),
-        title: const Text('Keluhan'),
+        title: const Text(
+          'Keluhan',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -69,31 +86,41 @@ class ComplaintsScreen extends ConsumerWidget {
               data: (complaints) {
                 if (complaints.isEmpty) {
                   return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '📝',
-                          style: TextStyle(fontSize: 48, color: context.muted),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Belum ada keluhan',
-                          style: TextStyle(color: context.muted),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: () => context.push('/complaints/new'),
-                          icon: const Icon(Icons.add),
-                          label: const Text('Tambah Keluhan'),
-                        ),
-                      ],
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '📝',
+                            style: TextStyle(
+                              fontSize: 48,
+                              color: context.muted,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Belum ada keluhan',
+                            style: TextStyle(color: context.muted),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () => context.push('/complaints/new'),
+                            icon: const Icon(Icons.add),
+                            label: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('Tambah Keluhan', maxLines: 1),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 84),
                   itemCount: complaints.length,
                   itemBuilder: (context, i) {
                     final c = complaints[i];
@@ -113,6 +140,7 @@ class ComplaintsScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
                                   child: Text(
@@ -122,23 +150,35 @@ class ComplaintsScreen extends ConsumerWidget {
                                       fontSize: 12,
                                       color: context.ink,
                                     ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
+                                const SizedBox(width: 8),
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 110,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: statusColor.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(99),
-                                  ),
-                                  child: Text(
-                                    _getStatusLabel(c.status),
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                      color: statusColor,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: statusColor.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      borderRadius: BorderRadius.circular(99),
+                                    ),
+                                    child: Text(
+                                      _getStatusLabel(c.status),
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: statusColor,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ),
@@ -157,80 +197,96 @@ class ComplaintsScreen extends ConsumerWidget {
                             const SizedBox(height: 6),
                             Row(
                               children: [
-                                Text(
-                                  Formatters.date(c.openedAt),
-                                  style: TextStyle(
-                                    color: context.muted,
-                                    fontSize: 10,
+                                Expanded(
+                                  child: Text(
+                                    Formatters.date(c.openedAt),
+                                    style: TextStyle(
+                                      color: context.muted,
+                                      fontSize: 10,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                const Spacer(),
                                 if (c.closedAt == null &&
                                     c.status.trim() != 'selesai' &&
-                                    c.status.trim() != 'ditangani')
-                                  TextButton.icon(
-                                    onPressed: () async {
-                                      final db = ref.read(databaseProvider);
-                                      await db.updateComplaint(
-                                        ComplaintsCompanion(
-                                          status: const Value('selesai'),
-                                          closedAt: Value(DateTime.now()),
-                                          updatedAt: Value(DateTime.now()),
-                                        ),
-                                        c.id,
-                                      );
-                                      await db.recalculateComponentStatuses(
-                                        activeMotor.id,
-                                      );
-                                      ref.invalidate(
-                                        complaintsProvider(activeMotor.id),
-                                      );
-                                      ref.invalidate(
-                                        componentStatusesProvider(
+                                    c.status.trim() != 'ditangani') ...[
+                                  const SizedBox(width: 8),
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 160,
+                                    ),
+                                    child: TextButton.icon(
+                                      onPressed: () async {
+                                        final db = ref.read(databaseProvider);
+                                        await db.updateComplaint(
+                                          ComplaintsCompanion(
+                                            status: const Value('selesai'),
+                                            closedAt: Value(DateTime.now()),
+                                            updatedAt: Value(DateTime.now()),
+                                          ),
+                                          c.id,
+                                        );
+                                        await db.recalculateComponentStatuses(
                                           activeMotor.id,
-                                        ),
-                                      );
-                                      ref.invalidate(
-                                        componentStatusesWithNamesProvider(
-                                          activeMotor.id,
-                                        ),
-                                      );
-                                      ref.invalidate(budgetPlanSummaryProvider);
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Keluhan ditandai selesai & kesehatan diperbarui!',
-                                            ),
+                                        );
+                                        ref.invalidate(
+                                          complaintsProvider(activeMotor.id),
+                                        );
+                                        ref.invalidate(
+                                          componentStatusesProvider(
+                                            activeMotor.id,
                                           ),
                                         );
-                                      }
-                                    },
-                                    icon: Icon(
-                                      Icons.check_circle_outline,
-                                      size: 14,
-                                      color: BuildHausTheme.ok,
-                                    ),
-                                    label: Text(
-                                      'Tandai Selesai',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
+                                        ref.invalidate(
+                                          componentStatusesWithNamesProvider(
+                                            activeMotor.id,
+                                          ),
+                                        );
+                                        ref.invalidate(
+                                          budgetPlanSummaryProvider,
+                                        );
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Keluhan ditandai selesai & kesehatan diperbarui!',
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      icon: Icon(
+                                        Icons.check_circle_outline,
+                                        size: 14,
                                         color: BuildHausTheme.ok,
                                       ),
-                                    ),
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
+                                      label: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'Tandai Selesai',
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: BuildHausTheme.ok,
+                                          ),
+                                        ),
                                       ),
-                                      minimumSize: Size.zero,
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                      ),
                                     ),
                                   ),
+                                ],
                               ],
                             ),
                           ],

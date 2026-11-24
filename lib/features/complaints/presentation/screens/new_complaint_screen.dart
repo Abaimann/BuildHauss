@@ -34,7 +34,11 @@ class _NewComplaintScreenState extends ConsumerState<NewComplaintScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Keluhan Baru'),
+        title: const Text(
+          'Keluhan Baru',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -94,8 +98,9 @@ class _NewComplaintScreenState extends ConsumerState<NewComplaintScreen> {
                 borderRadius: BorderRadius.circular(9),
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('ℹ️', style: TextStyle(fontSize: 14)),
+                  const Text('ℹ️', style: TextStyle(fontSize: 14)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -109,15 +114,21 @@ class _NewComplaintScreenState extends ConsumerState<NewComplaintScreen> {
 
             const SizedBox(height: 24),
 
-            ElevatedButton(
-              onPressed: _saving ? null : _save,
-              child: _saving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Simpan Keluhan'),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _saving ? null : _save,
+                child: _saving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Simpan Keluhan', maxLines: 1),
+                      ),
+              ),
             ),
           ],
         ),

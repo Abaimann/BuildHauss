@@ -2,10 +2,12 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../../core/engines/motorcycle_specs.dart';
 import '../../../../core/engines/self_inspection_engine.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../motorcycles/presentation/screens/add_motorcycle_screen.dart';
 
 class InitialMotorSetupScreen extends ConsumerStatefulWidget {
@@ -39,18 +41,14 @@ class _InitialMotorSetupScreenState
   String _generalHistory = 'sedang';
 
   // Step 3 fields (Physical inspection baseline)
-  final Map<String, String> _inspectionAnswers = {
-    'rem_respons': 'normal',
-    'rem_bunyi': 'hening',
-    'kebocoran_cairan': 'bersih',
-    'ban_kondisi': 'bagus',
-    'kemudi_stang': 'lurus_stabil',
-    'kelistrikan_lampu': 'menyala_terang',
-    'mesin_suara': 'halus',
-    'cvt_transmisi': 'mulus',
-  };
+  final Map<String, String> _inspectionAnswers = {};
 
-  final _years = List.generate(16, (i) => DateTime.now().year - i);
+  static const _preferredBrandOrder = ['Honda', 'Yamaha', 'Kawasaki'];
+
+  final List<int> _years = List.generate(
+    DateTime.now().year - 1990 + 1,
+    (i) => DateTime.now().year - i,
+  );
 
   static const _usageOptions = [
     (
@@ -101,11 +99,69 @@ class _InitialMotorSetupScreenState
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _syncInspectionAnswers();
+  }
+
+  @override
   void dispose() {
     _nicknameController.dispose();
     _plateController.dispose();
     _odometerController.dispose();
     super.dispose();
+  }
+
+  List<InspectionQuestion> get _currentInspectionQuestions =>
+      SelfInspectionEngine.questionsForMotorcycle(
+        _selectedModel,
+        manufactureYear: _selectedYear,
+      );
+
+  List<String> _sortedAllowedBrands(
+    Map<String, List<MotorcycleModel>> modelsByBrand,
+  ) {
+    final brands = modelsByBrand.keys
+        .where(MotorcycleSpecs.isAllowedBrand)
+        .where((b) => (modelsByBrand[b] ?? const []).isNotEmpty)
+        .toList();
+    brands.sort((a, b) {
+      final ia = _preferredBrandOrder.indexWhere(
+        (p) => p.toLowerCase() == a.trim().toLowerCase(),
+      );
+      final ib = _preferredBrandOrder.indexWhere(
+        (p) => p.toLowerCase() == b.trim().toLowerCase(),
+      );
+      if (ia != -1 && ib != -1) return ia.compareTo(ib);
+      if (ia != -1) return -1;
+      if (ib != -1) return 1;
+      return a.compareTo(b);
+    });
+    return brands;
+  }
+
+  List<int> _validYearsForModel(MotorcycleModel? model) {
+    if (model == null) return _years;
+    final minYear = model.yearStart < 1990 ? 1990 : model.yearStart;
+    final maxYear = model.yearEnd;
+    final filtered = _years
+        .where((y) => y >= minYear && (maxYear == null || y <= maxYear))
+        .toList();
+    return filtered.isNotEmpty ? filtered : _years;
+  }
+
+  void _syncInspectionAnswers() {
+    final questions = _currentInspectionQuestions;
+    final validCodes = {for (final q in questions) q.code};
+    _inspectionAnswers.removeWhere((code, _) => !validCodes.contains(code));
+    for (final q in questions) {
+      final currentCode = _inspectionAnswers[q.code];
+      final valid =
+          currentCode != null && q.options.any((o) => o.code == currentCode);
+      if (!valid && q.options.isNotEmpty) {
+        _inspectionAnswers[q.code] = q.options.first.code;
+      }
+    }
   }
 
   int _computePreviewScore() {
@@ -131,7 +187,17 @@ class _InitialMotorSetupScreenState
             scoreForHistory(_generalHistory) * 5) /
         14.0;
 
-    final eval = SelfInspectionEngine.evaluate(_inspectionAnswers);
+    final ageMultiplier = MotorcycleSpecs.ageIntervalMultiplier(
+      _selectedYear,
+      model: _selectedModel,
+    );
+    final ageAdjustedBase = baseAvg * (0.7 + 0.3 * ageMultiplier);
+
+    final eval = SelfInspectionEngine.evaluateForMotorcycle(
+      _inspectionAnswers,
+      model: _selectedModel,
+      manufactureYear: _selectedYear,
+    );
     double penalty = 0;
     for (final f in eval.allFindings) {
       if (f.isSafetyCritical || f.riskLevel == 'high') {
@@ -143,7 +209,7 @@ class _InitialMotorSetupScreenState
       }
     }
 
-    return (baseAvg - penalty).round().clamp(10, 98);
+    return (ageAdjustedBase - penalty).round().clamp(10, 98);
   }
 
   void _nextStep() {
@@ -173,9 +239,10 @@ class _InitialMotorSetupScreenState
     final model = _selectedModel;
     if (model == null) return;
 
+    _syncInspectionAnswers();
     final odoVal =
-        double.tryParse(_odometerController.text.trim().replaceAll(',', '.')) ??
-        0.0;
+        Formatters.parseOdometerDouble(_odometerController.text) ?? 0.0;
+    final formattedPlate = Formatters.formatPlateNumber(_plateController.text);
 
     setState(() => _saving = true);
     try {
@@ -185,11 +252,7 @@ class _InitialMotorSetupScreenState
           modelId: Value(model.id),
           nickname: _nicknameController.text.trim(),
           manufactureYear: _selectedYear,
-          plateNumber: Value(
-            _plateController.text.trim().isEmpty
-                ? null
-                : _plateController.text.trim().toUpperCase(),
-          ),
+          plateNumber: Value(formattedPlate.isEmpty ? null : formattedPlate),
           emoji: const Value('🏍️'),
           usageProfile: Value(_selectedUsage),
         ),
@@ -198,7 +261,7 @@ class _InitialMotorSetupScreenState
         transmissionHistory: _transmissionHistory,
         brakeHistory: _brakeHistory,
         generalHistory: _generalHistory,
-        initialInspectionAnswers: _inspectionAnswers,
+        initialInspectionAnswers: Map<String, String>.from(_inspectionAnswers),
       );
 
       // Sync reminders for this new motor
@@ -247,16 +310,34 @@ class _InitialMotorSetupScreenState
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('Error memuat katalog: $e')),
           data: (modelsByBrand) {
-            final brands = modelsByBrand.keys.toList()..sort();
-            if (brands.isNotEmpty && _selectedBrand == null) {
+            final brands = _sortedAllowedBrands(modelsByBrand);
+            if (brands.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'Data model motor belum tersedia. Pastikan database sudah diinisialisasi.',
+                    style: TextStyle(color: context.muted),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            }
+            if (_selectedBrand == null || !brands.contains(_selectedBrand)) {
               _selectedBrand = brands.contains('Honda')
                   ? 'Honda'
                   : brands.first;
             }
             final brandModels = modelsByBrand[_selectedBrand] ?? [];
-            if (_selectedModel == null && brandModels.isNotEmpty) {
+            if (brandModels.isNotEmpty &&
+                (_selectedModel == null ||
+                    !brandModels.any((m) => m.id == _selectedModel!.id))) {
               _selectedModel = brandModels.first;
-              _selectedYear = _selectedModel!.yearStart;
+              final validYears = _validYearsForModel(_selectedModel);
+              if (!validYears.contains(_selectedYear)) {
+                _selectedYear = validYears.first;
+              }
+              _syncInspectionAnswers();
             }
 
             return Column(
@@ -311,6 +392,7 @@ class _InitialMotorSetupScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -323,6 +405,8 @@ class _InitialMotorSetupScreenState
                 ),
                 child: Text(
                   'WAJIB • SETUP AWAL',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
@@ -331,13 +415,20 @@ class _InitialMotorSetupScreenState
                   ),
                 ),
               ),
-              const Spacer(),
-              Text(
-                'Halo, $userName 👋',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: context.muted,
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text(
+                    'Halo, $userName 👋',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: context.muted,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -401,16 +492,7 @@ class _InitialMotorSetupScreenState
     List<MotorcycleModel> brandModels,
   ) {
     final model = _selectedModel;
-    final validYears = model != null
-        ? _years
-              .where(
-                (y) =>
-                    y >= model.yearStart &&
-                    (model.yearEnd == null || y <= model.yearEnd!),
-              )
-              .toList()
-        : _years;
-    final yearsToUse = validYears.isNotEmpty ? validYears : _years;
+    final yearsToUse = _validYearsForModel(model);
     if (!yearsToUse.contains(_selectedYear)) {
       _selectedYear = yearsToUse.first;
     }
@@ -446,15 +528,27 @@ class _InitialMotorSetupScreenState
           Row(
             children: [
               Expanded(
+                flex: 3,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _Label('Merek Motor *'),
                     DropdownButtonFormField<String>(
-                      initialValue: _selectedBrand,
+                      key: ValueKey('brand_$_selectedBrand'),
+                      initialValue: brands.contains(_selectedBrand)
+                          ? _selectedBrand
+                          : null,
+                      isExpanded: true,
                       items: brands
                           .map(
-                            (b) => DropdownMenuItem(value: b, child: Text(b)),
+                            (b) => DropdownMenuItem(
+                              value: b,
+                              child: Text(
+                                b,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           )
                           .toList(),
                       onChanged: (v) {
@@ -469,9 +563,11 @@ class _InitialMotorSetupScreenState
                           _selectedModel = newModels.isNotEmpty
                               ? newModels.first
                               : null;
-                          if (_selectedModel != null) {
-                            _selectedYear = _selectedModel!.yearStart;
+                          final valid = _validYearsForModel(_selectedModel);
+                          if (!valid.contains(_selectedYear)) {
+                            _selectedYear = valid.first;
                           }
+                          _syncInspectionAnswers();
                         });
                       },
                     ),
@@ -480,6 +576,7 @@ class _InitialMotorSetupScreenState
               ),
               const SizedBox(width: 12),
               Expanded(
+                flex: 2,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -487,14 +584,25 @@ class _InitialMotorSetupScreenState
                     DropdownButtonFormField<int>(
                       key: ValueKey('year_${_selectedModel?.id}_$_selectedYear'),
                       initialValue: _selectedYear,
+                      isExpanded: true,
                       items: yearsToUse
                           .map(
-                            (y) =>
-                                DropdownMenuItem(value: y, child: Text('$y')),
+                            (y) => DropdownMenuItem(
+                              value: y,
+                              child: Text(
+                                '$y',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           )
                           .toList(),
                       onChanged: (v) {
-                        if (v != null) setState(() => _selectedYear = v);
+                        if (v == null) return;
+                        setState(() {
+                          _selectedYear = v;
+                          _syncInspectionAnswers();
+                        });
                       },
                     ),
                   ],
@@ -506,8 +614,11 @@ class _InitialMotorSetupScreenState
 
           _Label('Model / Tipe Motor *'),
           DropdownButtonFormField<MotorcycleModel>(
-            key: ValueKey('model_$_selectedBrand'),
-            initialValue: _selectedModel,
+            key: ValueKey('model_${_selectedBrand}_${_selectedModel?.id}'),
+            initialValue:
+                brandModels.any((m) => m.id == _selectedModel?.id)
+                    ? _selectedModel
+                    : null,
             isExpanded: true,
             items: brandModels.map((m) {
               final label = m.variant != null
@@ -515,73 +626,62 @@ class _InitialMotorSetupScreenState
                   : m.model;
               return DropdownMenuItem(
                 value: m,
-                child: Text(label, overflow: TextOverflow.ellipsis),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               );
             }).toList(),
             onChanged: (v) {
               if (v == null) return;
               setState(() {
                 _selectedModel = v;
-                _selectedYear = v.yearStart;
+                final valid = _validYearsForModel(v);
+                if (!valid.contains(_selectedYear)) {
+                  _selectedYear = valid.first;
+                }
+                _syncInspectionAnswers();
               });
             },
             validator: (v) => v == null ? 'Pilih model motor' : null,
           ),
           const SizedBox(height: 14),
 
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 6,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _Label('Odometer Saat Ini (km) *'),
-                    TextFormField(
-                      key: const ValueKey('setup_odometer_field'),
-                      controller: _odometerController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        hintText: 'Contoh: 12500',
-                        prefixIcon: Icon(Icons.speed_rounded, size: 20),
-                        suffixText: 'km',
-                      ),
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return 'Odometer wajib diisi';
-                        }
-                        final parsed = double.tryParse(
-                          v.trim().replaceAll(',', '.'),
-                        );
-                        if (parsed == null || parsed < 0) {
-                          return 'Masukkan angka km valid';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 5,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _Label('Plat Nomor'),
-                    TextFormField(
-                      key: const ValueKey('setup_plate_field'),
-                      controller: _plateController,
-                      textCapitalization: TextCapitalization.characters,
-                      decoration: const InputDecoration(
-                        hintText: 'B 1234 XYZ',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          _Label('Odometer Saat Ini (km) *'),
+          TextFormField(
+            key: const ValueKey('setup_odometer_field'),
+            controller: _odometerController,
+            keyboardType: TextInputType.number,
+            inputFormatters: const [OdometerTextInputFormatter()],
+            decoration: const InputDecoration(
+              hintText: 'Contoh: 14.500',
+              prefixIcon: Icon(Icons.speed_rounded, size: 20),
+              suffixText: 'km',
+            ),
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) {
+                return 'Odometer wajib diisi';
+              }
+              final parsed = Formatters.parseOdometerDouble(v);
+              if (parsed == null || parsed < 0) {
+                return 'Masukkan angka km valid';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 14),
+
+          _Label('Plat Nomor'),
+          TextFormField(
+            key: const ValueKey('setup_plate_field'),
+            controller: _plateController,
+            textCapitalization: TextCapitalization.characters,
+            inputFormatters: const [IndonesiaPlateTextInputFormatter()],
+            decoration: const InputDecoration(
+              hintText: 'Contoh: B 2841 RDM (otomatis spasi)',
+              prefixIcon: Icon(Icons.pin_outlined, size: 20),
+            ),
           ),
           const SizedBox(height: 18),
 
@@ -655,6 +755,56 @@ class _InitialMotorSetupScreenState
   }
 
   Widget _buildStep2History(BuildContext context) {
+    final model = _selectedModel;
+    final matic = MotorcycleSpecs.isMaticOrNull(model);
+    final is2T = MotorcycleSpecs.is2Stroke(model);
+    final isCarb = MotorcycleSpecs.isCarburetor(
+      model,
+      manufactureYear: _selectedYear,
+    );
+    final isLiquid = MotorcycleSpecs.isLiquidCooledOrNull(model);
+    final fuelLabel = MotorcycleSpecs.fuelSystemLabel(
+      model,
+      manufactureYear: _selectedYear,
+    );
+    final transmissionLabel = MotorcycleSpecs.transmissionLabel(model);
+    final ageLabel = MotorcycleSpecs.ageCategoryLabel(_selectedYear);
+
+    final oilTitle = is2T
+        ? '1. Oli Samping (2T) & Oli Gearbox'
+        : '1. Oli Mesin & Filter Oli';
+    final oilSubtitle = is2T
+        ? 'Kapan terakhir Anda mengecek/mengisi oli samping 2-tak dan oli mesin/gearbox?'
+        : 'Kapan terakhir Anda mengganti oli mesin motor ini?';
+
+    final transTitle = matic == true
+        ? '2. Transmisi CVT, V-Belt & Oli Gardan'
+        : matic == false
+        ? '2. Rantai, Gir & Kopling'
+        : '2. Transmisi (CVT / Rantai & Gir)';
+    final transSubtitle = matic == true
+        ? 'Kapan terakhir servis pembersihan CVT, roller, atau ganti oli gardan?'
+        : matic == false
+        ? 'Kapan terakhir menyetel/melumasi rantai & gir atau memeriksa kopling?'
+        : 'Kapan terakhir menyervis area transmisi motor ini?';
+
+    final generalParts = [
+      'Busi',
+      'Filter Udara',
+      if (is2T)
+        'Karburator 2-Tak'
+      else if (isCarb)
+        'Karburator'
+      else
+        'Sistem Injeksi',
+      if (isLiquid == true) 'Coolant',
+      'Aki & Kaki-kaki',
+    ].join(', ');
+
+    final generalSubtitle = is2T || isCarb
+        ? 'Kapan terakhir servis karburator & tune-up berkala ($fuelLabel, $_selectedYear)?'
+        : 'Kapan terakhir melakukan servis berkala / tune-up lengkap ($fuelLabel, $_selectedYear)?';
+
     return Column(
       key: const ValueKey('setup_step_2'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -663,13 +813,23 @@ class _InitialMotorSetupScreenState
           icon: Icons.history_edu_rounded,
           title: 'Riwayat Servis & Penggantian Terakhir',
           subtitle:
-              'Pilih perkiraan waktu terakhir Anda mengganti/menyervis komponen berikut untuk menentukan persentase kesehatan awal.',
+              'Pertanyaan disesuaikan dengan profil ${model != null ? '${model.brand} ${model.model}' : 'motor'} ($_selectedYear • $ageLabel).',
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            _SpecPill(label: transmissionLabel),
+            _SpecPill(label: fuelLabel),
+            _SpecPill(label: MotorcycleSpecs.coolingLabel(model)),
+          ],
+        ),
+        const SizedBox(height: 16),
 
         _HistoryQuestionCard(
-          title: '1. Oli Mesin & Filter Oli',
-          subtitle: 'Kapan terakhir Anda mengganti oli mesin motor ini?',
+          title: oilTitle,
+          subtitle: oilSubtitle,
           icon: Icons.water_drop_outlined,
           selectedValue: _oilHistory,
           onChanged: (v) => setState(() => _oilHistory = v),
@@ -677,8 +837,8 @@ class _InitialMotorSetupScreenState
         const SizedBox(height: 14),
 
         _HistoryQuestionCard(
-          title: '2. CVT / Transmisi, Oli Gardan & Rantai',
-          subtitle: 'Kapan terakhir servis CVT, oli gardan, atau rantai/gir?',
+          title: transTitle,
+          subtitle: transSubtitle,
           icon: Icons.settings_suggest_outlined,
           selectedValue: _transmissionHistory,
           onChanged: (v) => setState(() => _transmissionHistory = v),
@@ -695,8 +855,8 @@ class _InitialMotorSetupScreenState
         const SizedBox(height: 14),
 
         _HistoryQuestionCard(
-          title: '4. Busi, Filter Udara, Aki, Coolant & Kaki-kaki',
-          subtitle: 'Kapan terakhir melakukan servis berkala / tune-up lengkap?',
+          title: '4. $generalParts',
+          subtitle: generalSubtitle,
           icon: Icons.build_circle_outlined,
           selectedValue: _generalHistory,
           onChanged: (v) => setState(() => _generalHistory = v),
@@ -706,6 +866,12 @@ class _InitialMotorSetupScreenState
   }
 
   Widget _buildStep3PhysicalAndPreview(BuildContext context) {
+    final questions = _currentInspectionQuestions;
+    final fuelLabel = MotorcycleSpecs.fuelSystemLabel(
+      _selectedModel,
+      manufactureYear: _selectedYear,
+    );
+    final ageLabel = MotorcycleSpecs.ageCategoryLabel(_selectedYear);
     final previewScore = _computePreviewScore();
     final Color scoreColor = previewScore >= 75
         ? BuildHausTheme.ok
@@ -783,7 +949,7 @@ class _InitialMotorSetupScreenState
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Dihitung otomatis untuk 14 komponen dari riwayat servis & kondisi fisik di bawah.',
+                      'Dihitung dari riwayat servis, profil $_selectedYear ($ageLabel • $fuelLabel), & cek fisik.',
                       style: TextStyle(fontSize: 11, color: context.muted),
                     ),
                   ],
@@ -798,11 +964,11 @@ class _InitialMotorSetupScreenState
           icon: Icons.fact_check_outlined,
           title: 'Kondisi Fisik Motor Saat Ini',
           subtitle:
-              'Sesuaikan jika ada gejala yang sedang dirasakan pada motor Anda saat ini.',
+              'Pertanyaan disesuaikan untuk ${_selectedModel?.model ?? 'motor Anda'} ($_selectedYear • $fuelLabel).',
         ),
         const SizedBox(height: 14),
 
-        ...SelfInspectionEngine.questions.map((q) {
+        ...questions.map((q) {
           final currentVal =
               _inspectionAnswers[q.code] ?? q.options.first.code;
           return Padding(
@@ -902,8 +1068,14 @@ class _InitialMotorSetupScreenState
   }
 
   Widget _buildBottomActionBar(BuildContext context) {
+    final nextLabel = _currentStep == 0
+        ? 'Lanjut ke Riwayat Servis'
+        : _currentStep == 1
+        ? 'Lanjut ke Cek Fisik'
+        : 'Simpan & Cek Kesehatan';
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: BoxDecoration(
         color: context.surface,
         border: Border(top: BorderSide(color: context.line)),
@@ -913,43 +1085,113 @@ class _InitialMotorSetupScreenState
           if (_currentStep > 0) ...[
             Expanded(
               flex: 2,
-              child: OutlinedButton.icon(
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 12,
+                  ),
+                ),
                 onPressed: _saving ? null : _prevStep,
-                icon: const Icon(Icons.arrow_back_rounded, size: 18),
-                label: const Text('Kembali'),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.arrow_back_rounded, size: 17),
+                    SizedBox(width: 4),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Kembali',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
           ],
           Expanded(
-            flex: 4,
-            child: ElevatedButton.icon(
+            flex: 3,
+            child: ElevatedButton(
               key: const ValueKey('setup_next_or_save_button'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(0, 48),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 12,
+                ),
+              ),
               onPressed: _saving
                   ? null
                   : (_currentStep < 2 ? _nextStep : _submitAll),
-              icon: _saving
-                  ? const SizedBox(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_saving)
+                    const SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Icon(
+                  else
+                    Icon(
                       _currentStep < 2
                           ? Icons.arrow_forward_rounded
                           : Icons.check_circle_outline_rounded,
                       size: 18,
                     ),
-              label: Text(
-                _currentStep == 0
-                    ? 'Lanjut ke Riwayat Servis'
-                    : _currentStep == 1
-                    ? 'Lanjut ke Cek Fisik'
-                    : 'Simpan & Lihat Kesehatan Motor',
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        nextLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SpecPill extends StatelessWidget {
+  final String label;
+  const _SpecPill({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: BuildHausTheme.ok.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(
+          color: BuildHausTheme.ok.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: BuildHausTheme.ok,
+        ),
       ),
     );
   }

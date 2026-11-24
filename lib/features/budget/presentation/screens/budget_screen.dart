@@ -23,7 +23,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   @override
   void initState() {
     super.initState();
-    _budgetController.text = '200000';
+    _budgetController.text = Formatters.formatIdrNumber(_budgetAmount);
     _loadBudget();
   }
 
@@ -35,7 +35,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
       if (plan != null && mounted) {
         setState(() {
           _budgetAmount = plan.budgetAmount;
-          _budgetController.text = plan.budgetAmount.toString();
+          _budgetController.text = Formatters.formatIdrNumber(
+            plan.budgetAmount,
+          );
         });
       }
     }
@@ -140,31 +142,37 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                   child: Column(
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'ANGGARAN TERSEDIA (KETUK UNTUK UBAH)',
-                                style: TextStyle(
-                                  color: context.muted,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'ANGGARAN TERSEDIA (KETUK UNTUK UBAH)',
+                                  style: TextStyle(
+                                    color: context.muted,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                Formatters.currency(_budgetAmount),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                const SizedBox(height: 2),
+                                Text(
+                                  Formatters.currency(_budgetAmount),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -195,25 +203,34 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       ),
                       const SizedBox(height: 10),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Alokasi terpakai: ${Formatters.currency(summary.totalFundedCost)}',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 11,
+                          Expanded(
+                            child: Text(
+                              'Alokasi terpakai: ${Formatters.currency(summary.totalFundedCost)}',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Text(
-                            summary.shortfall > 0
-                                ? 'Kekurangan: ${Formatters.currency(summary.shortfall)}'
-                                : 'Sisa: ${Formatters.currency(summary.remainingBudget)}',
-                            style: TextStyle(
-                              color: summary.shortfall > 0
-                                  ? context.statusWarn
-                                  : context.statusOk,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              summary.shortfall > 0
+                                  ? 'Kekurangan: ${Formatters.currency(summary.shortfall)}'
+                                  : 'Sisa: ${Formatters.currency(summary.remainingBudget)}',
+                              style: TextStyle(
+                                color: summary.shortfall > 0
+                                    ? context.statusWarn
+                                    : context.statusOk,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end,
                             ),
                           ),
                         ],
@@ -326,12 +343,16 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                             size: 18,
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            'Perencanaan Menabung',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: context.ink,
+                          Expanded(
+                            child: Text(
+                              'Perencanaan Menabung',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: context.ink,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -402,14 +423,28 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.bookmark_outline, size: 16),
-                      label: const Text('Simpan Rencana'),
+                      label: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Simpan Rencana',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () => context.go('/parts'),
-                      child: const Text('Cari Sparepart'),
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Cari Sparepart',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ),
                   ),
                 ],

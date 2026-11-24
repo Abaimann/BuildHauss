@@ -92,25 +92,40 @@ class BuildHausTheme {
         unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 11),
       ),
       navigationBarTheme: NavigationBarThemeData(
+        height: 70,
         backgroundColor: darkSurface,
-        indicatorColor: darkAccent.withValues(alpha: 0.15),
+        indicatorColor: darkAccent.withValues(alpha: 0.16),
+        indicatorShape: StadiumBorder(
+          side: BorderSide(
+            color: darkAccent.withValues(alpha: 0.35),
+            width: 1,
+          ),
+        ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        labelPadding: const EdgeInsets.only(top: 4),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return GoogleFonts.plusJakartaSans(
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: darkAccent,
+              letterSpacing: -0.1,
             );
           }
-          return GoogleFonts.plusJakartaSans(fontSize: 11, color: darkMuted);
+          return GoogleFonts.plusJakartaSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: darkMuted,
+            letterSpacing: -0.1,
+          );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: darkAccent, size: 24);
+            return const IconThemeData(color: darkAccent, size: 23);
           }
-          return IconThemeData(color: darkMuted, size: 24);
+          return const IconThemeData(color: darkMuted, size: 22);
         }),
       ),
       // Form Input & Kolom Teks
@@ -158,16 +173,30 @@ class BuildHausTheme {
             fontSize: 14,
             letterSpacing: 0.3,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: darkInk,
           minimumSize: const Size(double.infinity, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           side: BorderSide(color: darkLine),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(0, 44),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
           ),
         ),
       ),
@@ -320,30 +349,48 @@ class BuildHausTheme {
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: lightSurface,
         selectedItemColor: lightInk,
-        unselectedItemColor: lightMuted,
+        unselectedItemColor: lightInk2.withValues(alpha: 0.72),
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
       navigationBarTheme: NavigationBarThemeData(
+        height: 70,
         backgroundColor: lightSurface,
-        indicatorColor: lightSoft,
+        indicatorColor: lightInk2.withValues(alpha: 0.10),
+        indicatorShape: StadiumBorder(
+          side: BorderSide(
+            color: lightInk2.withValues(alpha: 0.18),
+            width: 1,
+          ),
+        ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        labelPadding: const EdgeInsets.only(top: 4),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return GoogleFonts.plusJakartaSans(
               fontSize: 11,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               color: lightInk,
+              letterSpacing: -0.1,
             );
           }
-          return GoogleFonts.plusJakartaSans(fontSize: 11, color: lightMuted);
+          return GoogleFonts.plusJakartaSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: lightInk2.withValues(alpha: 0.72),
+            letterSpacing: -0.1,
+          );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return IconThemeData(color: lightInk, size: 24);
+            return const IconThemeData(color: lightInk, size: 23);
           }
-          return IconThemeData(color: lightMuted, size: 24);
+          return IconThemeData(
+            color: lightInk2.withValues(alpha: 0.72),
+            size: 22,
+          );
         }),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -380,12 +427,46 @@ class BuildHausTheme {
           foregroundColor: lightSurface,
           elevation: 0,
           minimumSize: const Size(double.infinity, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
           textStyle: GoogleFonts.plusJakartaSans(
             fontWeight: FontWeight.w700,
             fontSize: 14,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: lightInk,
+          minimumSize: const Size(double.infinity, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          side: BorderSide(color: lightLine),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(0, 44),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: lightInk2,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
       ),

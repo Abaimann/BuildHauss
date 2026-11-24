@@ -38,7 +38,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Riwayat Servis'),
+        title: const Text(
+          'Riwayat Servis',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         backgroundColor: context.bg,
         surfaceTintColor: Colors.transparent,
         actions: [
@@ -94,8 +98,8 @@ class _EmptyMotorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -104,6 +108,7 @@ class _EmptyMotorState extends StatelessWidget {
             Text(
               'Pilih motor dulu',
               style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
@@ -114,7 +119,10 @@ class _EmptyMotorState extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => context.go('/home'),
-              child: const Text('Ke Beranda'),
+              child: const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('Ke Beranda', maxLines: 1),
+              ),
             ),
           ],
         ),
@@ -216,26 +224,40 @@ class _ExpenseSummaryCard extends StatelessWidget {
                 size: 18,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Ringkasan Biaya Perawatan',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: context.ink,
+              Expanded(
+                child: Text(
+                  'Ringkasan Biaya Perawatan',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: context.ink,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Spacer(),
-              TextButton.icon(
-                key: const ValueKey('history_add_expense_button'),
-                onPressed: () => context.push('/motor/$motorId/expense/add'),
-                icon: const Icon(Icons.receipt_long_outlined, size: 15),
-                label: const Text('+ Pengeluaran'),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  minimumSize: const Size(0, 30),
-                  textStyle: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 132),
+                child: TextButton.icon(
+                  key: const ValueKey('history_add_expense_button'),
+                  onPressed: () => context.push('/motor/$motorId/expense/add'),
+                  icon: const Icon(Icons.receipt_long_outlined, size: 15),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('+ Pengeluaran', maxLines: 1),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    minimumSize: const Size(0, 32),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    textStyle: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -363,22 +385,33 @@ class _ServiceCard extends StatelessWidget {
                     Text(
                       _fmtDate(record.servicedAt),
                       style: TextStyle(fontSize: 11, color: context.muted),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     if (record.workshopName != null &&
                         record.workshopName!.isNotEmpty)
                       Text(
                         record.workshopName!,
                         style: TextStyle(fontSize: 10, color: context.muted),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                   ],
                 ),
               ),
-              Text(
-                costText,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: BuildHausTheme.warn,
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 115),
+                child: Text(
+                  costText,
+                  textAlign: TextAlign.end,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: BuildHausTheme.warn,
+                  ),
                 ),
               ),
             ],
@@ -472,15 +505,20 @@ class _OdometerCard extends StatelessWidget {
                     fontSize: 18,
                     color: context.ink,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   _fmtDate(log.recordedAt),
                   style: TextStyle(fontSize: 11, color: context.muted),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-          Text('🛣️', style: const TextStyle(fontSize: 22)),
+          const SizedBox(width: 8),
+          const Text('🛣️', style: TextStyle(fontSize: 22)),
         ],
       ),
     );
@@ -490,84 +528,212 @@ class _OdometerCard extends StatelessWidget {
 // ─────────────────────────────────────────────
 // REMINDER TAB
 // ─────────────────────────────────────────────
-class _ReminderTab extends ConsumerWidget {
+class _ReminderTab extends ConsumerStatefulWidget {
   final int motorId;
   const _ReminderTab({required this.motorId});
 
-  Future<void> _onSampleReminderTap(BuildContext context, WidgetRef ref) async {
-    final db = ref.read(databaseProvider);
-    final motor = await db.getMotorcycle(motorId);
-    if (motor == null) return;
-    final notifService = ref.read(notificationServiceProvider);
-    final inserted = await ReminderSampleHelper.createSampleRemindersAndNotify(
-      db: db,
-      notificationService: notifService,
-      motor: motor,
-    );
-    ref.invalidate(remindersProvider(motorId));
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            inserted > 0
-                ? 'Ditambahkan $inserted contoh pengingat & notifikasi contoh dikirim!'
-                : 'Notifikasi contoh dikirim ke perangkat Anda!',
-          ),
-        ),
+  @override
+  ConsumerState<_ReminderTab> createState() => _ReminderTabState();
+}
+
+class _ReminderTabState extends ConsumerState<_ReminderTab> {
+  bool _isSendingSample = false;
+
+  Future<void> _onSampleReminderTap() async {
+    if (_isSendingSample) return;
+    setState(() => _isSendingSample = true);
+    try {
+      final db = ref.read(databaseProvider);
+      final motor = await db.getMotorcycle(widget.motorId);
+      if (motor == null) return;
+      final notifService = ref.read(notificationServiceProvider);
+      final result =
+          await ReminderSampleHelper.createSampleRemindersWithStatus(
+        db: db,
+        notificationService: notifService,
+        motor: motor,
       );
+      ref.invalidate(remindersProvider(widget.motorId));
+      if (!mounted) return;
+      if (result.notificationShown) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Notifikasi pengingat telah dikirim ke bar notifikasi HP Anda!',
+              ),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      } else {
+        await _showNotificationPermissionDialog();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text('Gagal mengirim contoh pengingat: $e'),
+              backgroundColor: BuildHausTheme.danger,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      }
+    } finally {
+      if (mounted) setState(() => _isSendingSample = false);
     }
   }
 
+  Future<void> _showNotificationPermissionDialog() {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(
+              Icons.notifications_off_outlined,
+              color: BuildHausTheme.warn,
+              size: 22,
+            ),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Izin Notifikasi Belum Aktif',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        content: const SingleChildScrollView(
+          child: Text(
+            'Izin notifikasi HP (Android 13+) belum diaktifkan atau belum diberikan, sehingga notifikasi pengingat belum dapat ditampilkan.\n\n'
+            'Silakan aktifkan melalui:\n'
+            'Pengaturan HP > Aplikasi > BuildHaus > Notifikasi > Izinkan Notifikasi.',
+            style: TextStyle(fontSize: 13, height: 1.45),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Mengerti'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _onSampleReminderTap();
+            },
+            child: const Text('Coba Lagi'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopActionRow(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            key: const ValueKey('history_sample_reminder_button'),
+            onPressed: _isSendingSample ? null : _onSampleReminderTap,
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            ),
+            icon: const Icon(
+              Icons.notifications_active_outlined,
+              size: 16,
+            ),
+            label: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                _isSendingSample ? 'Mengirim...' : 'Cek Notif di HP Saya',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 108),
+          child: TextButton.icon(
+            onPressed: () => context.push('/motor/${widget.motorId}/reminders'),
+            style: TextButton.styleFrom(
+              minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            icon: const Icon(Icons.tune_rounded, size: 16),
+            label: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Kelola', maxLines: 1),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final remindersAsync = ref.watch(remindersProvider(motorId));
+  Widget build(BuildContext context) {
+    final remindersAsync = ref.watch(remindersProvider(widget.motorId));
 
     return remindersAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => Center(child: Text('Gagal memuat pengingat: $err')),
       data: (reminders) {
         if (reminders.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.schedule, size: 56, color: context.muted),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Belum ada pengingat',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: context.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Tambah pengingat atau coba contoh pengingat untuk memantau jadwal servis.',
-                    style: TextStyle(fontSize: 12, color: context.muted),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () => context.push('/motor/$motorId/reminder/add'),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Tambah Pengingat'),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    key: const ValueKey('history_sample_reminder_button'),
-                    onPressed: () => _onSampleReminderTap(context, ref),
-                    icon: const Icon(
-                      Icons.notifications_active_outlined,
-                      size: 18,
-                    ),
-                    label: const Text('Contoh Pengingat'),
-                  ),
-                ],
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: _buildTopActionRow(context),
               ),
-            ),
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.schedule, size: 56, color: context.muted),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Belum ada pengingat',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: context.ink,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Tambah pengingat atau ketuk "Cek Notif di HP Saya" di atas untuk tes notifikasi & contoh jadwal servis.',
+                          style: TextStyle(fontSize: 12, color: context.muted),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: () => context.push(
+                            '/motor/${widget.motorId}/reminder/add',
+                          ),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text('Tambah Pengingat', maxLines: 1),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         }
 
@@ -577,27 +743,7 @@ class _ReminderTab extends ConsumerWidget {
           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (context, i) {
             if (i == 0) {
-              return Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      key: const ValueKey('history_sample_reminder_button'),
-                      onPressed: () => _onSampleReminderTap(context, ref),
-                      icon: const Icon(
-                        Icons.notifications_active_outlined,
-                        size: 16,
-                      ),
-                      label: const Text('Contoh Pengingat'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: () => context.push('/motor/$motorId/reminders'),
-                    icon: const Icon(Icons.tune_rounded, size: 16),
-                    label: const Text('Kelola'),
-                  ),
-                ],
-              );
+              return _buildTopActionRow(context);
             }
             return FadeSlideIn(
               index: i - 1,
@@ -635,7 +781,7 @@ class _ReminderCard extends StatelessWidget {
           ? 'Jatuh tempo hari ini!'
           : 'Jatuh tempo $daysLeft hari lagi';
     } else if (reminder.dueOdometerKm != null) {
-      dueText = 'Pada ${reminder.dueOdometerKm!.toStringAsFixed(0)} km';
+      dueText = 'Pada ${Formatters.formatOdometer(reminder.dueOdometerKm!)} km';
     }
 
     return Container(
@@ -682,12 +828,20 @@ class _ReminderCard extends StatelessWidget {
                     fontSize: 14,
                     color: context.ink,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 if (dueText.isNotEmpty)
-                  Text(dueText, style: TextStyle(fontSize: 11, color: color)),
+                  Text(
+                    dueText,
+                    style: TextStyle(fontSize: 11, color: color),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
               ],
             ),
           ),
+          const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
@@ -703,6 +857,8 @@ class _ReminderCard extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: reminder.enabled ? color : context.muted,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -730,8 +886,8 @@ class _EmptyStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -744,6 +900,7 @@ class _EmptyStateWidget extends StatelessWidget {
                 fontSize: 16,
                 color: context.ink,
               ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 6),
             Text(
@@ -755,7 +912,10 @@ class _EmptyStateWidget extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onAdd,
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Catat Sekarang'),
+              label: const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('Catat Sekarang', maxLines: 1),
+              ),
               style: ElevatedButton.styleFrom(minimumSize: const Size(160, 44)),
             ),
           ],

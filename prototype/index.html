@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>BuildHaus v1.2.0 — Prototipe Interaktif (4 Merek, 8-Titik Inspeksi & Gemini 2.5 Flash)</title>
+    <title>BuildHaus v1.2.0 — Prototipe Interaktif (3 Merek 1990+, 8-Titik Adaptif & Gemini 2.5 Flash)</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -621,7 +621,7 @@
           </div>
           <div class="brand-title">
             <b>BuildHaus v1.2.0 — Prototipe Interaktif</b>
-            <small>Asisten Perawatan Motor Offline-First • 4 Merek • 8-Titik Inspeksi • Gemini 2.5 Flash</small>
+            <small>Asisten Perawatan Motor Offline-First • 3 Merek (1990+) • Inspeksi Adaptif • Gemini 2.5 Flash</small>
           </div>
         </div>
 
@@ -630,7 +630,7 @@
             <span>➕</span> Tambah Motor
           </button>
           <button class="action-btn" onclick="openInspectionModal()">
-            <span>🔍</span> Uji 8-Titik
+            <span>🔍</span> Uji Adaptif
           </button>
           <button class="action-btn" onclick="openBudgetModal()">
             <span>💰</span> Atur Budget
@@ -661,7 +661,7 @@
           </button>
           <button class="nav-menu-btn" id="menu-parts" onclick="switchTab('parts')">
             <span>⚙️ Sparepart (Catalog)</span>
-            <span class="meta">Budget & OEM ✓</span>
+            <span class="meta">Budget & Maps</span>
           </button>
           <button class="nav-menu-btn" id="menu-history" onclick="switchTab('history')">
             <span>📜 Riwayat (History)</span>
@@ -669,34 +669,34 @@
           </button>
           <button class="nav-menu-btn" id="menu-account" onclick="switchTab('account')">
             <span>👤 Akun (Settings)</span>
-            <span class="meta">SQLite & .bhb</span>
+            <span class="meta">Foto & .bhb</span>
           </button>
 
           <div class="section-label">Alur Fitur Kunci v1.2.0:</div>
           
           <div class="workflow-card" onclick="cycleFiveMotors()">
-            <b><span>🏍️</span> Putar 5 Motor (4 Merek)</b>
-            <small>Beralih antara Vario, NMAX, Smash FI, CBR150R, & W175; komponen & katalog menyesuaikan otomatis.</small>
+            <b><span>🏍️</span> Putar 5 Motor (3 Merek 1990+)</b>
+            <small>Beralih antara Vario 160, NMAX, KLX 150, CBR150R, & W175; komponen, tahun & katalog menyesuaikan.</small>
           </div>
 
           <div class="workflow-card" onclick="openAddMotorModal()">
-            <b><span>➕</span> Tambah Motor → Uji Mandiri</b>
-            <small>Pilih Honda/Yamaha/Suzuki/Kawasaki + tipe CVT/Rantai & langsung uji 8 titik fisik.</small>
+            <b><span>➕</span> Tambah Motor → Uji Adaptif</b>
+            <small>Honda/Yamaha/Kawasaki sejak 1990, odo bertitik & plat spasi otomatis, lalu uji fisik spesifik motor.</small>
           </div>
 
           <div class="workflow-card" onclick="openAiChatModal()">
-            <b><span>🤖</span> Gemini 2.5 Flash Biker Buddy</b>
-            <small>Konsultasikan keluhan, AI hitung pengurangan poin komponen + safety override.</small>
+            <b><span>🤖</span> Gemini 2.5 Flash (Anti Off-Topic)</b>
+            <small>Konsultasi keluhan (kurangi poin komponen) atau uji pertanyaan aneh/di luar motor.</small>
           </div>
 
           <div class="workflow-card" onclick="switchTab('parts'); openBudgetModal()">
-            <b><span>💰</span> Budget IDR & Filter Modal</b>
-            <small>Format angka otomatis (350.000) tersinkron ke prioritas sparepart tanpa swipe ribet.</small>
+            <b><span>🗺️</span> Budget IDR & Toko Maps Terdekat</b>
+            <small>Urutkan budget/urgensi & buka Google Maps langsung dari detail sparepart.</small>
           </div>
 
           <div class="workflow-card" onclick="switchTab('history'); setHistoryTab('pengingat'); triggerSampleReminder()">
-            <b><span>🔔</span> Contoh Pengingat & Ekspor .TXT</b>
-            <small>Uji notifikasi servis lokal secara instan atau unduh laporan kondisi (.TXT) di Tab Sehat.</small>
+            <b><span>🔔</span> Cek Notif HP & Ekspor .TXT</b>
+            <small>Uji notifikasi servis perangkat secara instan atau unduh laporan kondisi (.TXT) di Tab Sehat.</small>
           </div>
         </div>
 
@@ -737,7 +737,7 @@
                     </svg>
                     <b style="font-size: 15px; font-weight: 800;">BuildHaus</b>
                   </div>
-                  <div class="greeting-chip">☀️ Siap Riding</div>
+                  <button class="greeting-chip" style="border:1px solid rgba(0,245,160,0.35); cursor:pointer;" onclick="switchTab('history'); setHistoryTab('pengingat');">🔔 Notif</button>
                 </div>
 
                 <!-- Motor Carousel -->
@@ -942,18 +942,28 @@
                   <div class="greeting-chip">v1.2.0 Stable</div>
                 </div>
 
-                <!-- User Card -->
-                <div style="background: linear-gradient(135deg, var(--surface2) 0%, var(--surface3) 100%); border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                  <div style="width: 46px; height: 46px; border-radius: 14px; background: rgba(0, 245, 160, 0.15); border: 1px solid rgba(0, 245, 160, 0.3); display: grid; place-items: center; font-size: 20px;">
-                    👤
+                <!-- User Card + Upload Foto -->
+                <div style="background: linear-gradient(135deg, var(--surface2) 0%, var(--surface3) 100%); border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                    <label for="avatarUploadInput" style="position:relative; width:48px; height:48px; border-radius:14px; background: rgba(0, 245, 160, 0.15); border: 1px solid rgba(0, 245, 160, 0.35); display: grid; place-items: center; font-size: 20px; cursor:pointer; overflow:hidden;" id="avatarPreviewBox">
+                      <span>👤</span>
+                    </label>
+                    <label for="avatarUploadInput" style="font-size:8.5px; font-weight:700; color:var(--accent); cursor:pointer;">Ubah Foto</label>
+                    <input type="file" id="avatarUploadInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload(this)" />
                   </div>
                   <div style="flex: 1;">
                     <b style="font-size: 13.5px; color: var(--ink); display: block;">Aiman (Rider)</b>
-                    <small style="color: var(--muted); font-size: 10px;">4 Merek Terdaftar • Mode Garasi Lokal</small>
+                    <small style="color: var(--muted); font-size: 9.5px;">Honda, Yamaha, Kawasaki • SQLite</small>
                     <div style="margin-top: 4px;">
-                      <span style="font-size: 8.5px; font-weight: 800; background: var(--ok-bg); color: var(--ok); padding: 1px 6px; border-radius: 4px;">DRIFT SQLITE • AES-256-GCM</span>
+                      <span style="font-size: 8.5px; font-weight: 800; background: var(--ok-bg); color: var(--ok); padding: 1px 6px; border-radius: 4px;">EMAIL-ONLY • AES-256-GCM</span>
                     </div>
                   </div>
+                </div>
+
+                <!-- Theme Choice: ONLY Terang & Gelap -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
+                  <button class="filter-chip" id="accThemeLight" onclick="setThemeMode('light')">☀️ Terang</button>
+                  <button class="filter-chip active" id="accThemeDark" onclick="setThemeMode('dark')">🌙 Gelap</button>
                 </div>
 
                 <!-- Garage List -->
@@ -978,7 +988,7 @@
 
                 <!-- Quick Action Buttons -->
                 <button class="nav-menu-btn" style="margin-bottom: 7px;" onclick="resetDemoFiveBikes()">
-                  <span>🏍️ Muat 5 Motor Beragam Jenis (Demo)</span>
+                  <span>🏍️ Muat 5 Motor Beragam Jenis</span>
                   <span>›</span>
                 </button>
                 <button class="nav-menu-btn" style="margin-bottom: 7px;" onclick="openAddMotorModal()">
@@ -1008,14 +1018,28 @@
               </div>
 
               <div style="flex: 1; overflow-y: auto;">
-                <div style="margin-bottom: 10px;">
-                  <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Merek Pabrikan</label>
-                  <select id="newMotorBrand" style="width: 100%; margin-top: 4px; padding: 9px 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: inherit; font-size: 12px;">
-                    <option value="HONDA">HONDA</option>
-                    <option value="YAMAHA">YAMAHA</option>
-                    <option value="SUZUKI">SUZUKI</option>
-                    <option value="KAWASAKI">KAWASAKI</option>
-                  </select>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom: 10px;">
+                  <div>
+                    <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Merek Pabrikan</label>
+                    <select id="newMotorBrand" style="width: 100%; margin-top: 4px; padding: 9px 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: inherit; font-size: 12px;">
+                      <option value="HONDA">HONDA</option>
+                      <option value="YAMAHA">YAMAHA</option>
+                      <option value="KAWASAKI">KAWASAKI</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Tahun (1990–2026)</label>
+                    <select id="newMotorYear" style="width: 100%; margin-top: 4px; padding: 9px 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 12px;">
+                      <option value="2025">2025</option>
+                      <option value="2024" selected>2024</option>
+                      <option value="2021">2021</option>
+                      <option value="2015">2015</option>
+                      <option value="2010">2010 (Karbu)</option>
+                      <option value="2002">2002 (Klasik)</option>
+                      <option value="1995">1995 (Klasik)</option>
+                      <option value="1990">1990 (Klasik)</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
@@ -1037,22 +1061,22 @@
 
                 <div style="margin-bottom: 10px;">
                   <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Tipe / Model Motor</label>
-                  <input type="text" id="newMotorModel" placeholder="Contoh: GSX-R150 / Ninja 250 / Beat" value="GSX-R150 ABS" style="width: 100%; margin-top: 4px; padding: 9px 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: inherit; font-size: 12px;" />
+                  <input type="text" id="newMotorModel" placeholder="Contoh: Vario 160 / Astrea / KLX 150 / Ninja" value="KLX 150 SE" style="width: 100%; margin-top: 4px; padding: 9px 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: inherit; font-size: 12px;" />
                 </div>
 
                 <div style="margin-bottom: 10px;">
                   <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Nama Panggilan Motor</label>
-                  <input type="text" id="newMotorNick" placeholder="Contoh: GSX Biru Harian" value="GSX Biru Harian" style="width: 100%; margin-top: 4px; padding: 9px 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: inherit; font-size: 12px;" />
+                  <input type="text" id="newMotorNick" placeholder="Contoh: KLX Trail Harian" value="KLX Trail Harian" style="width: 100%; margin-top: 4px; padding: 9px 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: inherit; font-size: 12px;" />
                 </div>
 
                 <div style="margin-bottom: 10px;">
-                  <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Nomor Polisi (Plat)</label>
-                  <input type="text" id="newMotorPlate" placeholder="Contoh: B 3182 KZX" value="B 3182 KZX" style="width: 100%; margin-top: 4px; padding: 9px 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 12px;" />
+                  <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Nomor Polisi (Spasi Otomatis)</label>
+                  <input type="text" id="newMotorPlate" placeholder="Ketik B3182KZX -> B 3182 KZX" value="B 3182 KZX" oninput="formatPlateInput(this)" style="width: 100%; margin-top: 4px; padding: 9px 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 12px;" />
                 </div>
 
                 <div style="margin-bottom: 14px;">
-                  <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Odometer Terakhir (KM)</label>
-                  <input type="number" id="newMotorOdo" placeholder="Contoh: 12500" value="12500" style="width: 100%; margin-top: 4px; padding: 9px 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 12px;" />
+                  <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Odometer Terakhir (Titik Otomatis)</label>
+                  <input type="text" inputmode="numeric" id="newMotorOdo" placeholder="Ketik 12500 -> 12.500" value="12.500" oninput="formatOdoInput(this)" style="width: 100%; margin-top: 4px; padding: 9px 10px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 12px;" />
                 </div>
 
                 <!-- Info Note -->
@@ -1114,16 +1138,16 @@
                 </div>
               </div>
 
-              <div style="font-size: 9.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Pilih Kasus Keluhan:</div>
+              <div style="font-size: 9.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Pilih Kasus / Uji Guardrail Anti Off-Topic:</div>
               <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px;">
                 <button class="nav-menu-btn" style="padding: 7px 10px; font-size: 10px; margin: 0;" onclick="triggerAiComplaint('gredek')">
-                  ⚙️ "Tarikan awal gas bergetar / gredek parah di tanjakan"
+                  ⚙️ "Tarikan awal gas bergetar / gredek di tanjakan"
                 </button>
                 <button class="nav-menu-btn" style="padding: 7px 10px; font-size: 10px; margin: 0;" onclick="triggerAiComplaint('rem')">
                   🛑 "Rem depan berdecit bunyi gesekan pelat besi"
                 </button>
-                <button class="nav-menu-btn" style="padding: 7px 10px; font-size: 10px; margin: 0;" onclick="triggerAiComplaint('oli')">
-                  🛢️ "Mesin cepat panas dan tarikan gas agak berat"
+                <button class="nav-menu-btn" style="padding: 7px 10px; font-size: 10px; margin: 0;" onclick="triggerAiComplaint('offtopic')">
+                  🍔 "Resep nasi goreng dong / buatkan kode Python!" (Uji Tolak Off-Topic)
                 </button>
               </div>
             </div>
@@ -1232,7 +1256,7 @@
           <div class="panel-badge">📊 Telemetri & Status v1.2.0</div>
           <h3>Spesifikasi Prototipe v1.2.0</h3>
           <p style="color: var(--muted); font-size: 11.5px; margin-bottom: 14px;">
-            Sinkron dengan rilis BuildHaus v1.2.0 (1.2.0+3) & 240 Unit Test.
+            Sinkron dengan rilis BuildHaus v1.2.0 (1.2.0+3) & 257 Unit Test.
           </p>
 
           <div class="telemetry-row">
@@ -1286,9 +1310,9 @@
           <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);">
             <b style="font-size: 12px; display: block; margin-bottom: 6px;">💡 Panduan Demo Presentasi (Penguji):</b>
             <ul style="padding-left: 16px; font-size: 11px; color: var(--muted); line-height: 1.55;">
-              <li><b>Putar 5 Motor (4 Merek):</b> Beralih dari Matic Radiator (Vario/NMAX) ke Bebek/Retro Udara (Smash FI/W175) — komponen CVT/Coolant hilang otomatis.</li>
-              <li><b>Budget Sync IDR:</b> Ubah budget jadi Rp 100.000 lalu buka tab <b>Sparepart</b> — prioritas otomatis menyesuaikan anggaran.</li>
-              <li><b>Ekspor .TXT & Contoh Pengingat:</b> Unduh laporan kondisi asli di Tab <b>Sehat</b> atau uji banner notifikasi di Tab <b>Riwayat → Pengingat</b>.</li>
+              <li><b>Putar 5 Motor (3 Merek 1990+):</b> Beralih dari Matic Modern (Vario 2024 / NMAX 2023) ke Trail Karburator (KLX 2014) / Retro (W175 2021) — komponen, tahun & interval menyesuaikan.</li>
+              <li><b>Budget Sync & Toko Maps:</b> Ubah budget jadi Rp 100.000, buka <b>Sparepart</b>, klik item → <b>Cek Toko Terdekat</b> membuka Google Maps.</li>
+              <li><b>AI Anti Off-Topic, Notif & .TXT:</b> Uji penolakan topik non-motor di <b>Tanya Gemini</b>, unggah foto di <b>Akun</b>, atau uji <b>Cek Notif di HP Saya</b>.</li>
             </ul>
           </div>
         </div>
@@ -1330,7 +1354,7 @@
         return list;
       }
 
-      /* ===== 5 DIVERSE MOTORCYCLES ACROSS 4 BRANDS ===== */
+      /* ===== 5 DIVERSE MOTORCYCLES ACROSS 3 BRANDS (1990+) ===== */
       function createInitialMotorcycles() {
         return [
           {
@@ -1338,6 +1362,7 @@
             nickname: "Vario 160 Maxi Harian",
             brand: "HONDA",
             model: "Honda Vario 160 ABS",
+            year: 2024,
             plate: "B 2841 RDM",
             odo: 14500,
             isMatic: true,
@@ -1404,33 +1429,34 @@
           },
           {
             id: 3,
-            nickname: "Smash FI Bebek Kerja",
-            brand: "SUZUKI",
-            model: "Suzuki Smash 115 FI",
-            plate: "D 5109 VRT",
-            odo: 31800,
+            nickname: "KLX 150 Trail Offroad",
+            brand: "KAWASAKI",
+            model: "Kawasaki KLX 150",
+            year: 2014,
+            plate: "B 3891 KLX",
+            odo: 26800,
             isMatic: false,
             isLiquidCooled: false,
             score: 69,
-            statusLabel: "PERLU PERHATIAN",
+            statusLabel: "PERLU PERHATIAN (USIA MENENGAH)",
             aiComplaint: null,
             components: buildAdaptiveComponents({ isMatic: false, isLiquidCooled: false, hasOilFilter: true, oliScore: 66, remScore: 60, transScore: 54, transLast: "Rantai agak kendor", filterScore: 71 }),
             parts: [
-              { name: "Ecstar R7000 10W-40 Semi Synthetic", partNo: "990H0-99040-008", cat: "Oli", brand: "Suzuki Ecstar", price: 58000, img: "oli_mesin.webp", urgent: true },
-              { name: "Rantai & Gir Set Smash 115 FI", partNo: "27600-09J00-106", cat: "Transmisi", brand: "Suzuki Genuine", price: 165000, img: "rantai.webp", urgent: true },
-              { name: "Filter Oli Suzuki Smash/Satria SGP", partNo: "16510-09J00-000", cat: "Oli", brand: "Suzuki Genuine", price: 22000, img: "filter_oli.webp", urgent: false },
-              { name: "Kampas Rem Depan SGP Smash", partNo: "59100-09880-000", cat: "Rem", brand: "Suzuki Genuine", price: 45000, img: "kampas_rem.webp", urgent: true },
-              { name: "Filter Udara Saringan Smash FI", partNo: "13780-09J00-000", cat: "Knalpot & Filter", brand: "Suzuki Genuine", price: 39000, img: "filter_udara.webp", urgent: false },
-              { name: "Busi Denso U22FSR-U SGP", partNo: "09482-00406", cat: "Kelistrikan", brand: "Suzuki Genuine", price: 28000, img: "busi.webp", urgent: false }
+              { name: "Kawasaki Genuine Oil 10W-40 1L", partNo: "KGO-10W40-SL", cat: "Oli", brand: "Kawasaki OEM", price: 82000, img: "oli_mesin.webp", urgent: true },
+              { name: "Rantai & Gir Set KLX 150 428H", partNo: "92057-0650", cat: "Transmisi", brand: "Kawasaki OEM", price: 245000, img: "rantai.webp", urgent: true },
+              { name: "Filter Oli Kawasaki KLX 150 Original", partNo: "52010-1053", cat: "Oli", brand: "Kawasaki OEM", price: 36000, img: "filter_oli.webp", urgent: false },
+              { name: "Kampas Rem Depan Cakram KLX 150", partNo: "43082-0168", cat: "Rem", brand: "Kawasaki OEM", price: 88000, img: "kampas_rem.webp", urgent: true },
+              { name: "Filter Udara Foam KLX 150", partNo: "11013-0734", cat: "Knalpot & Filter", brand: "Kawasaki OEM", price: 69000, img: "filter_udara.webp", urgent: false },
+              { name: "Busi NGK CR7HSA Standard KGP", partNo: "92070-1169", cat: "Kelistrikan", brand: "NGK / KGP", price: 32000, img: "busi.webp", urgent: false }
             ],
             serviceLogs: [
-              { title: "Setel Rantai & Ganti Oli Ecstar", date: "28 Sep 2026", odo: 29900, place: "Bengkel Suzuki", cost: 72000, icon: "⛓️" }
+              { title: "Setel Rantai Trail & Ganti Oli KGO", date: "28 Sep 2026", odo: 25100, place: "Kawasaki Trail Shop", cost: 98000, icon: "⛓️" }
             ],
             odoLogs: [
-              { date: "20 Nov 2026", prev: 31150, next: 31800, delta: 650 }
+              { date: "20 Nov 2026", prev: 26100, next: 26800, delta: 700 }
             ],
             reminders: [
-              { title: "Lumasi & Cek Kelurusan Rantai", due: "32.000 km (200 km lagi)", priority: "Tinggi", icon: "⛓️" }
+              { title: "Lumasi & Cek Kelurusan Rantai Trail", due: "27.000 km (200 km lagi)", priority: "Tinggi", icon: "⛓️" }
             ]
           },
           {
@@ -1629,6 +1655,9 @@
       /* ===== RENDER ENGINE ===== */
       function renderAll() {
         const motor = getActiveMotor();
+        const yearVal = motor.year || 2023;
+        const ageCat = yearVal <= 2005 ? "Klasik (>20 th)" : yearVal <= 2015 ? "Menengah" : "Modern";
+        const fuelType = (motor.brand === "KAWASAKI" && motor.model.includes("W175")) || yearVal <= 2015 && !motor.model.includes("FI") ? "Karburator" : "Injeksi (FI)";
         const transLabel = motor.isMatic ? "Matic (CVT)" : "Manual (Rantai)";
         const coolLabel = motor.isLiquidCooled ? "Radiator" : "Pendingin Udara";
 
@@ -1645,12 +1674,13 @@
         // 2. Featured Bike Card
         document.getElementById("bikeBrandTag").textContent = motor.brand;
         document.getElementById("bikeName").textContent = motor.nickname;
-        document.getElementById("bikePlate").textContent = motor.plate;
+        document.getElementById("bikePlate").textContent = `${motor.plate} • ${yearVal}`;
         document.getElementById("bikeOdo").textContent = formatIdr(motor.odo) + " km";
         document.getElementById("bikeSpecPills").innerHTML = `
           <span class="spec-pill">${transLabel}</span>
           <span class="spec-pill">${coolLabel}</span>
-          <span class="spec-pill">${motor.components.length} Komponen</span>
+          <span class="spec-pill">${fuelType}</span>
+          <span class="spec-pill">${yearVal} (${ageCat})</span>
         `;
 
         // 3. Home Score & Quick Actions
@@ -1664,9 +1694,9 @@
         document.getElementById("homePartsCount").textContent = `${motor.parts.length} OEM ✓`;
         document.getElementById("menuHealthMeta").textContent = `${motor.components.length} Komponen`;
         const firstRem = motor.reminders && motor.reminders[0];
-        document.getElementById("homeReminderNote").textContent = firstRem ? `${firstRem.title} • ${firstRem.due}` : "Klik untuk uji Contoh Pengingat instan.";
+        document.getElementById("homeReminderNote").textContent = firstRem ? `${firstRem.title} • ${firstRem.due}` : "Klik untuk Cek Notif di HP Saya.";
 
-        // 4. Sehat Screen + Budget Sync
+        // 4. Sehat Screen + Budget Sync + Tahun & Tipe
         document.getElementById("healthBigScore").textContent = motor.score + "%";
         document.getElementById("healthBigScore").style.color = color;
         document.getElementById("gaugeSvgPath").setAttribute("stroke", color);
@@ -1674,7 +1704,7 @@
         document.getElementById("healthStatusPill").textContent = motor.statusLabel;
         document.getElementById("healthStatusPill").style.color = color;
         document.getElementById("healthStatusPill").style.background = motor.score >= 75 ? "var(--ok-bg)" : motor.score >= 50 ? "var(--warn-bg)" : "var(--danger-bg)";
-        document.getElementById("healthSpecSummary").textContent = `${transLabel} • ${coolLabel} — hanya memantau ${motor.components.length} dari 14 tipe relevan.`;
+        document.getElementById("healthSpecSummary").textContent = `${yearVal} (${ageCat}) • ${transLabel} • ${fuelType} — sensitivitas ${yearVal <= 2005 ? '-20%' : yearVal <= 2015 ? '-10%' : 'normal'}, ${motor.components.length}/14 tipe.`;
         document.getElementById("healthCompHeader").textContent = `Komponen Adaptif (${motor.components.length} dari 14 Tipe)`;
         document.getElementById("healthBudgetVal").textContent = "Rp " + formatIdr(activeBudgetIdr);
         document.getElementById("partsBudgetVal").textContent = "Rp " + formatIdr(activeBudgetIdr);
@@ -1743,7 +1773,7 @@
         motorcycles = createInitialMotorcycles();
         activeMotorId = 1;
         renderAll();
-        showPhoneToast("5 motor beragam jenis (4 merek) dimuat ulang!");
+        showPhoneToast("5 motor beragam jenis (3 merek) dimuat ulang!");
       }
 
       function switchTab(tabId) {
@@ -1878,7 +1908,10 @@
               <b style="color:${fits ? 'var(--ok)' : 'var(--warn)'};">${fits ? '✓ Masuk Anggaran' : 'Melebihi Anggaran'}</b>
             </div>
           </div>
-          <button class="action-btn primary" style="width:100%; justify-content:center; padding:10px;" onclick="closeSheet('partDetailSheet')">Tutup Detail</button>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <a class="action-btn" style="justify-content:center; padding:10px; text-decoration:none; border-color:var(--accent); color:var(--accent);" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('bengkel ' + motor.brand.toLowerCase() + ' sparepart ' + p.name + ' terdekat')}">📍 Toko Maps</a>
+            <button class="action-btn primary" style="justify-content:center; padding:10px;" onclick="closeSheet('partDetailSheet')">Tutup</button>
+          </div>
         `;
         openSheet("partDetailSheet");
       }
@@ -1963,7 +1996,7 @@
         } else {
           list.innerHTML = `
             <button class="action-btn primary" style="width:100%; justify-content:center; margin-bottom:10px; font-size:11px; padding:9px;" onclick="triggerSampleReminder()">
-              🔔 Contoh Pengingat (Uji Notifikasi)
+              🔔 Cek Notif di HP Saya
             </button>
           ` + motor.reminders.map(r => `
             <div class="comp-tile">
@@ -2107,15 +2140,53 @@
         showPhoneToast("Catatan servis tersimpan ke SQLite lokal!");
       }
 
-      /* ===== ADD MOTOR → REDIRECT TO 8-POINT INSPECTION ===== */
+      function formatOdoInput(input) {
+        const digits = input.value.replace(/\D/g, "");
+        input.value = digits ? Number(digits).toLocaleString("id-ID") : "";
+      }
+
+      function formatPlateInput(input) {
+        const raw = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+        const m = raw.match(/^([A-Z]{1,2})([0-9]{0,4})([A-Z]{0,3})/);
+        if (!m) { input.value = raw; return; }
+        input.value = [m[1], m[2], m[3]].filter(Boolean).join(" ");
+      }
+
+      function handleAvatarUpload(input) {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          const box = document.getElementById("avatarPreviewBox");
+          box.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;" alt="Avatar" />`;
+          showPhoneToast("Foto profil diperbarui!");
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function setThemeMode(mode) {
+        const wantLight = mode === "light";
+        document.body.classList.toggle("light", wantLight);
+        document.getElementById("themeBtn").innerHTML = wantLight ? "<span>☀️</span> Mode Terang" : "<span>🌙</span> Mode Gelap";
+        const btnLight = document.getElementById("accThemeLight");
+        const btnDark = document.getElementById("accThemeDark");
+        if (btnLight && btnDark) {
+          btnLight.classList.toggle("active", wantLight);
+          btnDark.classList.toggle("active", !wantLight);
+        }
+      }
+
+      /* ===== ADD MOTOR → REDIRECT TO ADAPTIVE INSPECTION ===== */
       function saveNewMotorAndRedirect() {
         const brand = document.getElementById("newMotorBrand").value;
+        const year = parseInt(document.getElementById("newMotorYear").value, 10) || 2024;
         const isMatic = document.getElementById("newMotorTrans").value === "matic";
         const isLiquidCooled = document.getElementById("newMotorCool").value === "liquid";
         const model = document.getElementById("newMotorModel").value || "Motor Baru";
         const nick = document.getElementById("newMotorNick").value || model;
         const plate = document.getElementById("newMotorPlate").value || "B 1234 XYZ";
-        const odo = parseInt(document.getElementById("newMotorOdo").value, 10) || 10000;
+        const odoRaw = document.getElementById("newMotorOdo").value.replace(/\D/g, "");
+        const odo = parseInt(odoRaw, 10) || 10000;
 
         const baseTemplates = createInitialMotorcycles();
         const brandPartsSource = baseTemplates.find(m => m.brand === brand) || baseTemplates[0];
@@ -2125,6 +2196,7 @@
           nickname: nick,
           brand: brand,
           model: model,
+          year: year,
           plate: plate,
           odo: odo,
           isMatic: isMatic,
@@ -2274,6 +2346,17 @@
             feed.scrollTop = feed.scrollHeight;
             renderAll();
           }, 300);
+        } else if (type === "offtopic") {
+          feed.innerHTML += `<div class="chat-bubble user">"Tolong buatin resep nasi goreng dong + kode Python!"</div>`;
+          setTimeout(() => {
+            feed.innerHTML += `
+              <div class="chat-bubble assistant">
+                🛵 <b>Guardrail AI BuildHaus:</b><br/>
+                Waduh, maaf ya bro! Aku khusus jadi asisten perawatan, diagnosa keluhan, dan sparepart <b>sepeda motor</b> aja nih. Topik di luar otomotif belum bisa kubantu. Yuk tanya soal rem, oli, rantai/CVT, atau aki motormu!
+              </div>
+            `;
+            feed.scrollTop = feed.scrollHeight;
+          }, 250);
         } else {
           feed.innerHTML += `<div class="chat-bubble user">"Mesin cepet banget panas dan tarikan gas agak berat, bahaya nggak bro?"</div>`;
           setTimeout(() => {
@@ -2300,9 +2383,8 @@
       }
 
       function toggleTheme() {
-        document.body.classList.toggle("light");
-        const isLight = document.body.classList.contains("light");
-        document.getElementById("themeBtn").innerHTML = isLight ? "<span>☀️</span> Mode Terang" : "<span>🌙</span> Mode Gelap";
+        const isLightNow = document.body.classList.contains("light");
+        setThemeMode(isLightNow ? "dark" : "light");
       }
 
       // Initial Render

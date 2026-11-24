@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/database/app_database.dart';
+import '../../../../core/engines/motorcycle_specs.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -22,7 +24,67 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
   bool _saving = false;
   Timer? _autoAdvanceTimer;
 
-  final List<InspectionQuestion> _questions = SelfInspectionEngine.questions;
+  Motorcycle? _motor;
+  MotorcycleModel? _model;
+  List<InspectionQuestion> _questions = SelfInspectionEngine.questions;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMotorContext();
+  }
+
+  Future<void> _loadMotorContext() async {
+    final db = ref.read(databaseProvider);
+    final motor = await db.getMotorcycle(widget.motorcycleId);
+    MotorcycleModel? model;
+    if (motor?.modelId != null) {
+      model = await db.getMotorcycleModelById(motor!.modelId!);
+    }
+    if (!mounted) return;
+    setState(() {
+      _motor = motor;
+      _model = model;
+      if (motor != null || model != null) {
+        _questions = SelfInspectionEngine.questionsForMotorcycle(
+          model,
+          manufactureYear: motor?.manufactureYear,
+        );
+      } else {
+        _questions = SelfInspectionEngine.questions;
+      }
+      if (_step > _questions.length) {
+        _step = _questions.length;
+      }
+    });
+  }
+
+  String? _buildMotorSpecBadge() {
+    final motor = _motor;
+    final model = _model;
+    if (motor == null && model == null) return null;
+
+    final name = model?.model ?? motor?.nickname ?? 'Motor';
+    final year = motor?.manufactureYear;
+    final isCarb = MotorcycleSpecs.isCarburetor(
+      model,
+      manufactureYear: year,
+    );
+    final transLabel = MotorcycleSpecs.transmissionLabel(model)
+        .replaceAll('(', '')
+        .replaceAll(')', '');
+    final fuelLabel = MotorcycleSpecs.fuelSystemLabel(
+      model,
+      manufactureYear: year,
+    );
+
+    return [
+      name,
+      if (year != null) '$year',
+      if (model != null) (isCarb ? fuelLabel : transLabel),
+      if (model == null && year != null) fuelLabel,
+    ].join(' • ');
+  }
 
   @override
   void dispose() {
@@ -62,18 +124,31 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final specBadge = _buildMotorSpecBadge();
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Pemeriksaan Mandiri'),
+        title: const Text(
+          'Pemeriksaan Mandiri',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           if (_step > 0 && _step < _questions.length)
             TextButton(
               onPressed: _prevStep,
-              child: const Text('Kembali'),
+              child: const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Kembali',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
         ],
       ),
@@ -85,6 +160,57 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
             backgroundColor: context.soft,
             color: context.accent,
           ),
+          if (specBadge != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: context.surface,
+                border: Border(bottom: BorderSide(color: context.line)),
+              ),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: context.accent.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(99),
+                        border: Border.all(
+                          color: context.accent.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.two_wheeler_rounded,
+                            size: 14,
+                            color: context.accent,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              specBadge,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: context.ink,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           Expanded(
             child: _step < _questions.length
@@ -106,25 +232,36 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: context.soft,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  q.category.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    color: context.muted,
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.soft,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    q.category.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      color: context.muted,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                'Pertanyaan ${_step + 1} dari ${_questions.length}',
-                style: TextStyle(fontSize: 11, color: context.muted),
+              Expanded(
+                child: Text(
+                  'Pertanyaan ${_step + 1} dari ${_questions.length}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: context.muted),
+                ),
               ),
             ],
           ),
@@ -156,9 +293,20 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(0, 48),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 12,
+                      ),
                     ),
                     onPressed: _prevStep,
-                    child: const Text('Kembali'),
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Kembali',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -169,6 +317,10 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
                   key: const ValueKey('inspection_next_button'),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(0, 48),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                     backgroundColor: currentAnswer != null
                         ? context.accent
                         : context.surface2,
@@ -177,13 +329,18 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
                         : context.ink,
                   ),
                   onPressed: _nextStep,
-                  child: Text(
-                    _step == _questions.length - 1
-                        ? 'Selesai'
-                        : (currentAnswer != null ? 'Lanjut' : 'Lewati'),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: currentAnswer != null ? context.bg : context.ink,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      _step == _questions.length - 1
+                          ? 'Selesai'
+                          : (currentAnswer != null ? 'Lanjut' : 'Lewati'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: currentAnswer != null ? context.bg : context.ink,
+                      ),
                     ),
                   ),
                 ),
@@ -196,7 +353,11 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
   }
 
   Widget _buildResult() {
-    final eval = SelfInspectionEngine.evaluate(_answers);
+    final eval = SelfInspectionEngine.evaluateForMotorcycle(
+      _answers,
+      model: _model,
+      manufactureYear: _motor?.manufactureYear,
+    );
     final riskLevel = eval.riskLevel;
 
     final riskColor = riskLevel == 'high'
@@ -289,13 +450,17 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
                     children: [
                       const Text('🚨', style: TextStyle(fontSize: 20)),
                       const SizedBox(width: 8),
-                      Text(
-                        'PERINGATAN KESELAMATAN',
-                        style: TextStyle(
-                          color: BuildHausTheme.danger,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          letterSpacing: 0.5,
+                      Expanded(
+                        child: Text(
+                          'PERINGATAN KESELAMATAN',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: BuildHausTheme.danger,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
                     ],
@@ -377,6 +542,8 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
                             f.isSafetyCritical
                                 ? 'KESELAMATAN'
                                 : f.riskLevel.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 8,
                               fontWeight: FontWeight.bold,
@@ -474,8 +641,22 @@ class _SelfInspectionScreenState extends ConsumerState<SelfInspectionScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
+                  ),
+                ),
                 onPressed: () => _saveInspection(eval.riskLevel),
-                child: const Text('Simpan Hasil Pemeriksaan'),
+                child: const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Simpan Hasil Pemeriksaan',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ),
             ),
         ],

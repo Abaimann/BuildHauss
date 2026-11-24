@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../../../../core/database/app_database.dart';
+import '../../../../core/engines/motorcycle_specs.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/formatters.dart';
 
 // Provider for motorcycle models grouped by brand
 final motorcycleModelsGroupedProvider =
@@ -32,21 +34,77 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
   MotorcycleModel? _selectedModel;
   int _selectedYear = DateTime.now().year;
   String _selectedUsage = 'campuran';
-  String _initialCondition = 'baru';
+  String _oilHistory = 'sedang';
+  String _transmissionHistory = 'sedang';
+  String _brakeHistory = 'sedang';
+  String _generalHistory = 'sedang';
   bool _saving = false;
 
-  final _years = List.generate(15, (i) => DateTime.now().year - i);
+  static const _preferredBrandOrder = ['Honda', 'Yamaha', 'Kawasaki'];
+
+  final List<int> _years = List.generate(
+    DateTime.now().year - 1990 + 1,
+    (i) => DateTime.now().year - i,
+  );
   final _usageProfiles = ['harian_dalam_kota', 'jarak_jauh', 'campuran'];
   final _usageLabels = {
     'harian_dalam_kota': 'Harian dalam kota',
     'jarak_jauh': 'Jarak jauh',
     'campuran': 'Campuran',
   };
-  final _conditionLabels = {
-    'baru': 'Baru diservis / Kondisi Prima (~85%)',
-    'sedang': 'Pemakaian Normal / Rutin (~60%)',
-    'lama': 'Sudah lama belum servis (~25%)',
-  };
+  static const _historyLevels = [
+    ('baru', 'Baru Servis / Ganti (< 1 bln)'),
+    ('sedang', 'Cukup Rutin / Normal (1-3 bln)'),
+    ('lama', 'Sudah Lama Belum Servis (> 4 bln)'),
+    ('belum_tahu', 'Lupa / Belum Pernah Cek'),
+  ];
+  static const _presetOptions = [
+    ('baru', 'Baru Servis'),
+    ('sedang', 'Normal'),
+    ('lama', 'Sudah Lama'),
+    ('belum_tahu', 'Belum Tahu'),
+  ];
+
+  List<String> _sortedAllowedBrands(
+    Map<String, List<MotorcycleModel>> modelsByBrand,
+  ) {
+    final brands = modelsByBrand.keys
+        .where(MotorcycleSpecs.isAllowedBrand)
+        .where((b) => (modelsByBrand[b] ?? const []).isNotEmpty)
+        .toList();
+    brands.sort((a, b) {
+      final ia = _preferredBrandOrder.indexWhere(
+        (p) => p.toLowerCase() == a.trim().toLowerCase(),
+      );
+      final ib = _preferredBrandOrder.indexWhere(
+        (p) => p.toLowerCase() == b.trim().toLowerCase(),
+      );
+      if (ia != -1 && ib != -1) return ia.compareTo(ib);
+      if (ia != -1) return -1;
+      if (ib != -1) return 1;
+      return a.compareTo(b);
+    });
+    return brands;
+  }
+
+  List<int> _validYearsForModel(MotorcycleModel? model) {
+    if (model == null) return _years;
+    final minYear = model.yearStart < 1990 ? 1990 : model.yearStart;
+    final maxYear = model.yearEnd;
+    final filtered = _years
+        .where((y) => y >= minYear && (maxYear == null || y <= maxYear))
+        .toList();
+    return filtered.isNotEmpty ? filtered : _years;
+  }
+
+  void _applyConditionPreset(String level) {
+    setState(() {
+      _oilHistory = level;
+      _transmissionHistory = level;
+      _brakeHistory = level;
+      _generalHistory = level;
+    });
+  }
 
   @override
   void dispose() {
@@ -66,13 +124,17 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Tambah Motor'),
+        title: const Text(
+          'Tambah Motor',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
       body: modelsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error loading models: $e')),
         data: (modelsByBrand) {
-          final brands = modelsByBrand.keys.toList()..sort();
+          final brands = _sortedAllowedBrands(modelsByBrand);
           if (brands.isEmpty) {
             return Center(
               child: Padding(
@@ -87,12 +149,43 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
           }
 
           // Inisialisasi nilai awal merek & model default jika belum dipilih
-          _selectedBrand ??= brands.first;
-          final brandModels = modelsByBrand[_selectedBrand] ?? [];
-          if (_selectedModel == null && brandModels.isNotEmpty) {
-            _selectedModel = brandModels.first;
-            _selectedYear = _selectedModel!.yearStart;
+          if (_selectedBrand == null || !brands.contains(_selectedBrand)) {
+            _selectedBrand = brands.contains('Honda') ? 'Honda' : brands.first;
           }
+          final brandModels = modelsByBrand[_selectedBrand] ?? [];
+          if (brandModels.isNotEmpty &&
+              (_selectedModel == null ||
+                  !brandModels.any((m) => m.id == _selectedModel!.id))) {
+            _selectedModel = brandModels.first;
+          }
+          final yearsToUse = _validYearsForModel(_selectedModel);
+          if (!yearsToUse.contains(_selectedYear)) {
+            _selectedYear = yearsToUse.first;
+          }
+
+          final model = _selectedModel;
+          final matic = MotorcycleSpecs.isMaticOrNull(model);
+          final is2T = MotorcycleSpecs.is2Stroke(model);
+          final isCarb = MotorcycleSpecs.isCarburetor(
+            model,
+            manufactureYear: _selectedYear,
+          );
+          final isLiquid = MotorcycleSpecs.isLiquidCooledOrNull(model);
+          final oilAreaLabel = is2T
+              ? '1. Oli Samping (2T) & Oli Gearbox'
+              : '1. Oli Mesin & Filter Oli';
+          final transAreaLabel = matic == true
+              ? '2. Transmisi CVT, V-Belt & Oli Gardan'
+              : matic == false
+              ? '2. Rantai, Gir & Kopling'
+              : '2. Transmisi (CVT / Rantai)';
+          final generalAreaLabel = is2T
+              ? '4. Kondisi Umum (Busi, Karbu 2-Tak, Aki & Kaki-kaki)'
+              : isCarb
+              ? '4. Kondisi Umum (Busi, Karbu, Filter Udara & Aki)'
+              : isLiquid == true
+              ? '4. Kondisi Umum (Busi, Injeksi, Coolant & Kaki-kaki)'
+              : '4. Kondisi Umum (Busi, Injeksi, Filter Udara & Aki)';
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -127,16 +220,33 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   // Brand
                   _buildLabel('Merek'),
                   DropdownButtonFormField<String>(
+                    key: ValueKey('add_brand_$_selectedBrand'),
                     initialValue: _selectedBrand,
+                    isExpanded: true,
                     decoration: const InputDecoration(),
                     items: brands
-                        .map((b) => DropdownMenuItem(value: b, child: Text(b)))
+                        .map(
+                          (b) => DropdownMenuItem(
+                            value: b,
+                            child: Text(
+                              b,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) {
                       if (v == null) return;
                       setState(() {
                         _selectedBrand = v;
-                        _selectedModel = null;
+                        final newModels = modelsByBrand[v] ?? [];
+                        _selectedModel =
+                            newModels.isNotEmpty ? newModels.first : null;
+                        final valid = _validYearsForModel(_selectedModel);
+                        if (!valid.contains(_selectedYear)) {
+                          _selectedYear = valid.first;
+                        }
                       });
                     },
                   ),
@@ -145,22 +255,31 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   // Model
                   _buildLabel('Model'),
                   DropdownButtonFormField<MotorcycleModel>(
-                    key: ValueKey(_selectedBrand),
-                    initialValue: _selectedModel,
+                    key: ValueKey('add_model_${_selectedBrand}_${_selectedModel?.id}'),
+                    initialValue:
+                        brandModels.any((m) => m.id == _selectedModel?.id)
+                            ? _selectedModel
+                            : null,
+                    isExpanded: true,
                     decoration: const InputDecoration(),
                     items: brandModels.map((m) {
                       final label = m.variant != null
                           ? '${m.model} (${m.variant})'
                           : m.model;
-                      return DropdownMenuItem(value: m, child: Text(label));
+                      return DropdownMenuItem(
+                        value: m,
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
                     }).toList(),
                     onChanged: (v) => setState(() {
                       _selectedModel = v;
-                      if (v != null &&
-                          (_selectedYear < v.yearStart ||
-                              (v.yearEnd != null &&
-                                  _selectedYear > v.yearEnd!))) {
-                        _selectedYear = v.yearStart;
+                      final valid = _validYearsForModel(v);
+                      if (!valid.contains(_selectedYear)) {
+                        _selectedYear = valid.first;
                       }
                     }),
                     validator: (v) => v == null ? 'Pilih model' : null,
@@ -170,21 +289,32 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   // Year
                   _buildLabel('Tahun'),
                   DropdownButtonFormField<int>(
+                    key: ValueKey('add_year_${_selectedModel?.id}_$_selectedYear'),
                     initialValue: _selectedYear,
+                    isExpanded: true,
                     decoration: const InputDecoration(),
-                    items: _years
+                    items: yearsToUse
                         .map(
-                          (y) => DropdownMenuItem(value: y, child: Text('$y')),
+                          (y) => DropdownMenuItem(
+                            value: y,
+                            child: Text(
+                              '$y',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         )
                         .toList(),
-                    onChanged: (v) => setState(() => _selectedYear = v!),
+                    onChanged: (v) {
+                      if (v != null) setState(() => _selectedYear = v);
+                    },
                     validator: (v) {
-                      final model = _selectedModel;
-                      if (model == null || v == null) {
+                      final m = _selectedModel;
+                      if (m == null || v == null) {
                         return 'Pilih model dan tahun';
                       }
-                      if (v < model.yearStart ||
-                          (model.yearEnd != null && v > model.yearEnd!)) {
+                      final minY = m.yearStart < 1990 ? 1990 : m.yearStart;
+                      if (v < minY || (m.yearEnd != null && v > m.yearEnd!)) {
                         return 'Tahun tidak sesuai model';
                       }
                       return null;
@@ -196,8 +326,10 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   _buildLabel('Plat nomor (opsional)'),
                   TextFormField(
                     controller: _plateController,
+                    textCapitalization: TextCapitalization.characters,
+                    inputFormatters: const [IndonesiaPlateTextInputFormatter()],
                     decoration: const InputDecoration(
-                      hintText: 'Contoh: B 1234 XYZ',
+                      hintText: 'Contoh: B 2841 RDM (otomatis spasi)',
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -207,10 +339,14 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   TextFormField(
                     controller: _odometerController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(hintText: 'Contoh: 8500'),
+                    inputFormatters: const [OdometerTextInputFormatter()],
+                    decoration: const InputDecoration(
+                      hintText: 'Contoh: 14.500',
+                      suffixText: 'km',
+                    ),
                     validator: (v) {
-                      if (v != null && v.isNotEmpty) {
-                        final n = double.tryParse(v);
+                      if (v != null && v.trim().isNotEmpty) {
+                        final n = Formatters.parseOdometerDouble(v);
                         if (n == null || n < 0) {
                           return 'Masukkan angka yang valid';
                         }
@@ -224,36 +360,85 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   _buildLabel('Jenis pemakaian'),
                   DropdownButtonFormField<String>(
                     initialValue: _selectedUsage,
+                    isExpanded: true,
                     decoration: const InputDecoration(),
                     items: _usageProfiles
                         .map(
                           (u) => DropdownMenuItem(
                             value: u,
-                            child: Text(_usageLabels[u]!),
+                            child: Text(
+                              _usageLabels[u]!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         )
                         .toList(),
-                    onChanged: (v) => setState(() => _selectedUsage = v!),
+                    onChanged: (v) {
+                      if (v != null) setState(() => _selectedUsage = v);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Initial condition per area (matching InitialMotorSetupScreen)
+                  _buildLabel('Kondisi riwayat servis awal per area'),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _presetOptions.map((preset) {
+                      final (code, label) = preset;
+                      final selected =
+                          _oilHistory == code &&
+                          _transmissionHistory == code &&
+                          _brakeHistory == code &&
+                          _generalHistory == code;
+                      return ChoiceChip(
+                        label: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                        selected: selected,
+                        onSelected: (_) => _applyConditionPreset(code),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 12),
+
+                  _buildHistoryDropdown(
+                    areaKey: 'oil',
+                    label: oilAreaLabel,
+                    value: _oilHistory,
+                    onChanged: (v) => setState(() => _oilHistory = v),
                   ),
                   const SizedBox(height: 8),
 
-                  // Initial condition
-                  _buildLabel('Kondisi kesehatan awal motor'),
-                  DropdownButtonFormField<String>(
-                    initialValue: _initialCondition,
-                    decoration: const InputDecoration(),
-                    items: _conditionLabels.entries
-                        .map(
-                          (e) => DropdownMenuItem(
-                            value: e.key,
-                            child: Text(e.value),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) => setState(() => _initialCondition = v!),
+                  _buildHistoryDropdown(
+                    areaKey: 'trans',
+                    label: transAreaLabel,
+                    value: _transmissionHistory,
+                    onChanged: (v) => setState(() => _transmissionHistory = v),
+                  ),
+                  const SizedBox(height: 8),
+
+                  _buildHistoryDropdown(
+                    areaKey: 'brake',
+                    label: '3. Pengereman (Kampas & Minyak Rem)',
+                    value: _brakeHistory,
+                    onChanged: (v) => setState(() => _brakeHistory = v),
+                  ),
+                  const SizedBox(height: 8),
+
+                  _buildHistoryDropdown(
+                    areaKey: 'general',
+                    label: generalAreaLabel,
+                    value: _generalHistory,
+                    onChanged: (v) => setState(() => _generalHistory = v),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -284,6 +469,13 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                   const SizedBox(height: 24),
 
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 14,
+                      ),
+                    ),
                     onPressed: _saving ? null : () => _save(modelsByBrand),
                     child: _saving
                         ? const SizedBox(
@@ -291,7 +483,14 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Simpan Motor'),
+                        : const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Simpan Motor',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -299,6 +498,41 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildHistoryDropdown({
+    required String areaKey,
+    required String label,
+    required String value,
+    required ValueChanged<String> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(label),
+        DropdownButtonFormField<String>(
+          key: ValueKey('${areaKey}_$value'),
+          initialValue: value,
+          isExpanded: true,
+          decoration: const InputDecoration(),
+          items: _historyLevels
+              .map(
+                (entry) => DropdownMenuItem(
+                  value: entry.$1,
+                  child: Text(
+                    entry.$2,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: (v) {
+            if (v != null) onChanged(v);
+          },
+        ),
+      ],
     );
   }
 
@@ -328,31 +562,41 @@ class _AddMotorcycleScreenState extends ConsumerState<AddMotorcycleScreen> {
         throw StateError('Pilih model motor yang tersedia.');
       }
       final odoText = _odometerController.text.trim();
-      final odo = (odoText.isEmpty ? null : double.tryParse(odoText)) ?? 1000.0;
+      final odo =
+          (odoText.isEmpty ? null : Formatters.parseOdometerDouble(odoText)) ??
+          1000.0;
+      final formattedPlate = Formatters.formatPlateNumber(_plateController.text);
+
       final motorId = await db.createMotorcycleWithInitialHealth(
         motorcycle: MotorcyclesCompanion.insert(
           modelId: Value(selected.id),
           nickname: _nicknameController.text.trim(),
           manufactureYear: _selectedYear,
-          plateNumber: Value(
-            _plateController.text.trim().isEmpty
-                ? null
-                : _plateController.text.trim(),
-          ),
+          plateNumber: Value(formattedPlate.isEmpty ? null : formattedPlate),
           emoji: const Value('🏍️'),
           usageProfile: Value(_selectedUsage),
         ),
         initialOdometerKm: odo,
-        oilHistory: _initialCondition,
-        transmissionHistory: _initialCondition,
-        brakeHistory: _initialCondition,
-        generalHistory: _initialCondition,
+        oilHistory: _oilHistory,
+        transmissionHistory: _transmissionHistory,
+        brakeHistory: _brakeHistory,
+        generalHistory: _generalHistory,
       );
+
+      // Sync reminders for this new motor
+      try {
+        final reminderEngine = ref.read(reminderEngineProvider);
+        await reminderEngine.syncRemindersForMotorcycle(motorId);
+      } catch (_) {}
 
       // Refresh providers
       ref.invalidate(motorcyclesProvider);
       ref.invalidate(activeMotorcycleProvider);
       ref.invalidate(motorcycleModelsGroupedProvider);
+      ref.invalidate(componentStatusesProvider(motorId));
+      ref.invalidate(componentStatusesWithNamesProvider(motorId));
+      ref.invalidate(latestOdometerProvider(motorId));
+
       final newMotor = await db.getMotorcycle(motorId);
       if (newMotor != null) {
         await ref

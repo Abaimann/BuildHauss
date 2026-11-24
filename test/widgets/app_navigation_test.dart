@@ -95,7 +95,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
     });
 
-    testWidgets('3. Empty state "Muat 3 Data Motor Contoh" button seeds 3 motorcycles', (
+    testWidgets('3. Empty state "Muat 5 Motor Beragam" button seeds 5 motorcycles', (
       tester,
     ) async {
       await db.setSetting('auth_logged_in', 'true');
@@ -111,7 +111,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Empty state buttons should be visible
-      final loadSampleBtn = find.text('Muat 3 Data Motor Contoh');
+      final loadSampleBtn = find.text('Muat 5 Motor Beragam');
       expect(loadSampleBtn, findsOneWidget);
 
       // Tap load sample data button
@@ -119,12 +119,12 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pumpAndSettle();
 
-      // Verify 3 motorcycles are populated in the database
+      // Verify 5 diverse motorcycles are populated in the database
       final motors = await db.getAllMotorcycles();
-      expect(motors.length, 3);
-      expect(motors.any((m) => m.nickname == 'Vario 160 Hitam'), isTrue);
-      expect(motors.any((m) => m.nickname == 'Aerox Biru Doff'), isTrue);
-      expect(motors.any((m) => m.nickname == 'Beat Street Putih'), isTrue);
+      expect(motors.length, 5);
+      expect(motors.any((m) => m.nickname.contains('Vario')), isTrue);
+      expect(motors.any((m) => m.nickname.contains('NMAX')), isTrue);
+      expect(motors.any((m) => m.nickname.contains('KLX')), isTrue);
 
       // Drain any pending Drift query stream timers
       await tester.pumpWidget(const SizedBox());
@@ -164,11 +164,11 @@ void main() {
         );
         await tester.enterText(
           find.byKey(const ValueKey('auth_password_field')),
-          'rahasia123',
+          'Rahasia123',
         );
         await tester.enterText(
           find.byKey(const ValueKey('auth_confirm_password_field')),
-          'rahasia123',
+          'Rahasia123',
         );
 
         // Submit registration

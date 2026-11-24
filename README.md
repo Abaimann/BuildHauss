@@ -6,7 +6,7 @@ Asisten perawatan motor pribadi untuk Android (**v1.2.0**) — *offline-first*, 
 ![Release](https://img.shields.io/badge/Release-v1.2.0-00f5a0)
 ![Flutter](https://img.shields.io/badge/Flutter-3.38+-blue)
 ![Dart](https://img.shields.io/badge/Dart-3.10+-blue)
-![Tests](https://img.shields.io/badge/Tests-240%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-257%20passed-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 🌐 **Halaman Unduh Resmi APK (`v1.2.0`):** https://abaimann.github.io/BuildHauss/  
@@ -21,10 +21,10 @@ Anda dapat langsung menjalankan file perintah praktis berikut dari File Explorer
 | File Perintah | Fungsi | Perintah Asli di Balik Layar |
 | :--- | :--- | :--- |
 | **`jalankan_aplikasi.bat`** | Menjalankan aplikasi ke HP atau Emulator | `flutter run` |
-| **`buat_apk_rilis.bat`** | Membuat file installer APK rilis resmi (`28.6 MB`) | `flutter build apk --release` |
+| **`buat_apk_rilis.bat`** | Membuat file installer APK rilis resmi (`28.7 MB`) | `flutter build apk --release` |
 | **`pasang_ke_hp.bat`** | Memasang langsung APK ke smartphone via kabel data | `adb install -r buildhaus.apk` |
 | **`cek_kode.bat`** | Memeriksa apakah ada kesalahan sintaks atau bug | `flutter analyze` |
-| **`uji_semua_fitur.bat`** | Menjalankan 240 uji coba otomatis fitur aplikasi | `flutter test` |
+| **`uji_semua_fitur.bat`** | Menjalankan 257 uji coba otomatis fitur aplikasi | `flutter test` |
 | **`update_database.bat`** | Mengupdate skema database SQLite (Drift) | `dart run build_runner build` |
 
 ---
@@ -45,7 +45,7 @@ flutter run
 
 ### 2. Membuat File Installer (APK)
 ```bash
-# Membuat APK versi Release yang optimal dan siap dibagikan (28.6 MB):
+# Membuat APK versi Release yang optimal dan siap dibagikan (28.7 MB):
 flutter build apk --release
 
 # Lokasi file output yang dihasilkan:
@@ -66,7 +66,7 @@ adb shell am start -n com.buildhaus.buildhaus/.MainActivity
 # Memeriksa kesehatan kode dan memastikan 0 error:
 flutter analyze
 
-# Menjalankan seluruh pengujian unit, widget, dan database (240 tes):
+# Menjalankan seluruh pengujian unit, widget, dan database (257 tes):
 flutter test
 ```
 
@@ -89,14 +89,14 @@ git push origin main
 
 ## 🌟 Fitur Utama BuildHaus v1.2.0
 
-- 🔐 **Autentikasi Akun Lokal** — Login & registrasi offline dengan hashing SHA-256 salted.
-- 🏍️ **Garasi Multi-Motor (5 Jenis Motor / 4 Merek Resmi)** — Kelola Honda, Yamaha, Suzuki, & Kawasaki, lengkap dengan seeder 1-klik **Muat 5 Motor Beragam Jenis** di menu Akun.
+- 🔐 **Autentikasi Email-Only & Foto Profil** — Login & registrasi lokal dengan Email, sandi ketat (min. 8 karakter tanpa spasi, huruf kapital, & angka), hashing SHA-256 salted, plus upload foto profil dari galeri perangkat.
+- 🏍️ **Garasi Multi-Motor (3 Merek Resmi / 101 Model Sejak 1990)** — Dukungan lengkap **Honda, Yamaha, & Kawasaki** dari tahun **1990 hingga sekarang**, format input **odometer titik otomatis** & **plat nomor spasi otomatis**, serta seeder 1-klik **Muat 5 Motor Beragam Jenis** di menu Akun (*Vario 160, NMAX 155, KLX 150, CBR150R, W175*).
 - 📊 **Telemetri Odometer & Masa Pembelajaran** — Pelacakan odometer tabular, estimasi pemakaian harian, dan indikator periode pembelajaran (`< 3` periode bulanan valid).
-- 🩺 **Skor Kesehatan Adaptif & Uji Mandiri 8-Titik** — Memantau **14 komponen master** dan menyaring otomatis menjadi **11–13 komponen relevan** sesuai tipe transmisi (Matic CVT vs Manual Rantai) & sistem pendingin (`Radiator` vs `Udara`), disertai kuesioner 8 titik keselamatan fisik.
-- 🤖 **AI Konsultasi & Riwayat Keluhan (Gemini 2.5 Flash + Fallback Offline)** — Analisis gejala real-time dengan fallback aturan deterministik saat offline (0 MB unduhan model) dan pengelolaan **Riwayat Keluhan** yang memengaruhi skor komponen.
-- 🛒 **Katalog Sparepart Terkurasi & Modal Filter Anti-Geser** — Katalog OEM bebas duplikasi (Schema v7) dengan tombol **Filter** & **Urutkan** berbasis *Modal Bottom Sheet* multi-baris (`Wrap`).
+- 🩺 **Skor Kesehatan Adaptif (Tipe & Tahun Terbit) & Uji Mandiri Seragam** — Memantau **14 komponen master** sesuai transmisi (Matic CVT vs Manual Rantai), pendingin (`Radiator` vs `Udara`), sistem BBM (Karburator/Injeksi/2-Tak), dan faktor **tahun terbit (sejak 1990)**, dengan pertanyaan inspeksi dinamis yang konsisten di Setup Awal, Tambah Motor, dan Uji Ulang.
+- 🤖 **AI Konsultasi Anti Off-Topic (Gemini 2.5 Flash + Fallback Offline)** — Analisis gejala real-time dengan guardrail penolakan pertanyaan di luar dunia motor, fallback aturan deterministik (0 MB unduhan model), dan **Riwayat Keluhan**.
+- 🛒 **Katalog Sparepart Sesuai Tipe Motor & Cek Toko Terdekat** — Katalog OEM bebas duplikasi yang tersaring ketat sesuai merek & jenis motor, prioritas Budget + Urgensi, serta tombol **Cek Toko Terdekat** yang langsung membuka **Google Maps**.
 - 💰 **Budget Advisor & Normalisasi IDR** — Input anggaran format pemisah ribuan IDR otomatis (`350000` → `350.000`) yang tersinkron langsung ke Katalog Sparepart.
-- 🔔 **Riwayat Servis, Pengingat & Tombol `Contoh Pengingat`** — Ringkasan biaya Part/Jasa, log odometer, jadwal pengingat otomatis, dan tombol **Contoh Pengingat** untuk uji notifikasi instan.
+- 🔔 **Riwayat Servis, Pengingat & Tombol `Cek Notif di HP Saya`** — Ringkasan biaya Part/Jasa, log odometer, jadwal pengingat otomatis, dan tombol **Cek Notif di HP Saya** (disertai pengecekan izin Android 13+).
 - 📄 **Ekspor Laporan Kondisi `.TXT` ke `Download/`** — Salin teks ringkas atau simpan sertifikat kondisi motor langsung ke folder publik `Download/` Android.
 - 💾 **Backup & Restore Terenkripsi `.bhb`** — Ekspor dan impor cadangan lokal berenkripsi **AES-256-GCM**.
 

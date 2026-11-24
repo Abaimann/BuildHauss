@@ -963,7 +963,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> _seedCatalogSourcesAndFitments() async {
-    // 1. Seed official catalog sources across all 4 supported brands
+    // 1. Seed official catalog sources across all 3 supported brands
     final astraId = await _ensureCatalogSource(
       'Astra Honda Motor',
       'https://www.astra-honda.com',
@@ -972,10 +972,6 @@ class AppDatabase extends _$AppDatabase {
       'Yamaha Indonesia',
       'https://www.yamaha-motor.co.id',
     );
-    final suzukiId = await _ensureCatalogSource(
-      'Suzuki Indomobil',
-      'https://www.suzuki.co.id',
-    );
     final kawasakiId = await _ensureCatalogSource(
       'Kawasaki Motor Indonesia',
       'https://www.kawasaki-motor.co.id',
@@ -983,6 +979,7 @@ class AppDatabase extends _$AppDatabase {
 
     // 2. Fetch models by (brand, model)
     final models = await select(motorcycleModels).get();
+    final modelById = <int, MotorcycleModel>{for (final m in models) m.id: m};
     final modelIdByKey = <String, int>{
       for (final m in models) '${m.brand}|${m.model}': m.id,
     };
@@ -991,7 +988,7 @@ class AppDatabase extends _$AppDatabase {
         .whereType<int>()
         .toList();
 
-    // 3. Verified spareparts & fitments covering Honda, Yamaha, Suzuki, Kawasaki
+    // 3. Verified spareparts & fitments covering Honda, Yamaha, and Kawasaki
     final verifiedCatalogParts =
         <(String, String, String, String, int, int, String, List<int>)>[
           // --- HONDA ---
@@ -1005,10 +1002,23 @@ class AppDatabase extends _$AppDatabase {
             'https://www.astra-honda.com',
             resolveModels([
               ('Honda', 'Vario 160'),
+              ('Honda', 'Vario 150'),
               ('Honda', 'Vario 125'),
+              ('Honda', 'Vario 110'),
+              ('Honda', 'Vario 110 eSP'),
               ('Honda', 'Beat Street'),
+              ('Honda', 'Beat FI'),
+              ('Honda', 'Beat Karbu'),
+              ('Honda', 'Scoopy'),
+              ('Honda', 'Scoopy FI'),
+              ('Honda', 'Genio'),
+              ('Honda', 'Spacy'),
+              ('Honda', 'Spacy Helm-In FI'),
+              ('Honda', 'PCX 150'),
               ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 150'),
               ('Honda', 'ADV 160'),
+              ('Honda', 'Stylo 160'),
             ]),
           ),
           (
@@ -1019,7 +1029,34 @@ class AppDatabase extends _$AppDatabase {
             58000,
             astraId,
             'https://www.astra-honda.com',
-            resolveModels([('Honda', 'Supra X 125 FI'), ('Honda', 'CBR150R')]),
+            resolveModels([
+              ('Honda', 'Astrea Prima'),
+              ('Honda', 'Astrea Grand'),
+              ('Honda', 'Astrea Legenda'),
+              ('Honda', 'Supra 100'),
+              ('Honda', 'Supra Fit'),
+              ('Honda', 'Karisma 125'),
+              ('Honda', 'Supra X 125'),
+              ('Honda', 'Supra X 125 FI'),
+              ('Honda', 'Supra GTR 150'),
+              ('Honda', 'Revo'),
+              ('Honda', 'Revo FI'),
+              ('Honda', 'Blade 110'),
+              ('Honda', 'Blade 125 FI'),
+              ('Honda', 'CS1'),
+              ('Honda', 'Sonic 150R'),
+              ('Honda', 'Win 100'),
+              ('Honda', 'GL Pro'),
+              ('Honda', 'GL Max'),
+              ('Honda', 'Tiger 2000'),
+              ('Honda', 'MegaPro'),
+              ('Honda', 'New MegaPro FI'),
+              ('Honda', 'Verza 150'),
+              ('Honda', 'CB150R Streetfire'),
+              ('Honda', 'CBR150R'),
+              ('Honda', 'CBR250RR'),
+              ('Honda', 'CRF150L'),
+            ]),
           ),
           (
             'Kampas Rem Depan Honda Vario 160/125',
@@ -1031,10 +1068,20 @@ class AppDatabase extends _$AppDatabase {
             'https://www.astra-honda.com',
             resolveModels([
               ('Honda', 'Vario 160'),
+              ('Honda', 'Vario 150'),
               ('Honda', 'Vario 125'),
+              ('Honda', 'Vario 110'),
+              ('Honda', 'Vario 110 eSP'),
               ('Honda', 'Beat Street'),
+              ('Honda', 'Beat FI'),
+              ('Honda', 'Beat Karbu'),
+              ('Honda', 'Scoopy FI'),
+              ('Honda', 'Genio'),
+              ('Honda', 'PCX 150'),
               ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 150'),
               ('Honda', 'ADV 160'),
+              ('Honda', 'Stylo 160'),
             ]),
           ),
           (
@@ -1049,6 +1096,7 @@ class AppDatabase extends _$AppDatabase {
               ('Honda', 'Vario 160'),
               ('Honda', 'PCX 160'),
               ('Honda', 'ADV 160'),
+              ('Honda', 'Stylo 160'),
             ]),
           ),
           (
@@ -1063,7 +1111,11 @@ class AppDatabase extends _$AppDatabase {
               ('Honda', 'Vario 160'),
               ('Honda', 'Vario 125'),
               ('Honda', 'Beat Street'),
+              ('Honda', 'Beat Karbu'),
               ('Honda', 'Supra X 125 FI'),
+              ('Honda', 'Supra X 125'),
+              ('Honda', 'Astrea Grand'),
+              ('Honda', 'Win 100'),
             ]),
           ),
           (
@@ -1076,10 +1128,17 @@ class AppDatabase extends _$AppDatabase {
             'https://www.astra-honda.com',
             resolveModels([
               ('Honda', 'Vario 160'),
+              ('Honda', 'Vario 150'),
               ('Honda', 'Vario 125'),
+              ('Honda', 'PCX 150'),
               ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 150'),
               ('Honda', 'ADV 160'),
+              ('Honda', 'Stylo 160'),
+              ('Honda', 'CB150R Streetfire'),
               ('Honda', 'CBR150R'),
+              ('Honda', 'Sonic 150R'),
+              ('Honda', 'Supra GTR 150'),
             ]),
           ),
           (
@@ -1094,6 +1153,7 @@ class AppDatabase extends _$AppDatabase {
               ('Honda', 'Vario 160'),
               ('Honda', 'PCX 160'),
               ('Honda', 'ADV 160'),
+              ('Honda', 'Stylo 160'),
             ]),
           ),
           (
@@ -1104,7 +1164,17 @@ class AppDatabase extends _$AppDatabase {
             85000,
             astraId,
             'https://www.astra-honda.com',
-            resolveModels([('Honda', 'Beat Street'), ('Honda', 'Vario 125')]),
+            resolveModels([
+              ('Honda', 'Beat Street'),
+              ('Honda', 'Beat FI'),
+              ('Honda', 'Beat Karbu'),
+              ('Honda', 'Scoopy'),
+              ('Honda', 'Scoopy FI'),
+              ('Honda', 'Genio'),
+              ('Honda', 'Vario 110'),
+              ('Honda', 'Vario 110 eSP'),
+              ('Honda', 'Vario 125'),
+            ]),
           ),
           (
             'AHM Oil Scooter Gear Oil 120ml',
@@ -1116,10 +1186,23 @@ class AppDatabase extends _$AppDatabase {
             'https://www.astra-honda.com',
             resolveModels([
               ('Honda', 'Vario 160'),
+              ('Honda', 'Vario 150'),
               ('Honda', 'Vario 125'),
+              ('Honda', 'Vario 110'),
+              ('Honda', 'Vario 110 eSP'),
               ('Honda', 'Beat Street'),
+              ('Honda', 'Beat FI'),
+              ('Honda', 'Beat Karbu'),
+              ('Honda', 'Scoopy'),
+              ('Honda', 'Scoopy FI'),
+              ('Honda', 'Genio'),
+              ('Honda', 'Spacy'),
+              ('Honda', 'Spacy Helm-In FI'),
+              ('Honda', 'PCX 150'),
               ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 150'),
               ('Honda', 'ADV 160'),
+              ('Honda', 'Stylo 160'),
             ]),
           ),
           (
@@ -1134,8 +1217,13 @@ class AppDatabase extends _$AppDatabase {
               ('Honda', 'Vario 160'),
               ('Honda', 'PCX 160'),
               ('Honda', 'ADV 160'),
+              ('Honda', 'Stylo 160'),
               ('Honda', 'CBR150R'),
+              ('Honda', 'CBR250RR'),
+              ('Honda', 'CB150R Streetfire'),
               ('Honda', 'Supra X 125 FI'),
+              ('Honda', 'Supra GTR 150'),
+              ('Honda', 'CRF150L'),
             ]),
           ),
           (
@@ -1148,10 +1236,20 @@ class AppDatabase extends _$AppDatabase {
             'https://www.astra-honda.com',
             resolveModels([
               ('Honda', 'Vario 160'),
+              ('Honda', 'Vario 150'),
               ('Honda', 'Vario 125'),
+              ('Honda', 'Vario 110'),
+              ('Honda', 'PCX 150'),
               ('Honda', 'PCX 160'),
+              ('Honda', 'ADV 150'),
               ('Honda', 'ADV 160'),
+              ('Honda', 'Stylo 160'),
+              ('Honda', 'Supra GTR 150'),
+              ('Honda', 'CS1'),
+              ('Honda', 'Sonic 150R'),
+              ('Honda', 'CB150R Streetfire'),
               ('Honda', 'CBR150R'),
+              ('Honda', 'CBR250RR'),
             ]),
           ),
           (
@@ -1166,6 +1264,7 @@ class AppDatabase extends _$AppDatabase {
               ('Honda', 'Vario 160'),
               ('Honda', 'PCX 160'),
               ('Honda', 'ADV 160'),
+              ('Honda', 'Stylo 160'),
             ]),
           ),
           (
@@ -1176,7 +1275,33 @@ class AppDatabase extends _$AppDatabase {
             195000,
             astraId,
             'https://www.astra-honda.com',
-            resolveModels([('Honda', 'Supra X 125 FI'), ('Honda', 'CBR150R')]),
+            resolveModels([
+              ('Honda', 'Astrea Prima'),
+              ('Honda', 'Astrea Grand'),
+              ('Honda', 'Astrea Legenda'),
+              ('Honda', 'Supra 100'),
+              ('Honda', 'Supra Fit'),
+              ('Honda', 'Karisma 125'),
+              ('Honda', 'Supra X 125'),
+              ('Honda', 'Supra X 125 FI'),
+              ('Honda', 'Supra GTR 150'),
+              ('Honda', 'Revo'),
+              ('Honda', 'Revo FI'),
+              ('Honda', 'Blade 110'),
+              ('Honda', 'Blade 125 FI'),
+              ('Honda', 'CS1'),
+              ('Honda', 'Sonic 150R'),
+              ('Honda', 'Win 100'),
+              ('Honda', 'GL Pro'),
+              ('Honda', 'GL Max'),
+              ('Honda', 'Tiger 2000'),
+              ('Honda', 'MegaPro'),
+              ('Honda', 'New MegaPro FI'),
+              ('Honda', 'Verza 150'),
+              ('Honda', 'CB150R Streetfire'),
+              ('Honda', 'CBR150R'),
+              ('Honda', 'CRF150L'),
+            ]),
           ),
 
           // --- YAMAHA ---
@@ -1191,9 +1316,64 @@ class AppDatabase extends _$AppDatabase {
             resolveModels([
               ('Yamaha', 'NMAX'),
               ('Yamaha', 'Aerox'),
+              ('Yamaha', 'XMAX'),
+              ('Yamaha', 'Lexi'),
+              ('Yamaha', 'Mio Sporty'),
+              ('Yamaha', 'Mio Soul'),
+              ('Yamaha', 'Mio J / GT'),
               ('Yamaha', 'Mio M3'),
+              ('Yamaha', 'Fino Karbu'),
+              ('Yamaha', 'Fino 125 FI'),
+              ('Yamaha', 'Xeon 125'),
+              ('Yamaha', 'Xeon RC / GT 125'),
               ('Yamaha', 'FreeGo'),
               ('Yamaha', 'X-Ride'),
+              ('Yamaha', 'Gear 125'),
+              ('Yamaha', 'Fazzio'),
+              ('Yamaha', 'Grand Filano'),
+            ]),
+          ),
+          (
+            'Yamalube Sport 4T 10W-40 1L',
+            '90793-AJ414',
+            'oli_mesin',
+            'Yamaha',
+            72000,
+            yamahaId,
+            'https://www.yamaha-motor.co.id',
+            resolveModels([
+              ('Yamaha', 'Vega'),
+              ('Yamaha', 'Vega ZR'),
+              ('Yamaha', 'Vega Force'),
+              ('Yamaha', 'Jupiter Z'),
+              ('Yamaha', 'Jupiter Z1'),
+              ('Yamaha', 'Jupiter MX 135'),
+              ('Yamaha', 'MX King 150'),
+              ('Yamaha', 'Scorpio Z'),
+              ('Yamaha', 'Byson'),
+              ('Yamaha', 'Byson FI'),
+              ('Yamaha', 'Vixion'),
+              ('Yamaha', 'R15'),
+              ('Yamaha', 'R25'),
+              ('Yamaha', 'MT-15'),
+              ('Yamaha', 'XSR 155'),
+              ('Yamaha', 'WR 155 R'),
+            ]),
+          ),
+          (
+            'Yamalube 2T Oil 0.7L',
+            '90793-AJ201',
+            'oli_mesin',
+            'Yamaha',
+            58000,
+            yamahaId,
+            'https://www.yamaha-motor.co.id',
+            resolveModels([
+              ('Yamaha', 'Alfa'),
+              ('Yamaha', 'Force 1'),
+              ('Yamaha', 'F1ZR'),
+              ('Yamaha', 'RX-S'),
+              ('Yamaha', 'RX-King'),
             ]),
           ),
           (
@@ -1207,9 +1387,14 @@ class AppDatabase extends _$AppDatabase {
             resolveModels([
               ('Yamaha', 'NMAX'),
               ('Yamaha', 'Aerox'),
+              ('Yamaha', 'XMAX'),
+              ('Yamaha', 'Lexi'),
               ('Yamaha', 'Mio M3'),
               ('Yamaha', 'FreeGo'),
               ('Yamaha', 'X-Ride'),
+              ('Yamaha', 'Gear 125'),
+              ('Yamaha', 'Fazzio'),
+              ('Yamaha', 'Grand Filano'),
             ]),
           ),
           (
@@ -1220,7 +1405,11 @@ class AppDatabase extends _$AppDatabase {
             50000,
             yamahaId,
             'https://www.yamaha-motor.co.id',
-            resolveModels([('Yamaha', 'NMAX'), ('Yamaha', 'Aerox')]),
+            resolveModels([
+              ('Yamaha', 'NMAX'),
+              ('Yamaha', 'Aerox'),
+              ('Yamaha', 'Lexi'),
+            ]),
           ),
           (
             'Yamalube Motor Gear Oil 100ml',
@@ -1233,9 +1422,21 @@ class AppDatabase extends _$AppDatabase {
             resolveModels([
               ('Yamaha', 'NMAX'),
               ('Yamaha', 'Aerox'),
+              ('Yamaha', 'XMAX'),
+              ('Yamaha', 'Lexi'),
+              ('Yamaha', 'Mio Sporty'),
+              ('Yamaha', 'Mio Soul'),
+              ('Yamaha', 'Mio J / GT'),
               ('Yamaha', 'Mio M3'),
+              ('Yamaha', 'Fino Karbu'),
+              ('Yamaha', 'Fino 125 FI'),
+              ('Yamaha', 'Xeon 125'),
+              ('Yamaha', 'Xeon RC / GT 125'),
               ('Yamaha', 'FreeGo'),
               ('Yamaha', 'X-Ride'),
+              ('Yamaha', 'Gear 125'),
+              ('Yamaha', 'Fazzio'),
+              ('Yamaha', 'Grand Filano'),
             ]),
           ),
           (
@@ -1246,7 +1447,19 @@ class AppDatabase extends _$AppDatabase {
             20000,
             yamahaId,
             'https://www.yamaha-motor.co.id',
-            resolveModels([('Yamaha', 'NMAX'), ('Yamaha', 'Aerox')]),
+            resolveModels([
+              ('Yamaha', 'NMAX'),
+              ('Yamaha', 'Aerox'),
+              ('Yamaha', 'XMAX'),
+              ('Yamaha', 'Lexi'),
+              ('Yamaha', 'Vixion'),
+              ('Yamaha', 'R15'),
+              ('Yamaha', 'R25'),
+              ('Yamaha', 'MT-15'),
+              ('Yamaha', 'XSR 155'),
+              ('Yamaha', 'WR 155 R'),
+              ('Yamaha', 'MX King 150'),
+            ]),
           ),
           (
             'Yamalube Yamacoolant 1L',
@@ -1256,7 +1469,22 @@ class AppDatabase extends _$AppDatabase {
             38000,
             yamahaId,
             'https://www.yamaha-motor.co.id',
-            resolveModels([('Yamaha', 'NMAX'), ('Yamaha', 'Aerox')]),
+            resolveModels([
+              ('Yamaha', 'NMAX'),
+              ('Yamaha', 'Aerox'),
+              ('Yamaha', 'XMAX'),
+              ('Yamaha', 'Lexi'),
+              ('Yamaha', 'Xeon 125'),
+              ('Yamaha', 'Xeon RC / GT 125'),
+              ('Yamaha', 'Jupiter MX 135'),
+              ('Yamaha', 'MX King 150'),
+              ('Yamaha', 'Vixion'),
+              ('Yamaha', 'R15'),
+              ('Yamaha', 'R25'),
+              ('Yamaha', 'MT-15'),
+              ('Yamaha', 'XSR 155'),
+              ('Yamaha', 'WR 155 R'),
+            ]),
           ),
           (
             'V-Belt Yamaha Genuine Aerox/NMAX',
@@ -1266,7 +1494,11 @@ class AppDatabase extends _$AppDatabase {
             135000,
             yamahaId,
             'https://www.yamaha-motor.co.id',
-            resolveModels([('Yamaha', 'NMAX'), ('Yamaha', 'Aerox')]),
+            resolveModels([
+              ('Yamaha', 'NMAX'),
+              ('Yamaha', 'Aerox'),
+              ('Yamaha', 'Lexi'),
+            ]),
           ),
           (
             'V-Belt Yamaha Mio M3 / FreeGo Genuine',
@@ -1280,53 +1512,38 @@ class AppDatabase extends _$AppDatabase {
               ('Yamaha', 'Mio M3'),
               ('Yamaha', 'FreeGo'),
               ('Yamaha', 'X-Ride'),
-            ]),
-          ),
-
-          // --- SUZUKI ---
-          (
-            'Oli Mesin Suzuki Ecostar SGO 10W-40 0.8L',
-            'SGO-10W40-800',
-            'oli_mesin',
-            'Suzuki',
-            52000,
-            suzukiId,
-            'https://www.suzuki.co.id',
-            resolveModels([
-              ('Suzuki', 'Address 110'),
-              ('Suzuki', 'Nex II'),
-              ('Suzuki', 'Smash FI'),
+              ('Yamaha', 'Gear 125'),
+              ('Yamaha', 'Fazzio'),
+              ('Yamaha', 'Grand Filano'),
+              ('Yamaha', 'Fino 125 FI'),
             ]),
           ),
           (
-            'V-Belt Suzuki Address / Nex II Genuine',
-            '27601-40J00',
-            'cvt',
-            'Suzuki',
-            128000,
-            suzukiId,
-            'https://www.suzuki.co.id',
-            resolveModels([('Suzuki', 'Address 110'), ('Suzuki', 'Nex II')]),
-          ),
-          (
-            'Suzuki Gear Oil SGO 100ml',
-            '99000-22B00',
-            'oli_gardan',
-            'Suzuki',
-            18000,
-            suzukiId,
-            'https://www.suzuki.co.id',
-            resolveModels([('Suzuki', 'Address 110'), ('Suzuki', 'Nex II')]),
-          ),
-          (
-            'Rantai Set Suzuki Smash FI Genuine',
-            '27600-09G10',
+            'Rantai & Gir Set Yamaha Vixion / R15 / MX King',
+            '3C1-WF01A-00',
             'rantai',
-            'Suzuki',
-            145000,
-            suzukiId,
-            'https://www.suzuki.co.id',
-            resolveModels([('Suzuki', 'Smash FI')]),
+            'Yamaha',
+            215000,
+            yamahaId,
+            'https://www.yamaha-motor.co.id',
+            resolveModels([
+              ('Yamaha', 'Vega'),
+              ('Yamaha', 'Vega ZR'),
+              ('Yamaha', 'Vega Force'),
+              ('Yamaha', 'Jupiter Z'),
+              ('Yamaha', 'Jupiter Z1'),
+              ('Yamaha', 'Jupiter MX 135'),
+              ('Yamaha', 'MX King 150'),
+              ('Yamaha', 'RX-King'),
+              ('Yamaha', 'Scorpio Z'),
+              ('Yamaha', 'Byson'),
+              ('Yamaha', 'Byson FI'),
+              ('Yamaha', 'Vixion'),
+              ('Yamaha', 'R15'),
+              ('Yamaha', 'MT-15'),
+              ('Yamaha', 'XSR 155'),
+              ('Yamaha', 'WR 155 R'),
+            ]),
           ),
 
           // --- KAWASAKI ---
@@ -1340,8 +1557,35 @@ class AppDatabase extends _$AppDatabase {
             'https://www.kawasaki-motor.co.id',
             resolveModels([
               ('Kawasaki', 'Ninja 250SL'),
+              ('Kawasaki', 'Ninja 250R Karbu'),
+              ('Kawasaki', 'Ninja 250 FI'),
+              ('Kawasaki', 'Ninja ZX-25R'),
               ('Kawasaki', 'W175'),
+              ('Kawasaki', 'Estrella / W250'),
+              ('Kawasaki', 'KLX 150'),
+              ('Kawasaki', 'KLX 230'),
+              ('Kawasaki', 'D-Tracker 150'),
+              ('Kawasaki', 'Versys-X 250'),
               ('Kawasaki', 'Z125'),
+              ('Kawasaki', 'Z250'),
+              ('Kawasaki', 'Kaze'),
+              ('Kawasaki', 'Blitz'),
+              ('Kawasaki', 'Athlete'),
+              ('Kawasaki', 'Edge'),
+            ]),
+          ),
+          (
+            'Oli Samping Kawasaki 2T Genuine 1L',
+            'KGO-2T-1L',
+            'oli_mesin',
+            'Kawasaki',
+            92000,
+            kawasakiId,
+            'https://www.kawasaki-motor.co.id',
+            resolveModels([
+              ('Kawasaki', 'Ninja 150 R'),
+              ('Kawasaki', 'Ninja 150 SS'),
+              ('Kawasaki', 'Ninja 150 RR'),
             ]),
           ),
           (
@@ -1354,7 +1598,14 @@ class AppDatabase extends _$AppDatabase {
             'https://www.kawasaki-motor.co.id',
             resolveModels([
               ('Kawasaki', 'Ninja 250SL'),
+              ('Kawasaki', 'Ninja 250 FI'),
+              ('Kawasaki', 'Ninja ZX-25R'),
+              ('Kawasaki', 'KLX 150'),
+              ('Kawasaki', 'KLX 230'),
+              ('Kawasaki', 'D-Tracker 150'),
+              ('Kawasaki', 'Versys-X 250'),
               ('Kawasaki', 'Z125'),
+              ('Kawasaki', 'Z250'),
             ]),
           ),
           (
@@ -1366,9 +1617,24 @@ class AppDatabase extends _$AppDatabase {
             kawasakiId,
             'https://www.kawasaki-motor.co.id',
             resolveModels([
+              ('Kawasaki', 'Ninja 150 R'),
+              ('Kawasaki', 'Ninja 150 SS'),
+              ('Kawasaki', 'Ninja 150 RR'),
+              ('Kawasaki', 'Ninja 250R Karbu'),
+              ('Kawasaki', 'Ninja 250 FI'),
               ('Kawasaki', 'Ninja 250SL'),
+              ('Kawasaki', 'KLX 150'),
+              ('Kawasaki', 'KLX 230'),
+              ('Kawasaki', 'D-Tracker 150'),
               ('Kawasaki', 'W175'),
+              ('Kawasaki', 'Estrella / W250'),
+              ('Kawasaki', 'Versys-X 250'),
               ('Kawasaki', 'Z125'),
+              ('Kawasaki', 'Z250'),
+              ('Kawasaki', 'Kaze'),
+              ('Kawasaki', 'Blitz'),
+              ('Kawasaki', 'Athlete'),
+              ('Kawasaki', 'Edge'),
             ]),
           ),
           (
@@ -1379,7 +1645,17 @@ class AppDatabase extends _$AppDatabase {
             48000,
             kawasakiId,
             'https://www.kawasaki-motor.co.id',
-            resolveModels([('Kawasaki', 'Ninja 250SL')]),
+            resolveModels([
+              ('Kawasaki', 'Ninja 150 R'),
+              ('Kawasaki', 'Ninja 150 SS'),
+              ('Kawasaki', 'Ninja 150 RR'),
+              ('Kawasaki', 'Ninja 250R Karbu'),
+              ('Kawasaki', 'Ninja 250 FI'),
+              ('Kawasaki', 'Ninja 250SL'),
+              ('Kawasaki', 'Ninja ZX-25R'),
+              ('Kawasaki', 'Versys-X 250'),
+              ('Kawasaki', 'Z250'),
+            ]),
           ),
         ];
 
@@ -1437,11 +1713,12 @@ class AppDatabase extends _$AppDatabase {
                 .getSingleOrNull();
 
         if (existingFitment == null) {
+          final modelYearStart = modelById[targetModelId]?.yearStart ?? 2019;
           await into(sparepartFitments).insert(
             SparepartFitmentsCompanion.insert(
               sparepartId: partId,
               modelId: Value(targetModelId),
-              yearStart: 2019,
+              yearStart: modelYearStart,
               verifiedAt: Value(DateTime(2026, 1, 15)),
               sourceUrl: Value(url),
             ),
@@ -1472,138 +1749,191 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// Seed motorcycle_models table from JSON catalog.
-  /// Idempotent: checks natural keys before inserting; preserves existing IDs.
+  /// Seed motorcycle_models table from Indonesian Honda, Yamaha, Kawasaki catalog (1990-present).
+  /// Removes legacy Suzuki models that are no longer referenced by user motorcycles,
+  /// and keeps existing model IDs stable via in-place sync.
   Future<void> _seedMotorcycleModels() async {
-    // Honda models
-    final hondaModels = [
-      ('Vario 160', 'CBS-ISS SP', '2022-sekarang', 2022),
-      ('Vario 125', 'CBS-ISS', '2020-2023', 2020),
-      ('Beat Street', 'Pop', '2020-sekarang', 2020),
-      ('Supra X 125 FI', 'Helm In', '2019-sekarang', 2019),
-      ('CBR150R', 'ABS', '2020-sekarang', 2020),
-      ('PCX 160', 'ABS', '2021-sekarang', 2021),
-      ('ADV 160', 'CBS-ISS', '2022-sekarang', 2022),
-    ];
-    for (final (model, variant, gen, year) in hondaModels) {
-      final rows =
-          await (select(motorcycleModels)..where(
-                (t) =>
-                    t.brand.equals('Honda') &
-                    t.model.equals(model) &
-                    t.variant.equals(variant) &
-                    t.yearStart.equals(year),
-              ))
-              .get();
-      if (rows.isNotEmpty) continue;
-      await into(motorcycleModels).insert(
-        MotorcycleModelsCompanion.insert(
-          brand: 'Honda',
-          model: model,
-          variant: Value(variant),
-          generation: Value(gen),
-          yearStart: year,
-          yearEnd: const Value(null),
-          sourceUrl: const Value('https://www.astra-honda.com'),
-          verifiedAt: const Value(null),
-        ),
-        mode: InsertMode.insertOrIgnore,
-      );
+    final existingModels = await select(motorcycleModels).get();
+    final usedModelIds = (await select(motorcycles).get())
+        .map((m) => m.modelId)
+        .whereType<int>()
+        .toSet();
+
+    final unusedSuzukiIds = existingModels
+        .where(
+          (m) =>
+              m.brand.trim().toLowerCase() == 'suzuki' &&
+              !usedModelIds.contains(m.id),
+        )
+        .map((m) => m.id)
+        .toList();
+
+    if (unusedSuzukiIds.isNotEmpty) {
+      await (delete(sparepartFitments)
+            ..where((t) => t.modelId.isIn(unusedSuzukiIds)))
+          .go();
+      await (delete(maintenanceRules)
+            ..where((t) => t.modelId.isIn(unusedSuzukiIds)))
+          .go();
+      await (delete(motorcycleModels)
+            ..where((t) => t.id.isIn(unusedSuzukiIds)))
+          .go();
     }
-    // Yamaha models
-    final yamahaModels = [
-      ('NMAX', 'Connected', '2020-sekarang', 2020),
-      ('Aerox', 'Connected', '2020-sekarang', 2020),
-      ('Mio M3', 'CW', '2021-sekarang', 2021),
-      ('FreeGo', 'S', '2020-sekarang', 2020),
-      ('X-Ride', '125', '2023-sekarang', 2023),
+
+    final existingByKey = <String, MotorcycleModel>{
+      for (final m in existingModels)
+        if (!unusedSuzukiIds.contains(m.id))
+          '${m.brand.trim().toLowerCase()}|${m.model.trim().toLowerCase()}': m,
+    };
+
+    const hondaUrl = 'https://www.astra-honda.com';
+    const yamahaUrl = 'https://www.yamaha-motor.co.id';
+    const kawasakiUrl = 'https://www.kawasaki-motor.co.id';
+
+    // (brand, model, variant, generation, yearStart, yearEnd, sourceUrl)
+    const catalogSpecs = <(String, String, String, String, int, int?, String)>[
+      // Honda (Vario 160 tetap pertama untuk konsistensi default UI & test)
+      ('Honda', 'Vario 160', 'CBS-ISS SP', '2022-sekarang', 2022, null, hondaUrl),
+      ('Honda', 'Vario 125', 'CBS-ISS', '2012-sekarang', 2012, null, hondaUrl),
+      ('Honda', 'Vario 150', 'eSP Exclusive', '2015-2022', 2015, 2022, hondaUrl),
+      ('Honda', 'Vario 110', 'CW / Techno', '2006-2013', 2006, 2013, hondaUrl),
+      ('Honda', 'Vario 110 eSP', 'PGM-FI / CBS', '2014-2019', 2014, 2019, hondaUrl),
+      ('Honda', 'Beat Street', 'CBS / eSP', '2016-sekarang', 2016, null, hondaUrl),
+      ('Honda', 'Beat FI', 'CBS / eSP Deluxe', '2012-sekarang', 2012, null, hondaUrl),
+      ('Honda', 'Beat Karbu', 'CW / CBS', '2008-2012', 2008, 2012, hondaUrl),
+      ('Honda', 'Scoopy', 'Karburator', '2010-2012', 2010, 2012, hondaUrl),
+      ('Honda', 'Scoopy FI', 'eSP / Prestige', '2013-sekarang', 2013, null, hondaUrl),
+      ('Honda', 'Genio', 'CBS-ISS', '2019-sekarang', 2019, null, hondaUrl),
+      ('Honda', 'Spacy', 'Karburator CW', '2011-2012', 2011, 2012, hondaUrl),
+      ('Honda', 'Spacy Helm-In FI', 'PGM-FI', '2012-2018', 2012, 2018, hondaUrl),
+      ('Honda', 'PCX 150', 'CBU / Lokal ABS', '2010-2021', 2010, 2021, hondaUrl),
+      ('Honda', 'PCX 160', 'ABS', '2021-sekarang', 2021, null, hondaUrl),
+      ('Honda', 'ADV 150', 'CBS / ABS', '2019-2022', 2019, 2022, hondaUrl),
+      ('Honda', 'ADV 160', 'CBS-ISS', '2022-sekarang', 2022, null, hondaUrl),
+      ('Honda', 'Stylo 160', 'ABS / CBS', '2024-sekarang', 2024, null, hondaUrl),
+      ('Honda', 'Astrea Prima', 'Star / Limited', '1990-1991', 1990, 1991, hondaUrl),
+      ('Honda', 'Astrea Grand', 'Bulbus / Impressa', '1991-2000', 1991, 2000, hondaUrl),
+      ('Honda', 'Astrea Legenda', 'Legenda 2', '2001-2004', 2001, 2004, hondaUrl),
+      ('Honda', 'Supra 100', 'X / XX / V', '1997-2005', 1997, 2005, hondaUrl),
+      ('Honda', 'Supra Fit', 'New / S / R', '2003-2009', 2003, 2009, hondaUrl),
+      ('Honda', 'Karisma 125', 'X / D', '2002-2006', 2002, 2006, hondaUrl),
+      ('Honda', 'Supra X 125', 'Karburator', '2005-2013', 2005, 2013, hondaUrl),
+      ('Honda', 'Supra X 125 FI', 'Helm In', '2014-sekarang', 2014, null, hondaUrl),
+      ('Honda', 'Supra GTR 150', 'Exclusive / Sporty', '2016-sekarang', 2016, null, hondaUrl),
+      ('Honda', 'Revo', '100 / Absolute', '2007-2013', 2007, 2013, hondaUrl),
+      ('Honda', 'Revo FI', 'X / Fit', '2014-sekarang', 2014, null, hondaUrl),
+      ('Honda', 'Blade 110', 'R / Repsol', '2008-2013', 2008, 2013, hondaUrl),
+      ('Honda', 'Blade 125 FI', 'R / Repsol', '2014-2018', 2014, 2018, hondaUrl),
+      ('Honda', 'CS1', 'City Sport One 125', '2008-2014', 2008, 2014, hondaUrl),
+      ('Honda', 'Sonic 150R', 'Standard / Racing', '2015-sekarang', 2015, null, hondaUrl),
+      ('Honda', 'Win 100', 'Trail / Standard', '1990-2005', 1990, 2005, hondaUrl),
+      ('Honda', 'GL Pro', 'Neotech 160', '1990-1999', 1990, 1999, hondaUrl),
+      ('Honda', 'GL Max', 'Neotech 125', '1990-2005', 1990, 2005, hondaUrl),
+      ('Honda', 'Tiger 2000', 'GL200 / Revo', '1993-2013', 1993, 2013, hondaUrl),
+      ('Honda', 'MegaPro', 'Primus / New Karbu', '1999-2013', 1999, 2013, hondaUrl),
+      ('Honda', 'New MegaPro FI', 'PGM-FI', '2014-2018', 2014, 2018, hondaUrl),
+      ('Honda', 'Verza 150', 'PGM-FI / CB150 Verza', '2013-sekarang', 2013, null, hondaUrl),
+      ('Honda', 'CB150R Streetfire', 'Special Edition', '2012-sekarang', 2012, null, hondaUrl),
+      ('Honda', 'CBR150R', 'ABS', '2011-sekarang', 2011, null, hondaUrl),
+      ('Honda', 'CBR250RR', 'ABS Quick Shifter', '2016-sekarang', 2016, null, hondaUrl),
+      ('Honda', 'CRF150L', 'Standard / Extreme', '2017-sekarang', 2017, null, hondaUrl),
+
+      // Yamaha
+      ('Yamaha', 'NMAX', 'Connected', '2015-sekarang', 2015, null, yamahaUrl),
+      ('Yamaha', 'Aerox', 'Connected', '2016-sekarang', 2016, null, yamahaUrl),
+      ('Yamaha', 'XMAX', 'Connected 250', '2017-sekarang', 2017, null, yamahaUrl),
+      ('Yamaha', 'Lexi', '125 / LX 155', '2018-sekarang', 2018, null, yamahaUrl),
+      ('Yamaha', 'Mio Sporty', 'Smile / CW Karbu', '2003-2012', 2003, 2012, yamahaUrl),
+      ('Yamaha', 'Mio Soul', 'Karburator', '2007-2012', 2007, 2012, yamahaUrl),
+      ('Yamaha', 'Mio J / GT', 'YMJET-FI', '2012-2015', 2012, 2015, yamahaUrl),
+      ('Yamaha', 'Mio M3', 'CW', '2014-sekarang', 2014, null, yamahaUrl),
+      ('Yamaha', 'Fino Karbu', 'Classic / Fashion', '2012-2013', 2012, 2013, yamahaUrl),
+      ('Yamaha', 'Fino 125 FI', 'Grande / Premium', '2014-sekarang', 2014, null, yamahaUrl),
+      ('Yamaha', 'Xeon 125', 'Karburator', '2010-2012', 2010, 2012, yamahaUrl),
+      ('Yamaha', 'Xeon RC / GT 125', 'YMJET-FI', '2013-2016', 2013, 2016, yamahaUrl),
+      ('Yamaha', 'X-Ride', '125', '2013-sekarang', 2013, null, yamahaUrl),
+      ('Yamaha', 'FreeGo', 'S', '2018-sekarang', 2018, null, yamahaUrl),
+      ('Yamaha', 'Gear 125', 'S Version', '2020-sekarang', 2020, null, yamahaUrl),
+      ('Yamaha', 'Fazzio', 'Hybrid Neo / Lux', '2022-sekarang', 2022, null, yamahaUrl),
+      ('Yamaha', 'Grand Filano', 'Hybrid Neo / Lux', '2023-sekarang', 2023, null, yamahaUrl),
+      ('Yamaha', 'Alfa', 'IIR / Champ 2-Tak', '1990-1996', 1990, 1996, yamahaUrl),
+      ('Yamaha', 'Force 1', 'F1 / F1Z 2-Tak', '1992-1997', 1992, 1997, yamahaUrl),
+      ('Yamaha', 'F1ZR', 'Full Clutch 2-Tak', '1997-2004', 1997, 2004, yamahaUrl),
+      ('Yamaha', 'RX-S', 'Special 115 2-Tak', '1990-1999', 1990, 1999, yamahaUrl),
+      ('Yamaha', 'RX-King', 'Cobra / Master 2-Tak', '1990-2009', 1990, 2009, yamahaUrl),
+      ('Yamaha', 'Vega', 'Crypton / Vega R', '1997-2009', 1997, 2009, yamahaUrl),
+      ('Yamaha', 'Vega ZR', 'Karbu / RR', '2009-2015', 2009, 2015, yamahaUrl),
+      ('Yamaha', 'Vega Force', 'FI CW', '2013-sekarang', 2013, null, yamahaUrl),
+      ('Yamaha', 'Jupiter Z', 'Burhan / Robot Karbu', '2001-2012', 2001, 2012, yamahaUrl),
+      ('Yamaha', 'Jupiter Z1', 'FI CW', '2012-sekarang', 2012, null, yamahaUrl),
+      ('Yamaha', 'Jupiter MX 135', 'LC / New 5-Speed', '2005-2015', 2005, 2015, yamahaUrl),
+      ('Yamaha', 'MX King 150', 'FI / Monster', '2015-sekarang', 2015, null, yamahaUrl),
+      ('Yamaha', 'Scorpio Z', '225 Karbu', '2002-2014', 2002, 2014, yamahaUrl),
+      ('Yamaha', 'Byson', 'Karburator', '2010-2014', 2010, 2014, yamahaUrl),
+      ('Yamaha', 'Byson FI', 'Fuel Injection', '2015-2018', 2015, 2018, yamahaUrl),
+      ('Yamaha', 'Vixion', 'NVA / R', '2007-sekarang', 2007, null, yamahaUrl),
+      ('Yamaha', 'R15', 'V3 / Connected M', '2014-sekarang', 2014, null, yamahaUrl),
+      ('Yamaha', 'R25', 'ABS', '2014-sekarang', 2014, null, yamahaUrl),
+      ('Yamaha', 'MT-15', 'Standard', '2019-sekarang', 2019, null, yamahaUrl),
+      ('Yamaha', 'XSR 155', 'Heritage', '2019-sekarang', 2019, null, yamahaUrl),
+      ('Yamaha', 'WR 155 R', 'Dual Purpose', '2019-sekarang', 2019, null, yamahaUrl),
+
+      // Kawasaki
+      ('Kawasaki', 'Ninja 250SL', 'ABS', '2014-sekarang', 2014, null, kawasakiUrl),
+      ('Kawasaki', 'W175', 'SE', '2017-sekarang', 2017, null, kawasakiUrl),
+      ('Kawasaki', 'Z125', 'Pro', '2016-sekarang', 2016, null, kawasakiUrl),
+      ('Kawasaki', 'Ninja 150 R', '2-Tak Super KIPS', '1996-2015', 1996, 2015, kawasakiUrl),
+      ('Kawasaki', 'Ninja 150 SS', '2-Tak Round Lamp', '2011-2015', 2011, 2015, kawasakiUrl),
+      ('Kawasaki', 'Ninja 150 RR', '2-Tak Fairing', '2002-2015', 2002, 2015, kawasakiUrl),
+      ('Kawasaki', 'Ninja 250R Karbu', 'EX250J Karburator', '2008-2012', 2008, 2012, kawasakiUrl),
+      ('Kawasaki', 'Ninja 250 FI', 'ABS SE', '2012-sekarang', 2012, null, kawasakiUrl),
+      ('Kawasaki', 'Ninja ZX-25R', 'ABS SE 4-Silinder', '2020-sekarang', 2020, null, kawasakiUrl),
+      ('Kawasaki', 'Kaze', 'R / VR / ZX130', '1995-2009', 1995, 2009, kawasakiUrl),
+      ('Kawasaki', 'Blitz', 'R / Joy 125', '2003-2008', 2003, 2008, kawasakiUrl),
+      ('Kawasaki', 'Athlete', '125 Pro', '2008-2016', 2008, 2016, kawasakiUrl),
+      ('Kawasaki', 'Edge', 'R / VR 115', '2010-2013', 2010, 2013, kawasakiUrl),
+      ('Kawasaki', 'KLX 150', 'S / BF / SE Karbu', '2009-sekarang', 2009, null, kawasakiUrl),
+      ('Kawasaki', 'KLX 230', 'S / SE / SM', '2019-sekarang', 2019, null, kawasakiUrl),
+      ('Kawasaki', 'D-Tracker 150', 'SE Supermoto', '2010-sekarang', 2010, null, kawasakiUrl),
+      ('Kawasaki', 'Estrella / W250', 'BJ250 Classic FI', '2014-2022', 2014, 2022, kawasakiUrl),
+      ('Kawasaki', 'Versys-X 250', 'Tourer ABS', '2017-sekarang', 2017, null, kawasakiUrl),
+      ('Kawasaki', 'Z250', 'SL / Twin FI', '2013-2022', 2013, 2022, kawasakiUrl),
     ];
-    for (final (model, variant, gen, year) in yamahaModels) {
-      final rows =
-          await (select(motorcycleModels)..where(
-                (t) =>
-                    t.brand.equals('Yamaha') &
-                    t.model.equals(model) &
-                    t.variant.equals(variant) &
-                    t.yearStart.equals(year),
-              ))
-              .get();
-      if (rows.isNotEmpty) continue;
-      await into(motorcycleModels).insert(
-        MotorcycleModelsCompanion.insert(
-          brand: 'Yamaha',
-          model: model,
-          variant: Value(variant),
-          generation: Value(gen),
-          yearStart: year,
-          yearEnd: const Value(null),
-          sourceUrl: const Value('https://www.yamaha-motor.co.id'),
-          verifiedAt: const Value(null),
-        ),
-        mode: InsertMode.insertOrIgnore,
-      );
-    }
-    // Suzuki models
-    final suzukiModels = [
-      ('Address 110', 'FI', '2021-sekarang', 2021),
-      ('Nex II', 'FI', '2019-2022', 2019),
-      ('Smash FI', 'R', '2020-sekarang', 2020),
-    ];
-    for (final (model, variant, gen, year) in suzukiModels) {
-      final rows =
-          await (select(motorcycleModels)..where(
-                (t) =>
-                    t.brand.equals('Suzuki') &
-                    t.model.equals(model) &
-                    t.variant.equals(variant) &
-                    t.yearStart.equals(year),
-              ))
-              .get();
-      if (rows.isNotEmpty) continue;
-      await into(motorcycleModels).insert(
-        MotorcycleModelsCompanion.insert(
-          brand: 'Suzuki',
-          model: model,
-          variant: Value(variant),
-          generation: Value(gen),
-          yearStart: year,
-          yearEnd: const Value(null),
-          sourceUrl: const Value('https://www.suzuki.co.id'),
-          verifiedAt: const Value(null),
-        ),
-        mode: InsertMode.insertOrIgnore,
-      );
-    }
-    // Kawasaki models
-    final kawasakiModels = [
-      ('Ninja 250SL', 'ABS', '2020-sekarang', 2020),
-      ('W175', 'SE', '2019-sekarang', 2019),
-      ('Z125', 'Pro', '2020-sekarang', 2020),
-    ];
-    for (final (model, variant, gen, year) in kawasakiModels) {
-      final rows =
-          await (select(motorcycleModels)..where(
-                (t) =>
-                    t.brand.equals('Kawasaki') &
-                    t.model.equals(model) &
-                    t.variant.equals(variant) &
-                    t.yearStart.equals(year),
-              ))
-              .get();
-      if (rows.isNotEmpty) continue;
-      await into(motorcycleModels).insert(
-        MotorcycleModelsCompanion.insert(
-          brand: 'Kawasaki',
-          model: model,
-          variant: Value(variant),
-          generation: Value(gen),
-          yearStart: year,
-          yearEnd: const Value(null),
-          sourceUrl: const Value('https://www.kawasaki-motor.co.id'),
-          verifiedAt: const Value(null),
-        ),
-        mode: InsertMode.insertOrIgnore,
-      );
+
+    for (final (brand, model, variant, gen, yearStart, yearEnd, sourceUrl)
+        in catalogSpecs) {
+      final key = '${brand.toLowerCase()}|${model.toLowerCase()}';
+      final existing = existingByKey[key];
+      if (existing == null) {
+        await into(motorcycleModels).insert(
+          MotorcycleModelsCompanion.insert(
+            brand: brand,
+            model: model,
+            variant: Value(variant),
+            generation: Value(gen),
+            yearStart: yearStart,
+            yearEnd: Value(yearEnd),
+            sourceUrl: Value(sourceUrl),
+            verifiedAt: const Value(null),
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+      } else if (existing.variant != variant ||
+          existing.generation != gen ||
+          existing.yearStart != yearStart ||
+          existing.yearEnd != yearEnd ||
+          existing.sourceUrl != sourceUrl) {
+        await (update(motorcycleModels)..where((t) => t.id.equals(existing.id)))
+            .write(
+              MotorcycleModelsCompanion(
+                variant: Value(variant),
+                generation: Value(gen),
+                yearStart: Value(yearStart),
+                yearEnd: Value(yearEnd),
+                sourceUrl: Value(sourceUrl),
+              ),
+            );
+      }
     }
   }
 
@@ -1861,6 +2191,9 @@ class AppDatabase extends _$AppDatabase {
     }
 
     final motor = await getMotorcycle(motorId);
+    final motorModel = (motor?.modelId != null)
+        ? await getMotorcycleModelById(motor!.modelId!)
+        : null;
     final usageMultiplier = motor?.usageProfile == 'jarak_jauh' ? 0.8 : 1.0;
     final allComponents = await getApplicableComponentsForModel(motor?.modelId);
 
@@ -1889,13 +2222,18 @@ class AppDatabase extends _$AppDatabase {
       final rule = specific.isNotEmpty
           ? specific.first
           : (generic.isNotEmpty ? generic.first : null);
+      final ageMultiplier = MotorcycleSpecs.ageIntervalMultiplier(
+        motor?.manufactureYear,
+        model: motorModel,
+        componentName: comp.name,
+      );
 
       final effKm = (rule?.intervalKm != null && rule!.intervalKm! > 0)
-          ? rule.intervalKm! * usageMultiplier
-          : 4000.0;
+          ? rule.intervalKm! * usageMultiplier * ageMultiplier
+          : 4000.0 * ageMultiplier;
       final effDays = (rule?.intervalDays != null && rule!.intervalDays! > 0)
-          ? rule.intervalDays!
-          : 180;
+          ? (rule.intervalDays! * ageMultiplier).round().clamp(1, 3650)
+          : (180 * ageMultiplier).round().clamp(1, 3650);
 
       final usedKm = effKm * wear;
       final usedDays = (effDays * wear).round().clamp(1, 1500);
@@ -3078,9 +3416,58 @@ class AppDatabase extends _$AppDatabase {
   Future<void> recalculateComponentStatuses(int motorcycleId) =>
       transaction(() => _recalculateComponentStatuses(motorcycleId));
 
+  String _componentTechnicalContextNote({
+    required Motorcycle motor,
+    required MotorcycleModel? model,
+    required ComponentType component,
+    required double ageMultiplier,
+  }) {
+    final compLower = component.name.toLowerCase();
+    final twoStroke = MotorcycleSpecs.is2Stroke(model);
+    final carb = MotorcycleSpecs.isCarburetor(
+      model,
+      manufactureYear: motor.manufactureYear,
+    );
+    final isElectricalOrSeal =
+        compLower.contains('aki') ||
+        compLower.contains('suspensi') ||
+        compLower.contains('minyak rem') ||
+        compLower.contains('radiator');
+    final isFuelOrIgnition =
+        compLower.contains('busi') ||
+        compLower.contains('filter udara') ||
+        compLower.contains('knalpot') ||
+        compLower.contains('oli mesin');
+
+    final notes = <String>[];
+    if (twoStroke && isFuelOrIgnition) {
+      notes.add('mesin 2-tak');
+    } else if (carb && isFuelOrIgnition) {
+      notes.add('sistem karburator');
+    }
+
+    if (motor.manufactureYear <= 2015) {
+      final ageCat = MotorcycleSpecs.ageCategoryLabel(motor.manufactureYear);
+      if (isElectricalOrSeal) {
+        notes.add(
+          'motor ${motor.manufactureYear} ($ageCat, sensitivitas kelistrikan/seal)',
+        );
+      } else {
+        notes.add('motor ${motor.manufactureYear} ($ageCat)');
+      }
+    }
+
+    if (notes.isEmpty) return '';
+    final pct = (ageMultiplier * 100).round();
+    return ' Penyesuaian interval $pct% untuk ${notes.join(' & ')}.';
+  }
+
   Future<void> _recalculateComponentStatuses(int motorcycleId) async {
     final motor = await getMotorcycle(motorcycleId);
     if (motor == null) return;
+    final model = motor.modelId != null
+        ? await getMotorcycleModelById(motor.modelId!)
+        : null;
     final current = (await getLatestOdometer(motorcycleId))?.odometerKm;
     final history = await getAllServiceItemsForMotorcycle(motorcycleId);
     final components = await getApplicableComponentsForModel(motor.modelId);
@@ -3126,18 +3513,33 @@ class AppDatabase extends _$AppDatabase {
           )
           .toList();
       final replaced = replacements.isEmpty ? null : replacements.first.record;
+      final ageMultiplier = MotorcycleSpecs.ageIntervalMultiplier(
+        motor.manufactureYear,
+        model: model,
+        componentName: component.name,
+      );
+      final contextNote = _componentTechnicalContextNote(
+        motor: motor,
+        model: model,
+        component: component,
+        ageMultiplier: ageMultiplier,
+      );
+      final effectiveIntervalKm =
+          (rule?.intervalKm != null && rule!.intervalKm! > 0)
+          ? rule.intervalKm! * usageMultiplier * ageMultiplier
+          : null;
+      final effectiveIntervalDays =
+          (rule?.intervalDays != null && rule!.intervalDays! > 0)
+          ? (rule.intervalDays! * ageMultiplier).round().clamp(1, 3650)
+          : null;
 
       String state = 'unknown';
       String explanation =
-          'Belum ada data perawatan dan interval tervalidasi untuk ${component.name}.';
+          'Belum ada data perawatan dan interval tervalidasi untuk ${component.name}.$contextNote';
       double? score;
       double? confidence;
 
       if (rule != null && replaced != null) {
-        final effectiveIntervalKm =
-            (rule.intervalKm != null && rule.intervalKm! > 0)
-            ? rule.intervalKm! * usageMultiplier
-            : null;
         final km = (current != null && replaced.odometerKm != null)
             ? current - replaced.odometerKm!
             : null;
@@ -3148,7 +3550,9 @@ class AppDatabase extends _$AppDatabase {
             effectiveIntervalKm != null &&
             effectiveIntervalKm > 0;
         final daysValid =
-            days >= 0 && rule.intervalDays != null && rule.intervalDays! > 0;
+            days >= 0 &&
+            effectiveIntervalDays != null &&
+            effectiveIntervalDays > 0;
         if (kmValid || daysValid) {
           final kmFraction =
               (km != null &&
@@ -3156,17 +3560,18 @@ class AppDatabase extends _$AppDatabase {
                   effectiveIntervalKm > 0)
               ? km / effectiveIntervalKm
               : 0.0;
-          final dayFraction = daysValid ? days / rule.intervalDays! : 0.0;
+          final dayFraction =
+              daysValid ? days / effectiveIntervalDays : 0.0;
           final progress = kmFraction > dayFraction ? kmFraction : dayFraction;
           if (progress >= 0.7) {
             state = 'inspect';
             explanation = progress >= 1
-                ? 'Jadwal perawatan ${component.name} telah tercapai; periksakan sesuai panduan pabrikan.'
-                : 'Jadwal perawatan ${component.name} mulai mendekat; rencanakan pemeriksaan.';
+                ? 'Jadwal perawatan ${component.name} telah tercapai; periksakan sesuai panduan pabrikan.$contextNote'
+                : 'Jadwal perawatan ${component.name} mulai mendekat; rencanakan pemeriksaan.$contextNote';
           } else {
             state = 'good';
             explanation =
-                'Belum mencapai jadwal perawatan estimasi ${component.name}; ini bukan pengukuran kondisi fisik.';
+                'Belum mencapai jadwal perawatan estimasi ${component.name}; ini bukan pengukuran kondisi fisik.$contextNote';
           }
           score = (100 * (1 - progress.clamp(0.0, 1.0)))
               .clamp(0.0, 100.0)
@@ -3175,10 +3580,27 @@ class AppDatabase extends _$AppDatabase {
         }
       } else if (rule == null) {
         explanation =
-            'Interval ${component.name} belum diverifikasi untuk model ini. Periksa buku manual atau bengkel.';
+            'Interval ${component.name} belum diverifikasi untuk model ini. Periksa buku manual atau bengkel.$contextNote';
       } else {
+        final intervalHints = <String>[
+          if (effectiveIntervalKm != null) '${effectiveIntervalKm.round()} km',
+          if (effectiveIntervalDays != null) '$effectiveIntervalDays hari',
+        ];
+        final intervalText = intervalHints.isNotEmpty
+            ? ' (estimasi interval ${intervalHints.join(' / ')})'
+            : '';
+        final fuelLabel = MotorcycleSpecs.fuelSystemLabel(
+          model,
+          manufactureYear: motor.manufactureYear,
+        );
+        final ageLabel = MotorcycleSpecs.ageCategoryLabel(
+          motor.manufactureYear,
+        );
+        final baselineNote = contextNote.isNotEmpty
+            ? contextNote
+            : ' Baseline untuk motor ${motor.manufactureYear} ($ageLabel, $fuelLabel).';
         explanation =
-            'Belum ada riwayat penggantian ${component.name}; pemeriksaan awal diperlukan.';
+            'Belum ada riwayat penggantian ${component.name}; pemeriksaan awal diperlukan$intervalText.$baselineNote';
       }
 
       // Integrate self-inspection findings

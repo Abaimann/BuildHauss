@@ -10,6 +10,7 @@ import '../../../../core/notifications/notification_id_generator.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/formatters.dart';
 
 class RemindersScreen extends ConsumerStatefulWidget {
   final int? motorcycleId;
@@ -39,37 +40,89 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
     try {
       final db = ref.read(databaseProvider);
       final notifService = ref.read(notificationServiceProvider);
-      final inserted = await ReminderSampleHelper.createSampleRemindersAndNotify(
+      final result =
+          await ReminderSampleHelper.createSampleRemindersWithStatus(
         db: db,
         notificationService: notifService,
         motor: motor,
       );
       ref.invalidate(remindersProvider(motor.id));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              inserted > 0
-                  ? 'Ditambahkan $inserted contoh pengingat & notifikasi contoh dikirim!'
-                  : 'Notifikasi contoh dikirim ke perangkat Anda!',
+      if (!mounted) return;
+      if (result.notificationShown) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Notifikasi pengingat telah dikirim ke bar notifikasi HP Anda!',
+              ),
+              behavior: SnackBarBehavior.floating,
             ),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          );
+      } else {
+        await _showNotificationPermissionDialog(motor);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal membuat contoh pengingat: $e'),
-            backgroundColor: BuildHausTheme.danger,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text('Gagal membuat contoh pengingat: $e'),
+              backgroundColor: BuildHausTheme.danger,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
       }
     } finally {
       if (mounted) setState(() => _isSendingSample = false);
     }
+  }
+
+  Future<void> _showNotificationPermissionDialog(Motorcycle motor) {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(
+              Icons.notifications_off_outlined,
+              color: BuildHausTheme.warn,
+              size: 22,
+            ),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Izin Notifikasi Belum Aktif',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        content: const SingleChildScrollView(
+          child: Text(
+            'Izin notifikasi HP (Android 13+) belum diaktifkan atau belum diberikan, sehingga notifikasi pengingat belum dapat ditampilkan.\n\n'
+            'Silakan aktifkan melalui:\n'
+            'Pengaturan HP > Aplikasi > BuildHaus > Notifikasi > Izinkan Notifikasi.',
+            style: TextStyle(fontSize: 13, height: 1.45),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Mengerti'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _triggerSampleReminder(motor);
+            },
+            child: const Text('Coba Lagi'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _syncReminders(int motorId) async {
@@ -130,6 +183,29 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
     return motors.where((m) => m.id == requestedId).firstOrNull;
   }
 
+  Widget _buildTestNotifButton(Motorcycle motor) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        key: const ValueKey('sample_reminder_button'),
+        onPressed: _isSendingSample ? null : () => _triggerSampleReminder(motor),
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(double.infinity, 44),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        ),
+        icon: const Icon(Icons.notifications_active_outlined, size: 17),
+        label: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            _isSendingSample ? 'Mengirim...' : 'Cek Notif di HP Saya',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final motors = ref.watch(motorcyclesProvider).valueOrNull ?? [];
@@ -142,18 +218,33 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
 
     if (activeMotor == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Pengingat Perawatan')),
+        appBar: AppBar(
+          title: const Text(
+            'Pengingat Perawatan',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
         body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Pilih sepeda motor aktif terlebih dahulu.'),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: () => context.pop(),
-                child: const Text('Kembali'),
-              ),
-            ],
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Pilih sepeda motor aktif terlebih dahulu.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () => context.pop(),
+                  child: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Kembali', maxLines: 1),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -173,12 +264,20 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Pengingat Perawatan', style: TextStyle(fontSize: 16)),
+            const Text(
+              'Pengingat Perawatan',
+              style: TextStyle(fontSize: 16),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             Text(
               activeMotor.nickname,
               style: TextStyle(fontSize: 11, color: context.muted),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -199,7 +298,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             tooltip: 'Tambah Pengingat Manual',
             onPressed: () => _showAddReminderDialog(context, activeMotor.id),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
       body: remindersAsync.when(
@@ -207,57 +306,114 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
         error: (err, _) => Center(child: Text('Terjadi kesalahan: $err')),
         data: (reminders) {
           if (reminders.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        color: context.surface2,
-                        shape: BoxShape.circle,
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: context.surface2,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: context.line),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade700.withValues(
+                                alpha: 0.12,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.notifications_active_outlined,
+                              color: Colors.amber.shade700,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Tes Notifikasi di HP',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: context.ink,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  'Coba kirim contoh pengingat ke bar notifikasi HP Anda.',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: context.muted,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      child: const Icon(
-                        Icons.notifications_none_outlined,
-                        size: 36,
-                        color: Colors.amber,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Belum Ada Pengingat',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Sinkronkan pengingat otomatis berdasarkan interval servis motor Anda atau buat pengingat baru.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: context.muted),
-                    ),
-                    const SizedBox(height: 20),
-                    FilledButton.icon(
-                      onPressed: () => _syncReminders(activeMotor.id),
-                      icon: const Icon(Icons.sync, size: 18),
-                      label: const Text('Sinkronkan Sekarang'),
-                    ),
-                    const SizedBox(height: 10),
-                    OutlinedButton.icon(
-                      key: const ValueKey('sample_reminder_button'),
-                      onPressed: _isSendingSample
-                          ? null
-                          : () => _triggerSampleReminder(activeMotor),
-                      icon: const Icon(
-                        Icons.notifications_active_outlined,
-                        size: 18,
-                      ),
-                      label: const Text('Contoh Pengingat'),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      _buildTestNotifButton(activeMotor),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 32),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: context.surface2,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.notifications_none_outlined,
+                          size: 36,
+                          color: Colors.amber,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Belum Ada Pengingat',
+                        style: Theme.of(context).textTheme.titleMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Sinkronkan pengingat otomatis berdasarkan interval servis motor Anda atau ketuk tombol di atas untuk tes notifikasi.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12, color: context.muted),
+                      ),
+                      const SizedBox(height: 20),
+                      FilledButton.icon(
+                        onPressed: () => _syncReminders(activeMotor.id),
+                        icon: const Icon(Icons.sync, size: 18),
+                        label: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('Sinkronkan Sekarang', maxLines: 1),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             );
           }
 
@@ -304,6 +460,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                                   fontSize: 14,
                                   color: context.ink,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 'Total ${reminders.length} pengingat terjadwal untuk ${activeMotor.nickname}',
@@ -311,6 +469,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                                   fontSize: 11,
                                   color: context.muted,
                                 ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -318,24 +478,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        key: const ValueKey('sample_reminder_button'),
-                        onPressed: _isSendingSample
-                            ? null
-                            : () => _triggerSampleReminder(activeMotor),
-                        icon: const Icon(
-                          Icons.notifications_active_outlined,
-                          size: 16,
-                        ),
-                        label: Text(
-                          _isSendingSample
-                              ? 'Mengirim...'
-                              : 'Contoh Pengingat',
-                        ),
-                      ),
-                    ),
+                    _buildTestNotifButton(activeMotor),
                   ],
                 ),
               ),
@@ -386,7 +529,7 @@ class _ReminderCardItem extends ConsumerWidget {
 
     String odoStr = '';
     if (reminder.dueOdometerKm != null) {
-      odoStr = '${reminder.dueOdometerKm!.toStringAsFixed(0)} km';
+      odoStr = '${Formatters.formatOdometer(reminder.dueOdometerKm!)} km';
     }
 
     IconData icon = Icons.build_outlined;
@@ -437,10 +580,14 @@ class _ReminderCardItem extends ConsumerWidget {
                           fontSize: 13,
                           color: isEnabled ? context.ink : context.muted,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 4),
                     Switch(
                       value: isEnabled,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       onChanged: (val) async {
                         await db.setReminderEnabled(reminder.id, val);
                         onChanged();
@@ -449,33 +596,60 @@ class _ReminderCardItem extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Row(
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 12,
-                      color: context.muted,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 12,
+                          color: context.muted,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            dateStr,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: context.muted,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      dateStr,
-                      style: TextStyle(fontSize: 11, color: context.muted),
-                    ),
-                    if (odoStr.isNotEmpty) ...[
-                      const SizedBox(width: 12),
-                      Icon(Icons.speed, size: 12, color: context.muted),
-                      const SizedBox(width: 4),
-                      Text(
-                        odoStr,
-                        style: TextStyle(fontSize: 11, color: context.muted),
+                    if (odoStr.isNotEmpty)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.speed, size: 12, color: context.muted),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              odoStr,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: context.muted,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
                   ],
                 ),
               ],
             ),
           ),
           IconButton(
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            padding: const EdgeInsets.all(6),
             icon: const Icon(Icons.delete_outline, size: 18),
             color: context.muted,
             onPressed: () async {
@@ -547,135 +721,175 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
         20,
         MediaQuery.of(context).viewInsets.bottom + 20,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Tambah Pengingat Perawatan',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 16),
-
-          // Tipe pengingat
-          DropdownButtonFormField<String>(
-            initialValue: _selectedType,
-            decoration: const InputDecoration(labelText: 'Tipe Pengingat'),
-            items: const [
-              DropdownMenuItem(
-                value: 'date',
-                child: Text('Jadwal Servis / Ganti Part'),
-              ),
-              DropdownMenuItem(
-                value: 'odometer',
-                child: Text('Pembaruan Odometer'),
-              ),
-              DropdownMenuItem(
-                value: 'inspection',
-                child: Text('Pemeriksaan Mandiri'),
-              ),
-            ],
-            onChanged: (val) {
-              if (val != null) setState(() => _selectedType = val);
-            },
-          ),
-          const SizedBox(height: 14),
-
-          // Tanggal Pengingat
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.calendar_today_outlined),
-            title: const Text(
-              'Tanggal Pengingat',
-              style: TextStyle(fontSize: 13),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tambah Pengingat Perawatan',
+              style: Theme.of(context).textTheme.titleMedium,
             ),
-            subtitle: Text(
-              DateFormat('dd MMMM yyyy').format(_selectedDate),
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            trailing: TextButton(
-              onPressed: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: _selectedDate,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 365)),
-                );
-                if (picked != null) {
-                  setState(() => _selectedDate = picked);
-                }
+            const SizedBox(height: 16),
+
+            // Tipe pengingat
+            DropdownButtonFormField<String>(
+              initialValue: _selectedType,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Tipe Pengingat'),
+              items: const [
+                DropdownMenuItem(
+                  value: 'date',
+                  child: Text(
+                    'Jadwal Servis / Ganti Part',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'odometer',
+                  child: Text(
+                    'Pembaruan Odometer',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'inspection',
+                  child: Text(
+                    'Pemeriksaan Mandiri',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+              onChanged: (val) {
+                if (val != null) setState(() => _selectedType = val);
               },
-              child: const Text('Ubah'),
             ),
-          ),
-          const SizedBox(height: 10),
+            const SizedBox(height: 14),
 
-          // Target Kilometer (opsional)
-          TextField(
-            controller: _odoController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Target Kilometer (Opsional)',
-              hintText: 'Contoh: 15000',
-              suffixText: 'km',
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Action buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Batal'),
+            // Tanggal Pengingat
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.calendar_today_outlined),
+              title: const Text(
+                'Tanggal Pengingat',
+                style: TextStyle(fontSize: 13),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(width: 8),
-              Consumer(
-                builder: (context, ref, _) {
-                  return FilledButton(
-                    onPressed: () async {
-                      final db = ref.read(databaseProvider);
-                      final odo = double.tryParse(_odoController.text.trim());
-                      final notifId = NotificationIdGenerator.forManual(
-                        widget.motorId,
-                        DateTime.now().millisecondsSinceEpoch % 9999,
-                      );
+              subtitle: Text(
+                DateFormat('dd MMMM yyyy').format(_selectedDate),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: TextButton(
+                style: TextButton.styleFrom(
+                  minimumSize: Size.zero,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (picked != null) {
+                    setState(() => _selectedDate = picked);
+                  }
+                },
+                child: const Text('Ubah'),
+              ),
+            ),
+            const SizedBox(height: 10),
 
-                      await db.insertReminder(
-                        LocalRemindersCompanion.insert(
-                          motorcycleId: widget.motorId,
-                          componentTypeId: Value(_selectedComponentTypeId),
-                          reminderType: _selectedType,
-                          dueOdometerKm: Value(odo),
-                          dueDate: Value(_selectedDate),
-                          enabled: const Value(true),
-                          lastScheduledAt: Value(DateTime.now()),
-                          notificationId: Value(notifId),
+            // Target Kilometer (opsional)
+            TextField(
+              controller: _odoController,
+              keyboardType: TextInputType.number,
+              inputFormatters: const [OdometerTextInputFormatter()],
+              decoration: const InputDecoration(
+                labelText: 'Target Kilometer (Opsional)',
+                hintText: 'Contoh: 15.000',
+                suffixText: 'km',
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Action buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Flexible(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('Batal', maxLines: 1),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      return FilledButton(
+                        onPressed: () async {
+                          final db = ref.read(databaseProvider);
+                          final odo = Formatters.parseOdometerDouble(
+                            _odoController.text,
+                          );
+                          final notifId = NotificationIdGenerator.forManual(
+                            widget.motorId,
+                            DateTime.now().millisecondsSinceEpoch % 9999,
+                          );
+
+                          await db.insertReminder(
+                            LocalRemindersCompanion.insert(
+                              motorcycleId: widget.motorId,
+                              componentTypeId: Value(_selectedComponentTypeId),
+                              reminderType: _selectedType,
+                              dueOdometerKm: Value(odo),
+                              dueDate: Value(_selectedDate),
+                              enabled: const Value(true),
+                              lastScheduledAt: Value(DateTime.now()),
+                              notificationId: Value(notifId),
+                            ),
+                          );
+
+                          // Schedule notification
+                          final notifService = ref.read(
+                            notificationServiceProvider,
+                          );
+                          await notifService.scheduleNotification(
+                            id: notifId,
+                            title: 'Pengingat Perawatan Motor',
+                            body:
+                                'Waktunya melakukan perawatan terjadwal motor Anda.',
+                            scheduledDate: _selectedDate,
+                          );
+
+                          if (context.mounted) Navigator.pop(context);
+                        },
+                        child: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('Simpan Pengingat', maxLines: 1),
                         ),
                       );
-
-                      // Schedule notification
-                      final notifService = ref.read(
-                        notificationServiceProvider,
-                      );
-                      await notifService.scheduleNotification(
-                        id: notifId,
-                        title: 'Pengingat Perawatan Motor',
-                        body:
-                            'Waktunya melakukan perawatan terjadwal motor Anda.',
-                        scheduledDate: _selectedDate,
-                      );
-
-                      if (context.mounted) Navigator.pop(context);
                     },
-                    child: const Text('Simpan Pengingat'),
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

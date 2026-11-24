@@ -1,4 +1,5 @@
 import '../database/app_database.dart';
+import 'motorcycle_specs.dart';
 import 'self_inspection_engine.dart';
 
 /// Health calculation engine for BuildHaus.
@@ -22,6 +23,8 @@ class HealthEngine {
   final int? _motorcycleModelId;
   final List<InspectionFinding>? _inspectionFindings;
   final List<Complaint>? complaints;
+  final int? manufactureYear;
+  final MotorcycleModel? motorcycleModel;
 
   HealthEngine({
     required this.statuses,
@@ -35,6 +38,8 @@ class HealthEngine {
     int? motorcycleModelId,
     List<InspectionFinding>? inspectionFindings,
     this.complaints,
+    this.manufactureYear,
+    this.motorcycleModel,
   }) : _serviceRecords = serviceRecords,
        _rules = rules,
        _componentTypes = componentTypes,
@@ -78,8 +83,26 @@ class HealthEngine {
       orElse: () => matchingRules.first,
     );
 
-    final intervalKm = selectedRule.intervalKm;
-    final intervalDays = selectedRule.intervalDays;
+    final component = _componentTypes
+        .where((c) => c.id == componentTypeId)
+        .firstOrNull;
+
+    final ageMultiplier = MotorcycleSpecs.ageIntervalMultiplier(
+      manufactureYear,
+      model: motorcycleModel,
+      componentName: component?.name,
+    );
+
+    final intervalKm = selectedRule.intervalKm != null
+        ? selectedRule.intervalKm! * ageMultiplier
+        : null;
+    final intervalDays = selectedRule.intervalDays != null
+        ? (selectedRule.intervalDays! > 0
+              ? (selectedRule.intervalDays! * ageMultiplier)
+                    .round()
+                    .clamp(1, 36500)
+              : 0)
+        : null;
 
     if (intervalKm == null && intervalDays == null) {
       return ComponentHealthResult(
@@ -178,6 +201,7 @@ class HealthEngine {
 
     // Apply usage multiplier (e.g. jarak jauh reduces effective interval by 20%)
     final usageMultiplier = _usageProfile == 'jarak_jauh' ? 0.8 : 1.0;
+    final ageNote = _buildAgeAdjustmentNote(ageMultiplier);
 
     String status = 'good';
     int score = 80;
@@ -217,11 +241,11 @@ class HealthEngine {
       }
     }
 
-    // 4. Integrate Self-Inspection Findings
-    final component = _componentTypes
-        .where((c) => c.id == componentTypeId)
-        .firstOrNull;
+    if (ageNote != null && explanation.isNotEmpty) {
+      explanation = '$explanation $ageNote';
+    }
 
+    // 4. Integrate Self-Inspection Findings
     if (_inspectionFindings != null && component != null) {
       final finding = _inspectionFindings
           .where(
@@ -283,6 +307,10 @@ class HealthEngine {
       }
     }
 
+    if (ageNote != null && !explanation.contains(ageNote)) {
+      explanation = '$explanation $ageNote';
+    }
+
     return ComponentHealthResult(
       status: status,
       score: score.clamp(0, 100),
@@ -294,6 +322,35 @@ class HealthEngine {
       intervalDays: intervalDays,
       lastInspectionDate: lastInspectionDate,
     );
+  }
+
+  String? _buildAgeAdjustmentNote(double ageMultiplier) {
+    if ((ageMultiplier - 1.0).abs() < 0.001) return null;
+
+    final factors = <String>[];
+    if (MotorcycleSpecs.is2Stroke(motorcycleModel)) {
+      factors.add('2-Tak');
+    } else if (MotorcycleSpecs.isCarburetor(
+      motorcycleModel,
+      manufactureYear: manufactureYear,
+    )) {
+      factors.add('Karburator');
+    }
+
+    if (manufactureYear != null) {
+      final age = DateTime.now().year - manufactureYear!;
+      if (age > 20 || manufactureYear! <= 2004) {
+        factors.add('usia motor >20 th ($manufactureYear)');
+      } else if (age > 10 || manufactureYear! <= 2015) {
+        factors.add('usia motor >10 th ($manufactureYear)');
+      }
+    }
+
+    final factorLabel = factors.isEmpty
+        ? 'tahun/tipe motor'
+        : factors.join(' • ');
+    final pct = (ageMultiplier * 100).round();
+    return 'Penyesuaian $factorLabel: interval perawatan disesuaikan menjadi $pct%.';
   }
 
   ComponentHealthResult _buildUnknownResult({

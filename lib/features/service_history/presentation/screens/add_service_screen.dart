@@ -43,8 +43,10 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
     final targetMotorId =
         widget.motorcycleId ?? ref.read(activeMotorcycleProvider)?.id;
     Motorcycle? targetMotor;
+    OdometerLog? latestOdo;
     if (targetMotorId != null) {
       targetMotor = await db.getMotorcycle(targetMotorId);
+      latestOdo = await db.getLatestOdometer(targetMotorId);
     }
     final types = await db.getApplicableComponentsForModel(
       targetMotor?.modelId,
@@ -52,6 +54,11 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
     if (mounted) {
       setState(() {
         _componentTypes = types;
+        if (latestOdo != null && _odometerController.text.isEmpty) {
+          _odometerController.text = Formatters.formatOdometer(
+            latestOdo.odometerKm,
+          );
+        }
         if (widget.isOilChange && _items.isEmpty && types.isNotEmpty) {
           final oilComp = types.firstWhere(
             (c) => c.name.toLowerCase().contains('oli'),
@@ -137,11 +144,15 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                 ),
                 child: Row(
                   children: [
-                    Text(
-                      Formatters.date(_servicedAt),
-                      style: TextStyle(color: context.ink),
+                    Expanded(
+                      child: Text(
+                        Formatters.date(_servicedAt),
+                        style: TextStyle(color: context.ink),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     Icon(Icons.calendar_today, size: 18, color: context.muted),
                   ],
                 ),
@@ -180,10 +191,11 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
             TextFormField(
               controller: _odometerController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(hintText: 'Contoh: 12480'),
+              inputFormatters: const [OdometerTextInputFormatter()],
+              decoration: const InputDecoration(hintText: 'Contoh: 14.500'),
               validator: (v) {
-                if (v != null && v.isNotEmpty) {
-                  final n = double.tryParse(v);
+                if (v != null && v.trim().isNotEmpty) {
+                  final n = Formatters.parseOdometerDouble(v);
                   if (n == null || n < 0) return 'Masukkan angka valid';
                 }
                 return null;
@@ -213,15 +225,22 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
             // Service items
             Row(
               children: [
-                Text(
-                  'Item Servis',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Expanded(
+                  child: Text(
+                    'Item Servis',
+                    style: Theme.of(context).textTheme.titleMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: _addItem,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Tambah'),
+                const SizedBox(width: 8),
+                Flexible(
+                  flex: 0,
+                  child: TextButton.icon(
+                    onPressed: _addItem,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Tambah'),
+                  ),
                 ),
               ],
             ),
@@ -262,7 +281,14 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Simpan Servis'),
+                  : const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Simpan Servis',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
             ),
           ],
         ),
@@ -287,6 +313,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
               Expanded(
                 child: DropdownButtonFormField<int?>(
                   initialValue: item.componentTypeId,
+                  isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Komponen',
                     contentPadding: EdgeInsets.symmetric(
@@ -297,7 +324,11 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                   items: _componentTypes.map((ct) {
                     return DropdownMenuItem<int?>(
                       value: ct.id,
-                      child: Text(ct.name),
+                      child: Text(
+                        ct.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     );
                   }).toList(),
                   onChanged: (v) {
@@ -322,6 +353,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
               Expanded(
                 child: DropdownButtonFormField<String>(
                   initialValue: item.action,
+                  isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Aksi',
                     contentPadding: EdgeInsets.symmetric(
@@ -409,6 +441,9 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   }
 
   Future<void> _save() async {
+    if (!(_formKey.currentState?.validate() ?? true)) {
+      return;
+    }
     if (_items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Tambahkan minimal satu item servis')),
@@ -432,7 +467,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
 
       final odoText = _odometerController.text.trim();
       double? odo;
-      if (odoText.isNotEmpty) odo = double.tryParse(odoText);
+      if (odoText.isNotEmpty) odo = Formatters.parseOdometerDouble(odoText);
 
       final totalCost = _items.fold<int>(
         0,

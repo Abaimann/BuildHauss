@@ -224,25 +224,20 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                             const SizedBox(height: 14),
                           ],
 
-                          _FieldLabel('Email atau Nomor HP'),
+                          _FieldLabel('Email'),
                           TextFormField(
                             key: const ValueKey('auth_email_field'),
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             decoration: const InputDecoration(
-                              hintText: 'Contoh: budi@email.com',
+                              hintText: 'Contoh: rider@email.com',
                               prefixIcon: Icon(
                                 Icons.alternate_email_rounded,
                                 size: 20,
                               ),
                             ),
-                            validator: (v) {
-                              if (v == null || v.trim().isEmpty) {
-                                return 'Email atau nomor HP wajib diisi';
-                              }
-                              return null;
-                            },
+                            validator: AuthNotifier.validateEmail,
                           ),
                           const SizedBox(height: 14),
 
@@ -254,11 +249,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                             textInputAction: _isRegister
                                 ? TextInputAction.next
                                 : TextInputAction.done,
+                            onChanged: (_) {
+                              if (_isRegister) {
+                                setState(() {});
+                              }
+                            },
                             onFieldSubmitted: (_) {
                               if (!_isRegister) _submit();
                             },
                             decoration: InputDecoration(
-                              hintText: 'Minimal 4 karakter',
+                              hintText: _isRegister
+                                  ? 'Min. 8 karakter, kapital & angka'
+                                  : 'Masukkan kata sandi',
                               prefixIcon: const Icon(
                                 Icons.lock_outline_rounded,
                                 size: 20,
@@ -276,17 +278,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) {
-                                return 'Kata sandi wajib diisi';
+                              final value = v ?? '';
+                              if (_isRegister) {
+                                return AuthNotifier.validatePassword(value);
                               }
-                              if (_isRegister && v.length < 4) {
-                                return 'Kata sandi minimal 4 karakter';
+                              if (value.isEmpty) {
+                                return 'Kata sandi wajib diisi.';
                               }
                               return null;
                             },
                           ),
 
                           if (_isRegister) ...[
+                            const SizedBox(height: 10),
+                            _PasswordRequirementsChecklist(
+                              password: _passwordController.text,
+                            ),
                             const SizedBox(height: 14),
                             _FieldLabel('Konfirmasi Kata Sandi'),
                             TextFormField(
@@ -380,10 +387,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                           : Icons.login_rounded,
                                       size: 18,
                                     ),
-                              label: Text(
-                                _isRegister
-                                    ? 'Daftar & Setup Motor Pertama'
-                                    : 'Masuk ke Aplikasi',
+                              label: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  _isRegister
+                                      ? 'Daftar & Setup Motor Pertama'
+                                      : 'Masuk ke Aplikasi',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ),
                           ),
@@ -447,7 +459,7 @@ class _ModeTabButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 11),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
         decoration: BoxDecoration(
           color: selected ? context.ink : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
@@ -464,17 +476,132 @@ class _ModeTabButton extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: selected ? context.bg : context.muted,
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _PasswordRequirementsChecklist extends StatelessWidget {
+  final String password;
+
+  const _PasswordRequirementsChecklist({required this.password});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasMinLength = password.length >= 8;
+    final hasSpace = password.contains(RegExp(r'\s'));
+    final hasNoSpace = password.isNotEmpty && !hasSpace;
+    final hasUppercase = password.contains(RegExp(r'[A-Z]'));
+    final hasDigit = password.contains(RegExp(r'[0-9]'));
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: context.surface2,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: hasSpace
+              ? BuildHausTheme.danger.withValues(alpha: 0.45)
+              : context.line,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Syarat kata sandi:',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: context.ink2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          _RequirementRow(
+            label: 'Minimal 8 karakter',
+            met: hasMinLength,
+          ),
+          const SizedBox(height: 4),
+          _RequirementRow(
+            label: 'Tidak mengandung spasi',
+            met: hasNoSpace,
+            hasError: hasSpace,
+          ),
+          const SizedBox(height: 4),
+          _RequirementRow(
+            label: 'Minimal 1 huruf kapital (A-Z)',
+            met: hasUppercase,
+          ),
+          const SizedBox(height: 4),
+          _RequirementRow(
+            label: 'Minimal 1 angka (0-9)',
+            met: hasDigit,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RequirementRow extends StatelessWidget {
+  final String label;
+  final bool met;
+  final bool hasError;
+
+  const _RequirementRow({
+    required this.label,
+    required this.met,
+    this.hasError = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final IconData icon;
+    final Color iconColor;
+    final Color textColor;
+
+    if (hasError) {
+      icon = Icons.cancel_rounded;
+      iconColor = BuildHausTheme.danger;
+      textColor = BuildHausTheme.danger;
+    } else if (met) {
+      icon = Icons.check_circle_rounded;
+      iconColor = BuildHausTheme.ok;
+      textColor = context.ink;
+    } else {
+      icon = Icons.radio_button_unchecked_rounded;
+      iconColor = context.muted;
+      textColor = context.muted;
+    }
+
+    return Row(
+      children: [
+        Icon(icon, size: 15, color: iconColor),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: (met || hasError) ? FontWeight.w600 : FontWeight.w500,
+              color: textColor,
+              height: 1.3,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

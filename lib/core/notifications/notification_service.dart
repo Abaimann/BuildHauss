@@ -8,6 +8,7 @@ import 'package:timezone/timezone.dart' as tz;
 class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin;
   bool _isInitialized = false;
+  bool _lastShowHadError = false;
 
   NotificationService({FlutterLocalNotificationsPlugin? plugin})
     : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
@@ -64,7 +65,8 @@ class NotificationService {
       if (androidImplementation != null) {
         final granted = await androidImplementation
             .requestNotificationsPermission();
-        return granted ?? false;
+        if (granted != null) return granted;
+        return await areNotificationsEnabled();
       }
     } catch (e) {
       debugPrint('Error requesting notification permission: $e');
@@ -91,6 +93,42 @@ class NotificationService {
     return true;
   }
 
+  /// Meminta izin notifikasi (Android 13+) sekaligus memverifikasi apakah
+  /// notifikasi benar-benar diizinkan oleh sistem operasi.
+  Future<bool> requestAndCheckPermission() async {
+    if (!_isInitialized) await initialize();
+    final requested = await requestPermission();
+    final enabled = await areNotificationsEnabled();
+    return requested && enabled;
+  }
+
+  /// Memeriksa izin OS lalu mengirim notifikasi tes/pratinjau segera.
+  /// Mengembalikan `true` bila diizinkan & terkirim, atau `false` bila ditolak OS.
+  Future<bool> showImmediateTestNotification({
+    required int id,
+    required String title,
+    required String body,
+    String? payload,
+    String channelId = 'buildhaus_reminders',
+    String channelName = 'Pengingat Perawatan BuildHaus',
+    String channelDescription =
+        'Notifikasi jadwal servis, ganti oli, odometer, dan keluhan motor',
+  }) async {
+    final permitted = await requestAndCheckPermission();
+    if (!permitted) return false;
+
+    await showNotification(
+      id: id,
+      title: title,
+      body: body,
+      payload: payload,
+      channelId: channelId,
+      channelName: channelName,
+      channelDescription: channelDescription,
+    );
+    return !_lastShowHadError;
+  }
+
   /// Displays an immediate notification.
   Future<void> showNotification({
     required int id,
@@ -102,6 +140,7 @@ class NotificationService {
     String channelDescription =
         'Notifikasi jadwal servis, ganti oli, odometer, dan keluhan motor',
   }) async {
+    _lastShowHadError = false;
     if (!_isInitialized) await initialize();
 
     final androidDetails = AndroidNotificationDetails(
@@ -118,6 +157,7 @@ class NotificationService {
     try {
       await _plugin.show(id, title, body, details, payload: payload);
     } catch (e) {
+      _lastShowHadError = true;
       debugPrint('Error showing notification: $e');
     }
   }

@@ -144,13 +144,13 @@ void main() {
       final err = await notifier.register(
         name: 'Rider Uji',
         email: 'rider@uji.id',
-        password: 'supersecret123',
+        password: 'SuperSecret123',
       );
       expect(err, isNull);
 
       final raw = await db.getSetting('registered_users_json');
       expect(raw, isNotNull);
-      expect(raw!.contains('supersecret123'), isFalse);
+      expect(raw!.contains('SuperSecret123'), isFalse);
 
       final list = jsonDecode(raw) as List<dynamic>;
       final stored = Map<String, dynamic>.from(list.first as Map);
@@ -167,7 +167,7 @@ void main() {
 
       final okLogin = await notifier.login(
         email: 'rider@uji.id',
-        password: 'supersecret123',
+        password: 'SuperSecret123',
       );
       expect(okLogin, isNull);
     });
@@ -205,10 +205,11 @@ void main() {
     });
   });
 
-  group('Tahap 02 — Katalog Fitment 4 Merek, Ringkasan Biaya & Index v6', () {
-    test('Keempat merek (Honda, Yamaha, Suzuki, Kawasaki) memiliki fitment terverifikasi', () async {
+  group('Tahap 02 — Katalog Fitment 3 Merek (Honda, Yamaha, Kawasaki), Ringkasan Biaya & Index v6', () {
+    test('Ketiga merek resmi (Honda, Yamaha, Kawasaki) memiliki fitment terverifikasi tanpa Suzuki', () async {
       final models = await db.getAllMotorcycleModels();
-      for (final brand in ['Honda', 'Yamaha', 'Suzuki', 'Kawasaki']) {
+      expect(models.any((m) => m.brand == 'Suzuki'), isFalse);
+      for (final brand in ['Honda', 'Yamaha', 'Kawasaki']) {
         final brandModels = models.where((m) => m.brand == brand).toList();
         expect(brandModels, isNotEmpty);
         int verifiedCount = 0;
@@ -428,7 +429,7 @@ void main() {
         expect(complaints, isNotEmpty);
         expect(reminders, isNotEmpty);
 
-        if (model.model.contains('Smash') || model.model.contains('W175')) {
+        if (model.model.contains('KLX') || model.model.contains('W175')) {
           expect(compNames.contains('Rantai & gir'), isTrue);
           expect(compNames.contains('CVT'), isFalse);
           expect(compNames.contains('Oli gardan'), isFalse);
@@ -446,10 +447,10 @@ void main() {
         }
       }
 
-      expect(brands, {'Honda', 'Yamaha', 'Suzuki', 'Kawasaki'});
+      expect(brands, {'Honda', 'Yamaha', 'Kawasaki'});
       expect(
         modelNames,
-        {'Vario 160', 'NMAX', 'Smash FI', 'CBR150R', 'W175'},
+        {'Vario 160', 'NMAX', 'KLX 150', 'CBR150R', 'W175'},
       );
       final vario = motors.firstWhere((m) => m.nickname.contains('Vario'));
       expect((await db.getLatestOdometer(vario.id))?.odometerKm, 12450.0);

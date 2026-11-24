@@ -26,6 +26,7 @@ class AuthState {
   final String userName;
   final String userEmail;
   final String userInitial;
+  final String? avatarPath;
 
   const AuthState({
     this.isLoading = true,
@@ -34,6 +35,7 @@ class AuthState {
     this.userName = 'Rider BuildHaus',
     this.userEmail = '',
     this.userInitial = 'BH',
+    this.avatarPath,
   });
 
   AuthState copyWith({
@@ -43,6 +45,8 @@ class AuthState {
     String? userName,
     String? userEmail,
     String? userInitial,
+    String? avatarPath,
+    bool clearAvatarPath = false,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
@@ -52,6 +56,7 @@ class AuthState {
       userName: userName ?? this.userName,
       userEmail: userEmail ?? this.userEmail,
       userInitial: userInitial ?? this.userInitial,
+      avatarPath: clearAvatarPath ? null : (avatarPath ?? this.avatarPath),
     );
   }
 }
@@ -63,8 +68,48 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
 class AuthNotifier extends StateNotifier<AuthState> {
   final Ref ref;
 
+  static final RegExp _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
   AuthNotifier(this.ref) : super(const AuthState()) {
     _load();
+  }
+
+  /// Memvalidasi format email wajib isi.
+  static String? validateEmail(String? value) {
+    final clean = (value ?? '').trim();
+    if (clean.isEmpty) {
+      return 'Email wajib diisi.';
+    }
+    if (!_emailRegex.hasMatch(clean)) {
+      return 'Format email tidak valid. Contoh: rider@email.com';
+    }
+    return null;
+  }
+
+  /// Memvalidasi kekuatan kata sandi untuk pendaftaran akun baru.
+  static String? validatePassword(String? value) {
+    final password = value ?? '';
+    if (password.isEmpty) {
+      return 'Kata sandi wajib diisi.';
+    }
+    if (password.contains(RegExp(r'\s'))) {
+      return 'Kata sandi tidak boleh mengandung spasi.';
+    }
+    if (password.length < 8) {
+      return 'Kata sandi minimal 8 karakter.';
+    }
+    if (!password.contains(RegExp(r'[A-Z]'))) {
+      return 'Kata sandi harus mengandung minimal 1 huruf kapital.';
+    }
+    if (!password.contains(RegExp(r'[0-9]'))) {
+      return 'Kata sandi harus mengandung minimal 1 angka.';
+    }
+    return null;
+  }
+
+  static String? _normalizeAvatarPath(String? path) {
+    if (path == null || path.trim().isEmpty) return null;
+    return path;
   }
 
   static String _computeInitials(String name) {
@@ -90,6 +135,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final userEmail = await db.getSetting('user_email') ?? '';
     final userInitial =
         await db.getSetting('user_initial') ?? _computeInitials(userName);
+    final avatarPath = _normalizeAvatarPath(
+      await db.getSetting('user_avatar_path'),
+    );
     final motors = await db.getAllMotorcycles();
 
     if (loggedInVal == 'true') {
@@ -101,6 +149,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         userName: userName,
         userEmail: userEmail,
         userInitial: userInitial,
+        avatarPath: avatarPath,
       );
     } else {
       state = AuthState(
@@ -110,6 +159,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         userName: userName,
         userEmail: userEmail,
         userInitial: userInitial,
+        avatarPath: avatarPath,
       );
     }
   }
@@ -140,6 +190,34 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return sha256.convert(bytes).toString();
   }
 
+  /// Memperbarui path foto profil pengguna aktif dan menyinkronkannya ke DB.
+  Future<void> updateAvatarPath(String? path) async {
+    final db = ref.read(databaseProvider);
+    final cleanPath = _normalizeAvatarPath(path);
+    await db.setSetting('user_avatar_path', cleanPath ?? '');
+
+    final currentEmail = state.userEmail.trim().toLowerCase();
+    if (currentEmail.isNotEmpty) {
+      final users = await _getRegisteredUsers();
+      final idx = users.indexWhere(
+        (u) => (u['email']?.toString().toLowerCase() ?? '') == currentEmail,
+      );
+      if (idx >= 0) {
+        if (cleanPath == null) {
+          users[idx].remove('avatarPath');
+        } else {
+          users[idx]['avatarPath'] = cleanPath;
+        }
+        await db.setSetting('registered_users_json', jsonEncode(users));
+      }
+    }
+
+    state = state.copyWith(
+      avatarPath: cleanPath,
+      clearAvatarPath: cleanPath == null,
+    );
+  }
+
   Future<String?> register({
     required String name,
     required String email,
@@ -148,8 +226,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final cleanName = name.trim();
     final cleanEmail = email.trim().toLowerCase();
     if (cleanName.isEmpty) return 'Nama lengkap wajib diisi.';
-    if (cleanEmail.isEmpty) return 'Email atau nomor HP wajib diisi.';
-    if (password.length < 4) return 'Kata sandi minimal 4 karakter.';
+    final emailError = validateEmail(cleanEmail);
+    if (emailError != null) return emailError;
+    final passwordError = validatePassword(password);
+    if (passwordError != null) return passwordError;
 
     final db = ref.read(databaseProvider);
     final users = await _getRegisteredUsers();
@@ -157,7 +237,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       (u) => (u['email']?.toString().toLowerCase() ?? '') == cleanEmail,
     );
     if (existingIdx >= 0) {
-      return 'Email/akun ini sudah terdaftar. Silakan masuk melalui tab Masuk.';
+      return 'Email ini sudah terdaftar. Silakan masuk melalui tab Masuk.';
     }
 
     final initial = _computeInitials(cleanName);
@@ -177,6 +257,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await db.setSetting('user_name', cleanName);
     await db.setSetting('user_email', cleanEmail);
     await db.setSetting('user_initial', initial);
+    await db.setSetting('user_avatar_path', '');
     await db.setSetting('onboarding_completed', 'false');
 
     state = AuthState(
@@ -186,6 +267,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       userName: cleanName,
       userEmail: cleanEmail,
       userInitial: initial,
+      avatarPath: null,
     );
     return null;
   }
@@ -195,7 +277,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String password,
   }) async {
     final cleanEmail = email.trim().toLowerCase();
-    if (cleanEmail.isEmpty) return 'Masukkan email atau nomor HP Anda.';
+    final emailError = validateEmail(cleanEmail);
+    if (emailError != null) return emailError;
     if (password.isEmpty) return 'Masukkan kata sandi Anda.';
 
     final db = ref.read(databaseProvider);
@@ -235,6 +318,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final name = account['name']?.toString() ?? 'Rider BuildHaus';
     final initial =
         account['initial']?.toString() ?? _computeInitials(name);
+    final avatarPath = _normalizeAvatarPath(account['avatarPath']?.toString());
     final motors = await db.getAllMotorcycles();
     final hasMotors = motors.isNotEmpty;
 
@@ -242,6 +326,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await db.setSetting('user_name', name);
     await db.setSetting('user_email', cleanEmail);
     await db.setSetting('user_initial', initial);
+    await db.setSetting('user_avatar_path', avatarPath ?? '');
     await db.setSetting('onboarding_completed', hasMotors ? 'true' : 'false');
 
     state = AuthState(
@@ -251,6 +336,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       userName: name,
       userEmail: cleanEmail,
       userInitial: initial,
+      avatarPath: avatarPath,
     );
     return null;
   }
@@ -270,7 +356,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> refresh() => _load();
 }
 
-// Provider preferensi tema tampilan (Gelap / Terang / Mengikuti Sistem)
+// Provider preferensi tema tampilan (Gelap / Terang)
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
   ref,
 ) {
@@ -289,19 +375,16 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     final val = await db.getSetting('theme_mode');
     if (val == 'light') {
       state = ThemeMode.light;
-    } else if (val == 'system') {
-      state = ThemeMode.system;
     } else {
       state = ThemeMode.dark;
     }
   }
 
   Future<void> setTheme(ThemeMode mode) async {
-    state = mode;
+    final effectiveMode = mode == ThemeMode.system ? ThemeMode.dark : mode;
+    state = effectiveMode;
     final db = ref.read(databaseProvider);
-    String val = 'dark';
-    if (mode == ThemeMode.light) val = 'light';
-    if (mode == ThemeMode.system) val = 'system';
+    final val = effectiveMode == ThemeMode.light ? 'light' : 'dark';
     await db.setSetting('theme_mode', val);
   }
 }

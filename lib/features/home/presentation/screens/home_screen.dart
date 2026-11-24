@@ -6,8 +6,9 @@ import '../../../../core/providers/database_provider.dart';
 import '../../../../core/engines/motorcycle_specs.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart'
-    show Motorcycle, MotorcycleModel;
+    show LocalReminder, Motorcycle, MotorcycleModel;
 import '../../../../core/database/sample_data_seeder.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/animated_widgets.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
 
@@ -36,6 +37,8 @@ class _BrandBadge extends ConsumerWidget {
           ),
           child: Text(
             model.brand,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.bold,
@@ -77,7 +80,7 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -101,7 +104,10 @@ class HomeScreen extends ConsumerWidget {
               child: ElevatedButton.icon(
                 onPressed: () => context.push('/add-motor'),
                 icon: const Icon(Icons.add),
-                label: const Text('Tambah Motor Pertama'),
+                label: const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text('Tambah Motor Pertama', maxLines: 1),
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -110,12 +116,32 @@ class HomeScreen extends ConsumerWidget {
               child: OutlinedButton.icon(
                 onPressed: () async {
                   final db = ref.read(databaseProvider);
-                  await SampleDataSeeder(db).seedRealisticSampleMotorcycles();
+                  final createdIds = await SampleDataSeeder(
+                    db,
+                  ).seedDiverseFiveMotorcycles();
                   ref.invalidate(motorcyclesProvider);
-                  ref.invalidate(activeMotorcycleProvider);
+                  if (createdIds.isNotEmpty) {
+                    final motors = await db.getAllMotorcycles();
+                    final firstMotor = motors.cast<Motorcycle?>().firstWhere(
+                      (m) => m?.id == createdIds.first,
+                      orElse: () => null,
+                    );
+                    if (firstMotor != null) {
+                      await ref
+                          .read(activeMotorcycleProvider.notifier)
+                          .setActiveMotorcycle(firstMotor);
+                    } else {
+                      ref.invalidate(activeMotorcycleProvider);
+                    }
+                  } else {
+                    ref.invalidate(activeMotorcycleProvider);
+                  }
                 },
                 icon: const Icon(Icons.auto_awesome),
-                label: const Text('Muat 3 Data Motor Contoh'),
+                label: const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text('Muat 5 Motor Beragam', maxLines: 1),
+                ),
               ),
             ),
           ],
@@ -133,6 +159,24 @@ class _HomeContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final reminders = activeMotor == null
+        ? const <LocalReminder>[]
+        : (ref.watch(remindersProvider(activeMotor!.id)).valueOrNull ??
+              const <LocalReminder>[]);
+    final latestOdo = activeMotor == null
+        ? null
+        : ref.watch(latestOdometerProvider(activeMotor!.id)).valueOrNull;
+    final now = DateTime.now();
+    final enabledReminders = reminders.where((r) => r.enabled).toList();
+    final hasActiveReminders = enabledReminders.isNotEmpty;
+    final hasOverdueReminders = enabledReminders.any((r) {
+      final dateDue = r.dueDate != null && !r.dueDate!.isAfter(now);
+      final odoDue = r.dueOdometerKm != null &&
+          latestOdo != null &&
+          latestOdo.odometerKm >= r.dueOdometerKm!;
+      return dateDue || odoDue;
+    });
+
     return CustomScrollView(
       slivers: [
         // Bilah Aplikasi (AppBar) dengan Logo BuildHaus
@@ -143,26 +187,48 @@ class _HomeContent extends ConsumerWidget {
           backgroundColor: context.bg,
           surfaceTintColor: Colors.transparent,
           titleSpacing: 16,
-          title: Row(
-            children: [
-              const BuildHausLogo(size: 36),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: _GreetingChip(context),
-                  ),
-                ),
-              ),
-            ],
+          title: const Align(
+            alignment: Alignment.centerLeft,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: BuildHausLogo(size: 36),
+            ),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.person_outline),
-              tooltip: 'Akun',
-              onPressed: () => context.go('/account'),
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    hasOverdueReminders
+                        ? Icons.notifications_active_outlined
+                        : Icons.notifications_outlined,
+                  ),
+                  if (hasActiveReminders)
+                    Positioned(
+                      right: -1,
+                      top: -1,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: BuildHausTheme.danger,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: context.bg, width: 1.2),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              tooltip: 'Pengingat & Notifikasi',
+              onPressed: () {
+                if (activeMotor != null) {
+                  context.push('/motor/${activeMotor!.id}/reminders');
+                } else {
+                  context.push('/reminders');
+                }
+              },
             ),
             const SizedBox(width: 8),
           ],
@@ -336,55 +402,6 @@ class _HomeContent extends ConsumerWidget {
   }
 }
 
-class _GreetingChip extends StatelessWidget {
-  final BuildContext context;
-  const _GreetingChip(this.context);
-
-  @override
-  Widget build(BuildContext context) {
-    final hour = DateTime.now().hour;
-    String greeting;
-    String emoji;
-    if (hour < 12) {
-      greeting = 'Pagi';
-      emoji = '☀️';
-    } else if (hour < 15) {
-      greeting = 'Siang';
-      emoji = '🌤️';
-    } else if (hour < 18) {
-      greeting = 'Sore';
-      emoji = '🌅';
-    } else {
-      greeting = 'Malam';
-      emoji = '🌙';
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: context.surface2,
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: context.line),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 14)),
-          const SizedBox(width: 4),
-          Text(
-            greeting,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: context.ink,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _SectionTitle extends StatelessWidget {
   final String title;
   const _SectionTitle(this.title);
@@ -432,12 +449,17 @@ class _MotorSelector extends ConsumerWidget {
                       color: const Color(0xFF00F5A0),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      'Tambah',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                        color: context.ink,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Tambah',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: context.ink,
+                        ),
                       ),
                     ),
                   ],
@@ -599,66 +621,85 @@ class _BikeCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF00F5A0).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(99),
-                        border: Border.all(
-                          color: const Color(0xFF00F5A0).withValues(alpha: 0.3),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00F5A0).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(99),
+                          border: Border.all(
+                            color: const Color(0xFF00F5A0).withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            PulseLed(color: Color(0xFF00F5A0), size: 6.5),
+                            SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                'MOTOR UTAMA',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF00F5A0),
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          const PulseLed(color: Color(0xFF00F5A0), size: 6.5),
-                          const SizedBox(width: 6),
-                          const Text(
-                            'MOTOR UTAMA',
-                            style: TextStyle(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF00F5A0),
-                              letterSpacing: 1.2,
+                          if (avgHealthScore != null) ...[
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 9,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: healthColor.withValues(alpha: 0.16),
+                                  borderRadius: BorderRadius.circular(99),
+                                  border: Border.all(
+                                    color: healthColor.withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Skor $avgHealthScore',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: healthColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
+                          Flexible(
+                            child: _BrandBadge(
+                              modelId: motorcycle.modelId,
+                              fontSize: 13,
+                              color: Colors.white,
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                    const Spacer(),
-                    if (avgHealthScore != null) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 9,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: healthColor.withValues(alpha: 0.16),
-                          borderRadius: BorderRadius.circular(99),
-                          border: Border.all(
-                            color: healthColor.withValues(alpha: 0.4),
-                          ),
-                        ),
-                        child: Text(
-                          'Skor $avgHealthScore',
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w800,
-                            color: healthColor,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Flexible(
-                      child: _BrandBadge(
-                        modelId: motorcycle.modelId,
-                        fontSize: 13,
-                        color: Colors.white,
                       ),
                     ),
                   ],
@@ -697,6 +738,8 @@ class _BikeCard extends ConsumerWidget {
                           ),
                           child: Text(
                             motorcycle.plateNumber!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 11,
                               letterSpacing: 1.4,
@@ -721,6 +764,8 @@ class _BikeCard extends ConsumerWidget {
                           ),
                           child: Text(
                             '${modelInfo.model} • ${MotorcycleSpecs.transmissionLabel(modelInfo)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w600,
@@ -741,19 +786,23 @@ class _BikeCard extends ConsumerWidget {
                         children: [
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.speed_rounded,
                                 size: 12,
-                                color: const Color(0xFF00F5A0),
+                                color: Color(0xFF00F5A0),
                               ),
                               const SizedBox(width: 4),
-                              Text(
-                                'TELEMETRI ODOMETER',
-                                style: TextStyle(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                  letterSpacing: 1.0,
+                              Flexible(
+                                child: Text(
+                                  'TELEMETRI ODOMETER',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white.withValues(alpha: 0.6),
+                                    letterSpacing: 1.0,
+                                  ),
                                 ),
                               ),
                             ],
@@ -769,98 +818,116 @@ class _BikeCard extends ConsumerWidget {
                               duration: const Duration(milliseconds: 600),
                               curve: Curves.easeOutQuart,
                               builder: (context, animatedKm, _) {
-                                final formatted = animatedKm
-                                    .toStringAsFixed(0)
-                                    .replaceAllMapped(
-                                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                                      (m) => '${m[1]},',
-                                    );
-                                return Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                                  textBaseline: TextBaseline.alphabetic,
-                                  children: [
-                                    Text(
-                                      formatted,
-                                      style: const TextStyle(
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white,
-                                        letterSpacing: -1.0,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 1.5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF00F5A0).withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: const Text(
-                                        'km',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w800,
-                                          color: Color(0xFF00F5A0),
+                                final formatted = Formatters.formatOdometer(
+                                  animatedKm,
+                                );
+                                return FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.baseline,
+                                    textBaseline: TextBaseline.alphabetic,
+                                    children: [
+                                      Text(
+                                        formatted,
+                                        maxLines: 1,
+                                        style: const TextStyle(
+                                          fontSize: 30,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          letterSpacing: -1.0,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 1.5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF00F5A0)
+                                              .withValues(alpha: 0.15),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                        ),
+                                        child: const Text(
+                                          'km',
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w800,
+                                            color: Color(0xFF00F5A0),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 );
                               },
                             )
                           else
-                            const Text(
-                              'Belum ada data',
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                                letterSpacing: -0.5,
+                            const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Belum ada data',
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 8),
-                    TapScale(
-                      onTap: () =>
-                          context.push('/motor/${motorcycle.id}/odometer'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.15),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 125),
+                      child: TapScale(
+                        onTap: () =>
+                            context.push('/motor/${motorcycle.id}/odometer'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
                           ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(
-                              Icons.edit_outlined,
-                              size: 14,
-                              color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.15),
                             ),
-                            SizedBox(width: 6),
-                            Text(
-                              'Update',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                          ),
+                          child: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.edit_outlined,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Update',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
@@ -911,18 +978,25 @@ class _QuickActionCard extends StatelessWidget {
             child: Icon(icon, color: color, size: 18),
           ),
           const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 11,
-              color: context.ink,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 11,
+                color: context.ink,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 1),
           Text(
             subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 9.5,
               fontWeight: FontWeight.w500,
@@ -1079,6 +1153,8 @@ class _HealthSummary extends ConsumerWidget {
                           children: [
                             Text(
                               'Skor Kesehatan',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
@@ -1094,6 +1170,8 @@ class _HealthSummary extends ConsumerWidget {
                                   : avgScore >= 50
                                   ? 'Perlu perhatian — beberapa komponen perlu dicek'
                                   : 'Perlu segera ditangani',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 11,
                                 color: context.muted,
@@ -1104,7 +1182,10 @@ class _HealthSummary extends ConsumerWidget {
                       ),
                       TextButton(
                         onPressed: () => context.go('/health'),
-                        child: const Text('Detail'),
+                        child: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('Detail', maxLines: 1),
+                        ),
                       ),
                     ],
                   ),
@@ -1158,6 +1239,8 @@ class _ReminderNotice extends StatelessWidget {
               children: [
                 Text(
                   'Pengingat',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
@@ -1167,6 +1250,8 @@ class _ReminderNotice extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   'Periksa kampas rem secara berkala untuk keselamatan.',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 11,
                     color: context.muted,

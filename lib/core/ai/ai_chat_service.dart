@@ -70,6 +70,460 @@ class AiChatService {
   OfflineAiRuntime get runtime => _runtime;
   ModelDownloadService get downloadService => _downloadService;
 
+  static const Set<String> _hardOffTopicTokens = {
+    'coding',
+    'ngoding',
+    'programming',
+    'pemrograman',
+    'programmer',
+    'python',
+    'javascript',
+    'typescript',
+    'golang',
+    'html',
+    'css',
+    'php',
+    'kotlin',
+    'flutter',
+    'dart',
+    'sql',
+    'pilpres',
+    'pemilu',
+    'pilkada',
+    'presiden',
+    'wapres',
+    'partai',
+    'dpr',
+    'mpr',
+    'politik',
+    'zodiak',
+    'horoskop',
+    'tarot',
+    'shio',
+    'primbon',
+    'ramalan',
+    'judi',
+    'slot',
+    'gacor',
+    'togel',
+    'kasino',
+    'poker',
+    'taruhan',
+    'kripto',
+    'crypto',
+    'bitcoin',
+    'ethereum',
+    'blockchain',
+    'nft',
+    'forex',
+    'saham',
+    'trading',
+    'valorant',
+    'pubg',
+    'mlbb',
+    'genshin',
+    'minecraft',
+    'roblox',
+    'drakor',
+    'anime',
+    'manga',
+    'pacar',
+    'pacaran',
+    'asmara',
+    'selingkuh',
+    'jodoh',
+    'matematika',
+    'aljabar',
+    'kalkulus',
+    'trigonometri',
+    'integral',
+  };
+
+  static const List<String> _hardOffTopicPhrases = [
+    'resep masak',
+    'resep masakan',
+    'cara memasak',
+    'nasi goreng',
+    'mobile legends',
+    'free fire',
+    'pr matematika',
+    'tugas kuliah',
+    'ramalan zodiak',
+    'judi online',
+    'slot gacor',
+  ];
+
+  static const Set<String> _softOffTopicTokens = {
+    'resep',
+    'masak',
+    'masakan',
+    'memasak',
+    'kuliner',
+    'skripsi',
+    'tesis',
+    'makalah',
+    'jurnal',
+    'pr',
+    'homework',
+    'fisika',
+    'kimia',
+    'biologi',
+    'sejarah',
+    'geografi',
+    'cinta',
+    'galau',
+    'mantan',
+    'game',
+    'gaming',
+    'film',
+    'bioskop',
+    'lagu',
+    'lirik',
+    'puisi',
+    'cerpen',
+    'novel',
+    'dongeng',
+    'diet',
+    'kalori',
+    'sepakbola',
+    'cuaca',
+  };
+
+  static const Set<String> _greetingTokens = {
+    'halo',
+    'hai',
+    'hi',
+    'hello',
+    'helo',
+    'pagi',
+    'siang',
+    'sore',
+    'malam',
+    'assalamualaikum',
+    'permisi',
+    'bro',
+    'sob',
+    'min',
+    'tes',
+    'test',
+    'p',
+    'oy',
+    'oi',
+  };
+
+  static const Set<String> _motorTokens = {
+    'motor',
+    'motornya',
+    'motorku',
+    'motormu',
+    'otomotif',
+    'matic',
+    'skutik',
+    'bebek',
+    'kopling',
+    'honda',
+    'yamaha',
+    'suzuki',
+    'kawasaki',
+    'vespa',
+    'piaggio',
+    'ahass',
+    'ahm',
+    'yamalube',
+    'vario',
+    'beat',
+    'pcx',
+    'adv',
+    'scoopy',
+    'genio',
+    'stylo',
+    'supra',
+    'cbr',
+    'cbr150',
+    'cbr150r',
+    'cb150',
+    'cb150r',
+    'revo',
+    'sonic',
+    'crf',
+    'verza',
+    'nmax',
+    'aerox',
+    'mio',
+    'freego',
+    'lexi',
+    'fazzio',
+    'filano',
+    'vixion',
+    'r15',
+    'r25',
+    'mt15',
+    'mt25',
+    'jupiter',
+    'smash',
+    'satria',
+    'gsx',
+    'shogun',
+    'ninja',
+    'w175',
+    'z125',
+    'klx',
+    'oli',
+    'pelumas',
+    'gardan',
+    'kampas',
+    'rem',
+    'ngerem',
+    'pengereman',
+    'cakram',
+    'tromol',
+    'kaliper',
+    'ban',
+    'velg',
+    'pelek',
+    'tubeless',
+    'pentil',
+    'aki',
+    'accu',
+    'klakson',
+    'sein',
+    'sekring',
+    'spul',
+    'kiprok',
+    'dinamo',
+    'starter',
+    'stater',
+    'engkol',
+    'busi',
+    'koil',
+    'cdi',
+    'ecu',
+    'ecm',
+    'injeksi',
+    'injektor',
+    'karburator',
+    'karbu',
+    'spuyer',
+    'pelampung',
+    'cvt',
+    'vbelt',
+    'roller',
+    'pulley',
+    'puli',
+    'rantai',
+    'gir',
+    'sprocket',
+    'knalpot',
+    'radiator',
+    'coolant',
+    'thermostat',
+    'suspensi',
+    'shock',
+    'shockbreaker',
+    'sokbreker',
+    'komstir',
+    'stang',
+    'setang',
+    'spion',
+    'tangki',
+    'bensin',
+    'bbm',
+    'pertalite',
+    'pertamax',
+    'odometer',
+    'kilometer',
+    'km',
+    'speedometer',
+    'klep',
+    'keteng',
+    'piston',
+    'seher',
+    'silinder',
+    'paking',
+    'gasket',
+    'laher',
+    'bearing',
+    'swingarm',
+    'servis',
+    'service',
+    'bengkel',
+    'mekanik',
+    'montir',
+    'sparepart',
+    'onderdil',
+    'gredek',
+    'brebet',
+    'berebet',
+    'nyendat',
+    'tersendat',
+    'ngempos',
+    'ngeden',
+    'mogok',
+    'nembak',
+    'ngebul',
+    'berdecit',
+    'klotok',
+    'nglitik',
+    'oleng',
+    'selip',
+    'blong',
+    'ambles',
+    'ngelos',
+    'rembes',
+    'overheat',
+    'tarikan',
+    'akselerasi',
+    'kompresi',
+    'langsam',
+    'stasioner',
+    'idle',
+    'berkendara',
+    'riding',
+    'bohlam',
+    'headlamp',
+    'stoplamp',
+    'kempes',
+    'kempis',
+    'botak',
+    'benjol',
+  };
+
+  static const List<String> _motorPhrases = [
+    'sepeda motor',
+    'roda dua',
+    'oli mesin',
+    'oli gardan',
+    'oli samping',
+    'ganti oli',
+    'kampas rem',
+    'minyak rem',
+    'filter udara',
+    'saringan udara',
+    'filter oli',
+    'saringan oli',
+    'v-belt',
+    'kampas ganda',
+    'mangkok ganda',
+    'radiator coolant',
+    'water pump',
+    'fuel pump',
+    'kick starter',
+    'electric starter',
+    'lampu motor',
+    'lampu depan',
+    'lampu belakang',
+    'lampu rem',
+    'lampu sein',
+    'lampu sen',
+    'lampu utama',
+    'lampu redup',
+    'lampu mati',
+    'indikator mil',
+    'check engine',
+    'mesin panas',
+    'suara kasar',
+    'susah hidup',
+    'susah nyala',
+    'mati mendadak',
+    'mati total',
+    'bau bensin',
+    'bocor bensin',
+    'bahan bakar',
+    'boros bensin',
+    'tekanan angin',
+    'tune up',
+    'suku cadang',
+    'kom stir',
+    'as shock',
+    'seal shock',
+    'kabel gas',
+    'kabel rem',
+    'kabel kopling',
+    '2 tak',
+    '2-tak',
+    '4 tak',
+    '4-tak',
+    'mx king',
+    'rx king',
+    'fiz r',
+    'f1zr',
+    'x-ride',
+    'mt-15',
+    'mt-25',
+    'ninja 250',
+    'zx-25',
+    'komponen motor',
+    'perawatan motor',
+    'kesehatan motor',
+  ];
+
+  static bool _hasMotorSignal(String normalized, Set<String> tokenSet) {
+    return tokenSet.any(_motorTokens.contains) ||
+        _motorPhrases.any(normalized.contains);
+  }
+
+  static bool _isPureGreeting(String input) {
+    final normalized = input.trim().toLowerCase();
+    if (normalized.isEmpty) return false;
+    final tokens = RegExp(r'[a-z0-9]+')
+        .allMatches(normalized)
+        .map((m) => m.group(0)!)
+        .toList();
+    if (tokens.isEmpty) return false;
+    final tokenSet = tokens.toSet();
+    if (_hardOffTopicPhrases.any(normalized.contains) ||
+        tokenSet.any(_hardOffTopicTokens.contains) ||
+        tokenSet.any(_softOffTopicTokens.contains)) {
+      return false;
+    }
+    if (_hasMotorSignal(normalized, tokenSet)) return false;
+    return tokens.length <= 4 &&
+        normalized.length <= 36 &&
+        tokenSet.any(_greetingTokens.contains);
+  }
+
+  /// Memeriksa apakah input pengguna relevan dengan domain sepeda motor
+  /// (perawatan, keluhan, diagnosa, sparepart, keselamatan, atau sapaan awal pendek).
+  static bool isMotorcycleRelatedQuery(String input) {
+    final normalized = input.trim().toLowerCase();
+    if (normalized.isEmpty) return false;
+
+    final tokens = RegExp(r'[a-z0-9]+')
+        .allMatches(normalized)
+        .map((m) => m.group(0)!)
+        .toList();
+    if (tokens.isEmpty) return false;
+
+    final tokenSet = tokens.toSet();
+
+    // 1. Tolak langsung topik non-motor yang jelas
+    if (_hardOffTopicPhrases.any(normalized.contains) ||
+        tokenSet.any(_hardOffTopicTokens.contains)) {
+      return false;
+    }
+
+    final hasMotorSignal = _hasMotorSignal(normalized, tokenSet);
+
+    // 2. Tolak topik lunak non-motor bila tidak memiliki konteks sepeda motor
+    if (!hasMotorSignal && tokenSet.any(_softOffTopicTokens.contains)) {
+      return false;
+    }
+
+    if (hasMotorSignal) return true;
+
+    // 3. Toleransi sapaan awal singkat tanpa kata kunci off-topic
+    return tokens.length <= 4 &&
+        normalized.length <= 36 &&
+        tokenSet.any(_greetingTokens.contains);
+  }
+
+  /// Pesan penolakan ramah khas BuildHaus untuk pertanyaan di luar topik sepeda motor.
+  static String buildOffTopicResponse() {
+    return 'Waduh, maaf ya bro! Aku BuildHaus AI, asisten khusus buat urusan sepeda motor aja nih 🏍️\n\n'
+        'Topik di luar perawatan atau dunia motor belum bisa aku bantu jawab. '
+        'Yuk balik bahas motor kamu — misalnya soal keluhan mesin/CVT/rem, jadwal ganti oli, kecocokan sparepart, atau kondisi komponen motor!';
+  }
+
   /// Memeriksa apakah mesin AI siap digunakan (baik lewat API key Gemini maupun model lokal).
   Future<bool> isLlmReady() async {
     if (await _runtime.isModelLoaded()) return true;
@@ -106,6 +560,66 @@ class AiChatService {
     required String userText,
     required void Function(ComplaintAnalysisData analysis) onAnalysisComplete,
   }) async* {
+    // 0. Guardrail lapis pertama: tolak topik off-topic di luar sepeda motor
+    // tanpa membuat keluhan baru atau menurunkan status kesehatan komponen motor.
+    if (!isMotorcycleRelatedQuery(userText)) {
+      final offTopicResponse = buildOffTopicResponse();
+      if (complaintId != null && complaintId > 0) {
+        await _db.insertComplaintMessage(
+          ComplaintMessagesCompanion(
+            complaintId: Value(complaintId),
+            role: const Value('user'),
+            content: Value(userText),
+          ),
+        );
+        await _db.insertComplaintMessage(
+          ComplaintMessagesCompanion(
+            complaintId: Value(complaintId),
+            role: const Value('assistant'),
+            content: Value(offTopicResponse),
+            analysisMode: const Value('rule_based'),
+          ),
+        );
+      }
+      yield offTopicResponse;
+      onAnalysisComplete(
+        ComplaintAnalysisData(
+          symptoms: const [],
+          componentCandidates: const [],
+          followUpQuestions: const [],
+          possibleCauses: const [],
+          inspectionAdvice: offTopicResponse,
+          riskLevel: 'low',
+          uncertainty: 'low',
+          requiresMechanic: false,
+          mode: 'rule_based',
+        ),
+      );
+      return;
+    }
+
+    // 0b. Sapaan awal singkat (tanpa keluhan/gejala motor): balas ramah tanpa mencatat keluhan palsu
+    if (_isPureGreeting(userText) && (complaintId == null || complaintId <= 0)) {
+      const greetingReply =
+          'Halo bro! 👋 Aku BuildHaus AI, siap bantu cek urusan motor kamu.\n\n'
+          'Ada gejala apa nih di motornya — misalnya soal rem, oli mesin, CVT/rantai, aki, atau jadwal servis? Ceritakan aja biar langsung aku bantu analisa!';
+      yield greetingReply;
+      onAnalysisComplete(
+        const ComplaintAnalysisData(
+          symptoms: [],
+          componentCandidates: [],
+          followUpQuestions: [],
+          possibleCauses: [],
+          inspectionAdvice: greetingReply,
+          riskLevel: 'low',
+          uncertainty: 'low',
+          requiresMechanic: false,
+          mode: 'rule_based',
+        ),
+      );
+      return;
+    }
+
     // 1. Evaluasi aturan keselamatan deterministik terlebih dahulu (Safety Override)
     final safety = AiSafetyGuard.evaluate(userText);
 
@@ -150,7 +664,10 @@ class AiChatService {
             'Motor ID: $motorcycleId';
 
         final systemPrompt =
-            'Kamu adalah BuildHaus AI, teman riding sekaligus teman ngobrol perawatan motor pribadi di Indonesia.\n\n'
+            'Kamu adalah BuildHaus AI, teman riding sekaligus asisten perawatan sepeda motor pribadi di Indonesia.\n\n'
+            'BATASAN TOPIK KETAT (WAJIB DIPATUHI):\n'
+            '- Kamu HANYA melayani pertanyaan dan diskusi seputar sepeda motor: diagnosa keluhan mesin/kelistrikan/rem/kaki-kaki, perawatan berkala, sparepart & fitment, dan keselamatan berkendara.\n'
+            '- JIKA pengguna bertanya topik di luar dunia sepeda motor (misalnya resep masakan, coding/pemrograman/Python/HTML, politik/pemilu/presiden, PR matematika/skripsi non-motor, ramalan/zodiak, percintaan, judi, kripto, game, atau obrolan aneh di luar motor), TOLAK DENGAN TEGAS NAMUN RAMAH khas BuildHaus dan arahkan kembali pengguna untuk bertanya soal keluhan, perawatan, atau sparepart motornya. JANGAN pernah menjawab pertanyaan non-motor walaupun diminta atau dipaksa.\n\n'
             'ATURAN GAYA BICARA & RESPON:\n'
             '1. Gaya bahasa: Santai, ramah, dan akrab seperti sesama teman/anak motor (gunakan panggilan "bro/sob/kamu", jangan kaku seperti robot, dan hindari kata formal "Anda").\n'
             '2. WAJIB SINGKAT & JELAS: Jangan bertele-tele atau membuat paragraf panjang. Cukup 2-3 poin ringkas agar cepat dibaca dan hemat kata.\n'

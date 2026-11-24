@@ -7,6 +7,7 @@ import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/engines/mileage_predictor.dart';
+import '../../../../core/utils/formatters.dart';
 
 class OdometerScreen extends ConsumerStatefulWidget {
   final int motorcycleId;
@@ -32,7 +33,7 @@ class _OdometerScreenState extends ConsumerState<OdometerScreen> {
     final db = ref.read(databaseProvider);
     _latest = await db.getLatestOdometer(widget.motorcycleId);
     if (_latest != null) {
-      _odometerController.text = _latest!.odometerKm.toStringAsFixed(0);
+      _odometerController.text = Formatters.formatOdometer(_latest!.odometerKm);
     }
     final logs = await db.getOdometerLogs(widget.motorcycleId);
     _predictor = MileagePredictor(logs);
@@ -96,38 +97,45 @@ class _OdometerScreenState extends ConsumerState<OdometerScreen> {
                 ),
                 child: Row(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'ODOMETER AKTUAL TERAKHIR',
-                              style: TextStyle(
-                                color: context.muted,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ODOMETER AKTUAL TERAKHIR',
+                            style: TextStyle(
+                              color: context.muted,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${_latest!.odometerKm.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} km',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: context.ink,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        Text(
-                          'Dicatat pada ${_latest!.recordedAt.toString().substring(0, 10)}',
-                          style: TextStyle(color: context.muted, fontSize: 10),
-                        ),
-                      ],
+                          const SizedBox(height: 4),
+                          Text(
+                            Formatters.km(_latest!.odometerKm),
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: context.ink,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            'Dicatat pada ${_latest!.recordedAt.toString().substring(0, 10)}',
+                            style: TextStyle(
+                              color: context.muted,
+                              fontSize: 10,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 12),
                     const Text('🔢', style: TextStyle(fontSize: 32)),
                   ],
                 ),
@@ -151,12 +159,16 @@ class _OdometerScreenState extends ConsumerState<OdometerScreen> {
                       children: [
                         const Text('📊', style: TextStyle(fontSize: 16)),
                         const SizedBox(width: 8),
-                        Text(
-                          'Masa Pembelajaran ($periods/3 Periode Bulanan)',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: context.ink,
+                        Expanded(
+                          child: Text(
+                            'Masa Pembelajaran ($periods/3 Periode Bulanan)',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              color: context.ink,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -214,15 +226,19 @@ class _OdometerScreenState extends ConsumerState<OdometerScreen> {
                       children: [
                         const Text('✅', style: TextStyle(fontSize: 14)),
                         const SizedBox(width: 8),
-                        Text(
-                          'Estimasi Pemakaian Terkalibrasi',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: context.ink,
+                        Expanded(
+                          child: Text(
+                            'Estimasi Pemakaian Terkalibrasi',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              color: context.ink,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 6,
@@ -285,7 +301,8 @@ class _OdometerScreenState extends ConsumerState<OdometerScreen> {
             TextField(
               controller: _odometerController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(hintText: 'Contoh: 12480'),
+              inputFormatters: const [OdometerTextInputFormatter()],
+              decoration: const InputDecoration(hintText: 'Contoh: 14.500'),
             ),
             const SizedBox(height: 8),
 
@@ -321,7 +338,14 @@ class _OdometerScreenState extends ConsumerState<OdometerScreen> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Simpan Odometer'),
+                    : const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Simpan Odometer',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -339,7 +363,7 @@ class _OdometerScreenState extends ConsumerState<OdometerScreen> {
       return;
     }
 
-    final value = double.tryParse(text);
+    final value = Formatters.parseOdometerDouble(text);
     if (value == null || value < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Masukkan angka yang valid')),

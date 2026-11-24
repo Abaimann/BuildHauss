@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/platform/native_platform_service.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -10,6 +11,7 @@ import '../../../../shared/widgets/animated_widgets.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../parts/domain/sparepart_image_helper.dart';
+import '../../../parts/presentation/providers/parts_providers.dart';
 
 class HealthScreen extends ConsumerWidget {
   const HealthScreen({super.key});
@@ -90,20 +92,31 @@ class HealthScreen extends ConsumerWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
+                              horizontal: 7,
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
                               color: context.soft,
                               borderRadius: BorderRadius.circular(99),
                             ),
-                            child: _HealthBrandLabel(
-                              modelId: activeMotor.modelId,
+                            child: Text(
+                              '${activeMotor.manufactureYear}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: context.ink,
+                              ),
                             ),
                           ),
+                          if (activeMotor.modelId != null) ...[
+                            const SizedBox(width: 6),
+                            _HealthBrandLabel(
+                              modelId: activeMotor.modelId,
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -200,9 +213,18 @@ class _HealthBrandLabel extends ConsumerWidget {
       builder: (context, snap) {
         final model = snap.data;
         if (model == null) return const SizedBox.shrink();
-        return Text(
-          model.brand,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: context.soft,
+            borderRadius: BorderRadius.circular(99),
+          ),
+          child: Text(
+            model.brand,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         );
       },
     );
@@ -218,6 +240,37 @@ class _HealthScoreCard extends ConsumerWidget {
     final statusesAsync = ref.watch(
       componentStatusesWithNamesProvider(motorcycle.id),
     );
+    final model = motorcycle.modelId != null
+        ? ref.watch(motorcycleModelByIdProvider(motorcycle.modelId)).value
+        : null;
+
+    final ageCategory = MotorcycleSpecs.ageCategoryLabel(
+      motorcycle.manufactureYear,
+    );
+    final fuelLabel = MotorcycleSpecs.fuelSystemLabel(
+      model,
+      manufactureYear: motorcycle.manufactureYear,
+    );
+    final transLabel = MotorcycleSpecs.transmissionLabel(model);
+    final coolingLabel = MotorcycleSpecs.coolingLabel(model);
+    final ageMultiplier = MotorcycleSpecs.ageIntervalMultiplier(
+      motorcycle.manufactureYear,
+      model: model,
+    );
+    final sensitivityPct = ((1.0 - ageMultiplier) * 100).round();
+    final is2Stroke = MotorcycleSpecs.is2Stroke(model);
+    final isCarb = MotorcycleSpecs.isCarburetor(
+      model,
+      manufactureYear: motorcycle.manufactureYear,
+    );
+
+    final typeTags = <String>[
+      ageCategory,
+      if (is2Stroke) '2-Tak' else if (isCarb) 'Karburator',
+    ];
+    final intervalSummary = sensitivityPct > 0
+        ? 'Tahun ${motorcycle.manufactureYear} (${typeTags.join(' / ')}): interval sensitivitas -$sensitivityPct%'
+        : 'Tahun ${motorcycle.manufactureYear} ($ageCategory · $fuelLabel): interval standar pabrikan (100%)';
 
     return statusesAsync.when(
       loading: () => Container(
@@ -261,7 +314,7 @@ class _HealthScoreCard extends ConsumerWidget {
 
         return Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
@@ -288,8 +341,9 @@ class _HealthScoreCard extends ConsumerWidget {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(22),
+            padding: const EdgeInsets.all(20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
@@ -341,7 +395,7 @@ class _HealthScoreCard extends ConsumerWidget {
                         },
                       ),
                     ),
-                    const SizedBox(width: 18),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,13 +404,17 @@ class _HealthScoreCard extends ConsumerWidget {
                             children: [
                               const PulseLed(color: Color(0xFF00F5A0), size: 6),
                               const SizedBox(width: 6),
-                              Text(
-                                'TELEMETRI KESEHATAN',
-                                style: TextStyle(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                  letterSpacing: 1.2,
+                              Expanded(
+                                child: Text(
+                                  'TELEMETRI KESEHATAN',
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white.withValues(alpha: 0.6),
+                                    letterSpacing: 1.1,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -366,10 +424,12 @@ class _HealthScoreCard extends ConsumerWidget {
                             'Skor Kesehatan Unit',
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
-                              fontSize: 19,
+                              fontSize: 18,
                               color: context.ink,
                               letterSpacing: -0.5,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 6),
                           Container(
@@ -392,6 +452,8 @@ class _HealthScoreCard extends ConsumerWidget {
                                 fontSize: 10,
                                 letterSpacing: 0.8,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -410,60 +472,137 @@ class _HealthScoreCard extends ConsumerWidget {
                     ),
                   ],
                 ),
-                if (data.isNotEmpty) ...[
-                  const SizedBox(height: 14),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    _HealthSpecChip(
+                      icon: Icons.calendar_today_outlined,
+                      label: 'Tahun ${motorcycle.manufactureYear} · $ageCategory',
+                    ),
+                    _HealthSpecChip(
+                      icon: Icons.local_gas_station_outlined,
+                      label: fuelLabel,
+                    ),
+                    _HealthSpecChip(
+                      icon: Icons.settings_outlined,
+                      label: transLabel,
+                    ),
+                    _HealthSpecChip(
+                      icon: Icons.thermostat_outlined,
+                      label: coolingLabel,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  child: Row(
                     children: [
-                      Text(
-                        '${data.length} komponen dipantau',
-                        style: TextStyle(fontSize: 11, color: context.muted),
+                      Icon(
+                        sensitivityPct > 0
+                            ? Icons.tune_rounded
+                            : Icons.verified_outlined,
+                        size: 14,
+                        color: sensitivityPct > 0
+                            ? BuildHausTheme.warn
+                            : BuildHausTheme.ok,
                       ),
-                      Text(
-                        'Profil: ${motorcycle.usageProfile.replaceAll('_', ' ')}',
-                        style: TextStyle(fontSize: 11, color: context.muted),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          intervalSummary,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            color: Colors.white.withValues(alpha: 0.85),
+                            height: 1.3,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                ),
+                if (data.isNotEmpty) ...[
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      if (motorcycle.modelId != null)
-                        Expanded(
-                          child: ref
-                              .watch(
-                                motorcycleModelByIdProvider(motorcycle.modelId),
-                              )
-                              .maybeWhen(
-                                data: (model) => model == null
-                                    ? const SizedBox.shrink()
-                                    : Text(
-                                        '${MotorcycleSpecs.transmissionLabel(model)} • ${MotorcycleSpecs.coolingLabel(model)}',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: context.muted,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                orElse: () => const SizedBox.shrink(),
-                              ),
+                      Expanded(
+                        child: Text(
+                          '${data.length} komponen dipantau',
+                          style: TextStyle(fontSize: 11, color: context.muted),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      TextButton.icon(
-                        key: const ValueKey('open_health_report_button'),
-                        onPressed: () =>
-                            context.push('/motor/${motorcycle.id}/report'),
-                        icon: const Icon(Icons.assignment_outlined, size: 15),
-                        label: const Text('Kartu Laporan'),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'Profil: ${motorcycle.usageProfile.replaceAll('_', ' ')}',
+                          style: TextStyle(fontSize: 11, color: context.muted),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          model != null
+                              ? '${model.brand} ${model.model}'
+                              : 'Unit Terdaftar (${motorcycle.manufactureYear})',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            color: context.muted,
                           ),
-                          minimumSize: const Size(0, 30),
-                          textStyle: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            key: const ValueKey('open_health_report_button'),
+                            onPressed: () =>
+                                context.push('/motor/${motorcycle.id}/report'),
+                            icon: const Icon(
+                              Icons.assignment_outlined,
+                              size: 15,
+                            ),
+                            label: const Text(
+                              'Kartu Laporan',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              minimumSize: const Size(0, 30),
+                              textStyle: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -475,6 +614,43 @@ class _HealthScoreCard extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _HealthSpecChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _HealthSpecChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: Colors.white70),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Colors.white70,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -538,20 +714,35 @@ class _MileagePredictionHealthCard extends ConsumerWidget {
                             fontSize: 13,
                             color: context.ink,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           isLearning
                               ? 'Periode $periods/3 bulan terpantau'
                               : 'Akurasi tinggi dari 3+ periode bulanan',
                           style: TextStyle(fontSize: 10, color: context.muted),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
-                  TextButton(
-                    onPressed: () =>
-                        context.push('/motor/${motorcycle.id}/odometer'),
-                    child: const Text('Update Odo'),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () =>
+                            context.push('/motor/${motorcycle.id}/odometer'),
+                        child: const Text(
+                          'Update Odo',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -702,6 +893,8 @@ class _SelfInspectionBanner extends ConsumerWidget {
                                 ? BuildHausTheme.danger
                                 : context.ink,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           hasInspection
@@ -713,21 +906,31 @@ class _SelfInspectionBanner extends ConsumerWidget {
                                 ? BuildHausTheme.danger
                                 : context.muted,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: () =>
-                        context.push('/motor/${motorcycle.id}/inspection'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                  const SizedBox(width: 8),
+                  Flexible(
+                    flex: 0,
+                    child: ElevatedButton(
+                      onPressed: () =>
+                          context.push('/motor/${motorcycle.id}/inspection'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        minimumSize: const Size(0, 36),
                       ),
-                      minimumSize: const Size(0, 36),
+                      child: Text(
+                        hasInspection ? 'Uji Ulang' : 'Mulai Cek',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    child: Text(hasInspection ? 'Uji Ulang' : 'Mulai Cek'),
                   ),
                 ],
               ),
@@ -789,15 +992,19 @@ class _AIRecommendationCard extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    'AI Rekomendasi',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: context.ink,
+                  Expanded(
+                    child: Text(
+                      'AI Rekomendasi',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: context.ink,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -828,27 +1035,31 @@ class _AIRecommendationCard extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton.icon(
-                    onPressed: () => context.push('/complaints'),
-                    icon: const Icon(Icons.forum_outlined, size: 15),
-                    label: const Text('Riwayat Keluhan'),
-                    style: TextButton.styleFrom(
-                      textStyle: const TextStyle(fontSize: 11),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () => context.push('/complaints'),
+                      icon: const Icon(Icons.forum_outlined, size: 15),
+                      label: const Text('Riwayat Keluhan'),
+                      style: TextButton.styleFrom(
+                        textStyle: const TextStyle(fontSize: 11),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  TextButton.icon(
-                    onPressed: () => context.push('/ai-chat'),
-                    icon: const Icon(Icons.auto_awesome, size: 16),
-                    label: const Text('Tanya AI'),
-                    style: TextButton.styleFrom(
-                      textStyle: const TextStyle(fontSize: 12),
+                    TextButton.icon(
+                      onPressed: () => context.push('/ai-chat'),
+                      icon: const Icon(Icons.auto_awesome, size: 16),
+                      label: const Text('Tanya AI'),
+                      style: TextButton.styleFrom(
+                        textStyle: const TextStyle(fontSize: 12),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -987,12 +1198,16 @@ class _ComponentStatusSection extends ConsumerWidget {
                       size: 20,
                     ),
                     const SizedBox(width: 12),
-                    Text(
-                      'Catat Servis Baru',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        color: context.muted,
+                    Expanded(
+                      child: Text(
+                        'Catat Servis Baru',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: context.muted,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -1044,11 +1259,14 @@ class _ComponentTile extends ConsumerWidget {
 
     final allParts = ref.watch(allSparepartsProvider).value ?? [];
     final allFitments = ref.watch(allSparepartFitmentsProvider).value ?? [];
+    final activeModel = motorcycle.modelId != null
+        ? ref.watch(motorcycleModelByIdProvider(motorcycle.modelId)).value
+        : null;
     final matchedParts = _getMatchingParts(
       componentName: data.componentName,
       allSpareparts: allParts,
       fitments: allFitments,
-      modelId: motorcycle.modelId,
+      model: activeModel,
     );
 
     return Padding(
@@ -1060,6 +1278,7 @@ class _ComponentTile extends ConsumerWidget {
           data,
           matchedParts,
           motorcycle,
+          activeModel,
         ),
         child: Container(
           padding: const EdgeInsets.all(14),
@@ -1098,16 +1317,20 @@ class _ComponentTile extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            Text(
-                              data.componentName,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                                color: context.ink,
+                            Flexible(
+                              child: Text(
+                                data.componentName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                  color: context.ink,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             if (isSafetyIssue) ...[
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 5),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 5,
@@ -1124,11 +1347,12 @@ class _ComponentTile extends ConsumerWidget {
                                     fontWeight: FontWeight.bold,
                                     color: BuildHausTheme.danger,
                                   ),
+                                  maxLines: 1,
                                 ),
                               ),
                             ],
                             if (hasActiveComplaint) ...[
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 5),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 5,
@@ -1145,6 +1369,7 @@ class _ComponentTile extends ConsumerWidget {
                                     fontWeight: FontWeight.bold,
                                     color: BuildHausTheme.warn,
                                   ),
+                                  maxLines: 1,
                                 ),
                               ),
                             ],
@@ -1260,7 +1485,7 @@ class _ComponentTile extends ConsumerWidget {
                       ),
                       Expanded(
                         child: Text(
-                          '${matchedParts.first.name} · ${Formatters.currency(matchedParts.first.referencePrice ?? 0)}',
+                          '${matchedParts.first.name} · ${matchedParts.first.referencePrice != null ? Formatters.currency(matchedParts.first.referencePrice) : 'Cek toko'}',
                           style: TextStyle(
                             fontSize: 10.5,
                             color: context.ink,
@@ -1311,6 +1536,7 @@ class _ComponentTile extends ConsumerWidget {
     ComponentStatusWithName data,
     List<Sparepart> matchedParts,
     Motorcycle motorcycle,
+    MotorcycleModel? model,
   ) {
     showModalBottomSheet(
       context: context,
@@ -1369,6 +1595,8 @@ class _ComponentTile extends ConsumerWidget {
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             Text(
                               'Motor: ${motorcycle.nickname}',
@@ -1376,11 +1604,14 @@ class _ComponentTile extends ConsumerWidget {
                                 fontSize: 11,
                                 color: context.muted,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
                       ),
-                      if (data.status.score != null)
+                      if (data.status.score != null) ...[
+                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -1398,6 +1629,7 @@ class _ComponentTile extends ConsumerWidget {
                             ),
                           ),
                         ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 14),
@@ -1414,34 +1646,78 @@ class _ComponentTile extends ConsumerWidget {
                   ),
                   const SizedBox(height: 20),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Pilihan Sparepart (${matchedParts.length})',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          'Pilihan Sparepart (${matchedParts.length})',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          context.go('/parts');
-                        },
-                        child: const Text('Buka Katalog ➔'),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              context.go('/parts');
+                            },
+                            child: const Text(
+                              'Buka Katalog ➔',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   if (matchedParts.isEmpty)
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      child: Center(
-                        child: Text(
-                          'Belum ada sparepart terdaftar untuk komponen ini di katalog lokal.',
-                          style: TextStyle(color: context.muted, fontSize: 12),
-                          textAlign: TextAlign.center,
-                        ),
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Belum ada sparepart terdaftar untuk komponen ini di katalog lokal.',
+                            style: TextStyle(
+                              color: context.muted,
+                              fontSize: 12,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 10),
+                          OutlinedButton.icon(
+                            onPressed: () async {
+                              Navigator.pop(ctx);
+                              final opened =
+                                  await NativePlatformService.openNearestRepairShop(
+                                    brand: model?.brand,
+                                    partName: data.componentName,
+                                  );
+                              if (!opened && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Google Maps atau browser tidak tersedia di perangkat ini.',
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            icon: const Icon(
+                              Icons.location_on_outlined,
+                              size: 16,
+                            ),
+                            label: const Text('Cek Toko Terdekat'),
+                          ),
+                        ],
                       ),
                     )
                   else
@@ -1458,106 +1734,168 @@ class _ComponentTile extends ConsumerWidget {
                                 : context.line,
                           ),
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Builder(
-                              builder: (ctx) {
-                                final asset = SparepartImageHelper.getAssetPath(
-                                  part.category,
-                                  part.name,
-                                );
-                                return Container(
-                                  width: 44,
-                                  height: 44,
-                                  margin: const EdgeInsets.only(right: 12),
-                                  decoration: BoxDecoration(
-                                    color: context.surface3,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: context.line),
-                                  ),
-                                  child: Center(
-                                    child: asset != null
-                                        ? Padding(
-                                            padding: const EdgeInsets.all(4.0),
-                                            child: Image.asset(
-                                              asset,
-                                              width: 36,
-                                              height: 36,
-                                              fit: BoxFit.contain,
-                                              cacheWidth: 100,
-                                              errorBuilder: (_, __, ___) => Icon(
+                            Row(
+                              children: [
+                                Builder(
+                                  builder: (ctx) {
+                                    final asset =
+                                        SparepartImageHelper.getAssetPath(
+                                          part.category,
+                                          part.name,
+                                        );
+                                    return Container(
+                                      width: 44,
+                                      height: 44,
+                                      margin: const EdgeInsets.only(right: 12),
+                                      decoration: BoxDecoration(
+                                        color: context.surface3,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: context.line),
+                                      ),
+                                      child: Center(
+                                        child: asset != null
+                                            ? Padding(
+                                                padding: const EdgeInsets.all(
+                                                  4.0,
+                                                ),
+                                                child: Image.asset(
+                                                  asset,
+                                                  width: 36,
+                                                  height: 36,
+                                                  fit: BoxFit.contain,
+                                                  cacheWidth: 100,
+                                                  errorBuilder: (_, __, ___) =>
+                                                      Icon(
+                                                        Icons.handyman_outlined,
+                                                        size: 20,
+                                                        color: context.muted,
+                                                      ),
+                                                ),
+                                              )
+                                            : Icon(
                                                 Icons.handyman_outlined,
                                                 size: 20,
                                                 color: context.muted,
                                               ),
-                                            ),
-                                          )
-                                        : Icon(
-                                            Icons.handyman_outlined,
-                                            size: 20,
-                                            color: context.muted,
-                                          ),
-                                  ),
-                                );
-                              },
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          part.name,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
                                       ),
-                                      if (part.isVerified) ...[
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 4,
-                                            vertical: 1,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: BuildHausTheme.ok.withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: Text(
-                                            'OEM RESMI',
-                                            style: TextStyle(
-                                              fontSize: 8,
-                                              fontWeight: FontWeight.bold,
-                                              color: BuildHausTheme.ok,
+                                    );
+                                  },
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              part.name,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
+                                          if (part.isVerified) ...[
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 4,
+                                                    vertical: 1,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: BuildHausTheme.ok
+                                                    .withValues(alpha: 0.15),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                'OEM RESMI',
+                                                style: TextStyle(
+                                                  fontSize: 8,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: BuildHausTheme.ok,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        '${part.brand ?? 'Aftermarket'} · Part #${part.partNumber ?? '-'}',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: context.muted,
                                         ),
-                                      ],
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ],
                                   ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    '${part.brand ?? 'Aftermarket'} · Part #${part.partNumber ?? '-'}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: context.muted,
-                                    ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  part.referencePrice != null
+                                      ? Formatters.currency(part.referencePrice)
+                                      : 'Cek toko',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 10),
-                            Text(
-                              Formatters.currency(part.referencePrice ?? 0),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  Navigator.pop(ctx);
+                                  final opened =
+                                      await NativePlatformService.openNearestRepairShop(
+                                        brand: model?.brand,
+                                        partName: part.name,
+                                      );
+                                  if (!opened && context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Google Maps atau browser tidak tersedia di perangkat ini.',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                                icon: const Icon(
+                                  Icons.location_on_outlined,
+                                  size: 14,
+                                ),
+                                label: const Text(
+                                  'Cek Toko Terdekat',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  minimumSize: const Size(0, 30),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  textStyle: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -1589,7 +1927,7 @@ class _ComponentTile extends ConsumerWidget {
     required String componentName,
     required List<Sparepart> allSpareparts,
     required List<SparepartFitment> fitments,
-    int? modelId,
+    MotorcycleModel? model,
   }) {
     final n = componentName.toLowerCase();
     List<String> targetCategories;
@@ -1605,13 +1943,13 @@ class _ComponentTile extends ConsumerWidget {
       targetCategories = ['filter_oli'];
       nameKeywords = ['filter oli', 'oil filter'];
     } else if (n.contains('filter udara') || n.contains('filter')) {
-      targetCategories = ['filter'];
+      targetCategories = ['filter_udara', 'filter'];
       nameKeywords = ['filter udara', 'air filter'];
     } else if (n.contains('oli') || n.contains('mesin')) {
-      targetCategories = ['oli'];
+      targetCategories = ['oli_mesin', 'oli'];
       nameKeywords = ['oli', 'engine oil', '10w-40', '10w-30'];
     } else if (n.contains('kampas rem') || n.contains('rem')) {
-      targetCategories = ['rem'];
+      targetCategories = ['kampas_rem', 'rem'];
       nameKeywords = ['kampas rem', 'brake pad', 'brake shoe', 'dispad'];
     } else if (n.contains('ban')) {
       targetCategories = ['ban'];
@@ -1620,7 +1958,7 @@ class _ComponentTile extends ConsumerWidget {
       targetCategories = ['busi'];
       nameKeywords = ['busi', 'spark plug'];
     } else if (n.contains('cvt')) {
-      targetCategories = ['cvt'];
+      targetCategories = ['cvt', 'vbelt'];
       nameKeywords = ['cvt', 'v-belt', 'roller', 'vanbelt'];
     } else if (n.contains('aki')) {
       targetCategories = ['aki'];
@@ -1632,7 +1970,7 @@ class _ComponentTile extends ConsumerWidget {
       targetCategories = ['rantai'];
       nameKeywords = ['rantai', 'gir', 'gear', 'chain'];
     } else if (n.contains('suspensi') || n.contains('shock')) {
-      targetCategories = ['shock'];
+      targetCategories = ['shock', 'shockbreaker', 'suspensi'];
       nameKeywords = ['shock', 'suspensi', 'absorber'];
     } else if (n.contains('knalpot')) {
       targetCategories = ['knalpot'];
@@ -1642,20 +1980,36 @@ class _ComponentTile extends ConsumerWidget {
       nameKeywords = [n];
     }
 
-    // 1. Prioritaskan pencocokan ketat berdasarkan kategori resmi suku cadang
+    final fitmentModelsByPartId = <int, Set<int>>{};
+    for (final f in fitments) {
+      if (f.modelId != null) {
+        fitmentModelsByPartId
+            .putIfAbsent(f.sparepartId, () => <int>{})
+            .add(f.modelId!);
+      }
+    }
+
+    bool isCompatible(Sparepart p) => isSparepartCompatibleWithMotorcycle(
+      part: p,
+      model: model,
+      fitmentModelsByPartId: fitmentModelsByPartId,
+    );
+
+    // 1. Prioritaskan pencocokan ketat berdasarkan kategori resmi suku cadang & kompatibilitas motor
     var candidates = allSpareparts.where((p) {
-      final cat = p.category.toLowerCase();
-      return targetCategories.contains(cat);
+      final cat = p.category.toLowerCase().trim();
+      return targetCategories.contains(cat) && isCompatible(p);
     }).toList();
 
     // 2. Jika tidak ada kecocokan kategori langsung, cari berdasarkan kata kunci nama komponen
     if (candidates.isEmpty) {
       candidates = allSpareparts.where((p) {
         final name = p.name.toLowerCase();
-        return nameKeywords.any((k) => name.contains(k));
+        return nameKeywords.any((k) => name.contains(k)) && isCompatible(p);
       }).toList();
     }
 
+    final modelId = model?.id;
     if (modelId != null && fitments.isNotEmpty) {
       final verifiedPartIds = fitments
           .where((f) => f.modelId == modelId)

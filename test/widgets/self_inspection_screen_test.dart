@@ -89,8 +89,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Answer all 8 questions
-    final questions = SelfInspectionEngine.questions;
+    // Answer all 8 motor-specific questions dynamically loaded for this model
+    final questions = SelfInspectionEngine.questionsForMotorcycle(
+      model,
+      manufactureYear: model.yearStart,
+    );
     for (int i = 0; i < questions.length; i++) {
       expect(find.textContaining('Pertanyaan ${i + 1} dari ${questions.length}'), findsOneWidget);
       final opt = questions[i].options.first;

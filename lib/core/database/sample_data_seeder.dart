@@ -785,12 +785,12 @@ class SampleDataSeeder {
   }
 
   /// Mendaftarkan 5 jenis motor yang berbeda beserta data lengkap lintas
-  /// 4 merek resmi:
+  /// 3 merek resmi (Honda, Yamaha, Kawasaki):
   /// 1. Honda Vario 160 — Skutik Maxi Harian (Matic, Radiator)
   /// 2. Yamaha NMAX — Skutik Touring Premium (Matic, Radiator)
-  /// 3. Suzuki Smash FI — Motor Bebek Komuter (Manual Rantai, Air-Cooled)
+  /// 3. Kawasaki KLX 150 — Motor Trail / Dual-Sport (Manual Rantai, Air-Cooled, Karburator)
   /// 4. Honda CBR150R — Motor Sport Fairing 150cc (Manual Rantai, Radiator)
-  /// 5. Kawasaki W175 — Motor Retro Klasik (Manual Rantai, Air-Cooled)
+  /// 5. Kawasaki W175 — Motor Retro Klasik (Manual Rantai, Air-Cooled, Karburator)
   Future<List<int>> seedDiverseFiveMotorcycles({bool force = false}) async {
     final existing = await db.getAllMotorcycles();
     if (existing.isNotEmpty && !force) {
@@ -968,43 +968,43 @@ class SampleDataSeeder {
         ),
       ),
       _DiverseMotorSpec(
-        brand: 'Suzuki',
-        modelKeyword: 'Smash',
-        nickname: 'Smash FI Bebek Kerja',
-        manufactureYear: 2022,
-        plateNumber: 'B 3891 SMH',
+        brand: 'Kawasaki',
+        modelKeyword: 'KLX 150',
+        nickname: 'KLX 150 Trail Offroad',
+        manufactureYear: 2014,
+        plateNumber: 'B 3891 KLX',
         emoji: '⚙️',
         usageProfile: 'campuran',
         isPrimary: false,
         baselineDaysAgo: 90,
         baselineKm: 19100,
-        baselineNote: 'Odometer awal motor bebek manual pekerja keras',
+        baselineNote: 'Odometer awal motor trail dual-sport karburator',
         odometerLogs: const [
-          (55, 20800.0, 'Dipakai operasional kurir harian'),
-          (22, 22100.0, 'Pencatatan kilometer pasca setel rantai'),
-          (2, 23400.0, 'Odometer terkini motor bebek komuter'),
+          (55, 20800.0, 'Dipakai jalur tanah & operasional harian'),
+          (22, 22100.0, 'Pencatatan kilometer pasca setel rantai & karburator'),
+          (2, 23400.0, 'Odometer terkini motor trail KLX 150'),
         ],
         services: const [
           _SeedServiceSpec(
             daysAgo: 18,
             odometerKm: 22250.0,
-            workshop: 'Bengkel Resmi Suzuki Kalimalang',
-            notes: 'Ganti rantai set lengkap & oli mesin 4T bebek manual.',
+            workshop: 'Kawasaki Greentech Trail & Service',
+            notes: 'Ganti rantai set lengkap, busi, & oli mesin 4T trail manual.',
             resolveComplaints: true,
             items: [
-              ('oli mesin', 'enduro', 'replace', 42000, 15000, 'Oli 4T 10W-40 bebek harian'),
-              ('rantai', 'rantai set suzuki smash', 'replace', 145000, 30000, 'Rantai Set Suzuki Smash FI Genuine'),
-              ('busi', 'busi', 'replace', 25000, 10000, 'Ganti busi standar pengapian bersih'),
+              ('oli mesin', 'oli mesin kawasaki', 'replace', 88000, 20000, 'Oli Mesin Kawasaki Genuine 4T 10W-40 1L'),
+              ('rantai', 'rantai & gir set kawasaki', 'replace', 265000, 35000, 'Rantai & Gir Set Kawasaki KLX 150 Heavy Duty'),
+              ('busi', 'busi', 'replace', 25000, 10000, 'Ganti busi standar & pembersihan karburator'),
             ],
           ),
           _SeedServiceSpec(
             daysAgo: 6,
             odometerKm: 23050.0,
-            workshop: 'Toko Aksesoris Sumber Jaya',
-            notes: 'Pembelian cover jok anti panas & pelumas rantai',
+            workshop: 'Bengkel Trail Sumber Jaya',
+            notes: 'Pembersihan filter udara & pelumasan rantai offroad',
             resolveComplaints: false,
             items: [
-              ('rantai', 'rantai', 'inspect', 45000, 0, 'Pelumas rantai semprot & cover jok'),
+              ('rantai', 'rantai', 'inspect', 45000, 0, 'Pelumas rantai semprot & cek ketegangan'),
             ],
           ),
         ],
@@ -1015,19 +1015,19 @@ class SampleDataSeeder {
           'rem': 'pakem',
           'aki': 'kuat',
         },
-        inspectionNotes: 'Bebek manual irit tanpa radiator — rantai baru & terlumasi.',
-        budgetAmount: 300000,
-        budgetNotes: 'Anggaran hemat motor bebek komuter Suzuki Smash FI',
+        inspectionNotes: 'Trail karburator berpendingin udara 2014 — rantai baru & terlumasi.',
+        budgetAmount: 450000,
+        budgetNotes: 'Anggaran perawatan motor trail dual-sport Kawasaki KLX 150',
         complaint: _SeedComplaintSpec(
           daysAgo: 21,
-          title: 'Rantai kendur berdecit saat oper gigi',
+          title: 'Rantai kendur berdecit setelah jalur tanah',
           description: 'Bunyi gemeretak dari roda belakang sebelum penggantian rantai set.',
           status: 'resolved',
-          userMsg: 'Rantai Suzuki Smash saya bunyi kasar tiap akselerasi gigi 2 ke 3.',
+          userMsg: 'Rantai Kawasaki KLX 150 saya bunyi kasar tiap akselerasi gigi 2 ke 3 setelah lewat jalur lumpur.',
           assistantMsg:
-              'Gir belakang yang runcing dan rantai aus memicu bunyi kasar saat torsi berpindah. Penggantian 1 set rantai dan gir sudah mengatasi sumber bunyi.',
+              'Gir belakang yang runcing dan rantai aus memicu bunyi kasar saat torsi berpindah. Penggantian 1 set rantai dan gir heavy duty sudah mengatasi sumber bunyi.',
           riskLevel: 'rendah',
-          summary: 'Sudah diganti dengan Rantai Set Suzuki Smash FI Genuine',
+          summary: 'Sudah diganti dengan Rantai & Gir Set Kawasaki KLX 150',
           symptomsJson: '["rantai_berisik"]',
           componentsJson: '["Rantai & gir"]',
         ),

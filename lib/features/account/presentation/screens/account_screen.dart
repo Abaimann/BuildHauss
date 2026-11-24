@@ -1,11 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/database/app_database.dart';
+import '../../../../core/database/sample_data_seeder.dart';
+import '../../../../core/platform/native_platform_service.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/database/app_database.dart';
-import '../../../../core/database/sample_data_seeder.dart';
 import '../../../../shared/widgets/buildhaus_logo.dart';
 
 class AccountScreen extends ConsumerWidget {
@@ -28,37 +31,35 @@ class AccountScreen extends ConsumerWidget {
               children: [
                 const BuildHausLogoCompact(size: 38),
                 const SizedBox(width: 12),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Akun',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: context.ink,
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Akun',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: context.ink,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'Profil & Pengelolaan Garasi',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: context.muted,
+                      Text(
+                        'Profil & Pengelolaan Garasi',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.muted,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                tooltip: 'Pengaturan',
-                onPressed: () => context.push('/settings'),
-              ),
-              const SizedBox(width: 8),
-            ],
           ),
 
           SliverPadding(
@@ -117,9 +118,74 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _ProfileCard extends ConsumerWidget {
+  Future<void> _pickAndSaveAvatar(BuildContext context, WidgetRef ref) async {
+    final path = await NativePlatformService.pickProfileImage();
+    if (path != null && path.isNotEmpty) {
+      await ref.read(authProvider.notifier).updateAvatarPath(path);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto profil berhasil diperbarui.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _onTapAvatar(
+    BuildContext context,
+    WidgetRef ref,
+    AuthState auth,
+  ) async {
+    final hasStoredAvatar =
+        auth.avatarPath != null && auth.avatarPath!.trim().isNotEmpty;
+    if (!hasStoredAvatar) {
+      await _pickAndSaveAvatar(context, ref);
+      return;
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Pilih Foto dari Galeri'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickAndSaveAvatar(context, ref);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.delete_outline, color: BuildHausTheme.danger),
+              title: Text(
+                'Hapus Foto Profil',
+                style: TextStyle(color: BuildHausTheme.danger),
+              ),
+              onTap: () async {
+                Navigator.pop(ctx);
+                await ref.read(authProvider.notifier).updateAvatarPath(null);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Foto profil dihapus.')),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
+    final avatarPath = auth.avatarPath;
+    final hasValidAvatarFile =
+        avatarPath != null &&
+        avatarPath.trim().isNotEmpty &&
+        File(avatarPath).existsSync();
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -133,39 +199,124 @@ class _ProfileCard extends ConsumerWidget {
         border: Border.all(color: context.line),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  context.ink.withValues(alpha: 0.8),
-                  context.ink.withValues(alpha: 0.5),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Center(
-              child: Text(
-                auth.userInitial,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: context.bg,
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              InkWell(
+                onTap: () => _onTapAvatar(context, ref, auth),
+                borderRadius: BorderRadius.circular(18),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            context.ink.withValues(alpha: 0.8),
+                            context.ink.withValues(alpha: 0.5),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: hasValidAvatarFile
+                            ? Image.file(
+                                File(avatarPath),
+                                width: 64,
+                                height: 64,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Center(
+                                  child: Text(
+                                    auth.userInitial,
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                      color: context.bg,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Center(
+                                child: Text(
+                                  auth.userInitial,
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: context.bg,
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ),
+                    Positioned(
+                      right: -4,
+                      bottom: -4,
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: context.ink,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: context.surface,
+                            width: 2,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.camera_alt_rounded,
+                          size: 12,
+                          color: context.bg,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+              const SizedBox(height: 6),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 72),
+                child: InkWell(
+                  onTap: () => _onTapAvatar(context, ref, auth),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Ubah Foto',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: context.ink2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   auth.userName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
@@ -177,6 +328,8 @@ class _ProfileCard extends ConsumerWidget {
                   auth.userEmail.isNotEmpty
                       ? auth.userEmail
                       : 'Smart Rider • Local & Cloud AI',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 12, color: context.muted),
                 ),
                 const SizedBox(height: 8),
@@ -198,12 +351,16 @@ class _ProfileCard extends ConsumerWidget {
                         color: BuildHausTheme.ok,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        'Gemini Cloud AI Active',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: BuildHausTheme.ok,
+                      Flexible(
+                        child: Text(
+                          'Gemini Cloud AI Active',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: BuildHausTheme.ok,
+                          ),
                         ),
                       ),
                     ],
@@ -226,7 +383,10 @@ class _ProfileCard extends ConsumerWidget {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Batal'),
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Batal', maxLines: 1),
+                      ),
                     ),
                     ElevatedButton(
                       onPressed: () => Navigator.pop(ctx, true),
@@ -234,7 +394,10 @@ class _ProfileCard extends ConsumerWidget {
                         backgroundColor: BuildHausTheme.danger,
                         minimumSize: const Size(0, 42),
                       ),
-                      child: const Text('Keluar'),
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Keluar', maxLines: 1),
+                      ),
                     ),
                   ],
                 ),
@@ -334,16 +497,26 @@ class _StatCard extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(height: 6),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: context.ink,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: context.ink,
+              ),
             ),
           ),
           const SizedBox(height: 2),
-          Text(label, style: TextStyle(fontSize: 10, color: context.muted)),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 10, color: context.muted),
+          ),
         ],
       ),
     );
@@ -377,23 +550,52 @@ class _EmptyMotorsCard extends ConsumerWidget {
             style: TextStyle(fontSize: 12, color: context.muted),
           ),
           const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () => context.push('/add-motor'),
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Tambah Motor'),
-            style: ElevatedButton.styleFrom(minimumSize: const Size(0, 44)),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => context.push('/add-motor'),
+              icon: const Icon(Icons.add, size: 18),
+              label: const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('Tambah Motor', maxLines: 1),
+              ),
+              style: ElevatedButton.styleFrom(minimumSize: const Size(0, 44)),
+            ),
           ),
           const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: () async {
-              final db = ref.read(databaseProvider);
-              await SampleDataSeeder(db).seedRealisticSampleMotorcycles();
-              ref.invalidate(motorcyclesProvider);
-              ref.invalidate(activeMotorcycleProvider);
-            },
-            icon: const Icon(Icons.auto_awesome, size: 18),
-            label: const Text('Muat 3 Motor Contoh'),
-            style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final db = ref.read(databaseProvider);
+                final createdIds = await SampleDataSeeder(
+                  db,
+                ).seedDiverseFiveMotorcycles();
+                ref.invalidate(motorcyclesProvider);
+                if (createdIds.isNotEmpty) {
+                  final motors = await db.getAllMotorcycles();
+                  final firstMotor = motors.cast<Motorcycle?>().firstWhere(
+                    (m) => m?.id == createdIds.first,
+                    orElse: () => null,
+                  );
+                  if (firstMotor != null) {
+                    await ref
+                        .read(activeMotorcycleProvider.notifier)
+                        .setActiveMotorcycle(firstMotor);
+                  } else {
+                    ref.invalidate(activeMotorcycleProvider);
+                  }
+                } else {
+                  ref.invalidate(activeMotorcycleProvider);
+                }
+              },
+              icon: const Icon(Icons.auto_awesome, size: 18),
+              label: const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('Muat 5 Motor Beragam', maxLines: 1),
+              ),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+            ),
           ),
         ],
       ),
@@ -414,18 +616,23 @@ class _MotorBrandLabel extends ConsumerWidget {
       builder: (context, snap) {
         final model = snap.data;
         if (model == null) return const SizedBox.shrink();
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: context.ink.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            model.brand,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: context.ink,
+        return ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 92),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: context.ink.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              model.brand,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: context.ink,
+              ),
             ),
           ),
         );
@@ -464,10 +671,14 @@ class _MotorListTile extends ConsumerWidget {
           leading: _MotorBrandLabel(modelId: motorcycle.modelId),
           title: Text(
             motorcycle.nickname,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(fontWeight: FontWeight.w600, color: context.ink),
           ),
           subtitle: Text(
             'Tahun ${motorcycle.manufactureYear}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 11, color: context.muted),
           ),
           trailing: Row(
@@ -557,7 +768,10 @@ class _MotorListTile extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Batal', maxLines: 1),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -571,7 +785,10 @@ class _MotorListTile extends ConsumerWidget {
               backgroundColor: BuildHausTheme.danger,
               minimumSize: const Size(0, 44),
             ),
-            child: const Text('Hapus'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Hapus', maxLines: 1),
+            ),
           ),
         ],
       ),
@@ -606,12 +823,16 @@ class _AddMotorTile extends StatelessWidget {
               child: Icon(Icons.add, color: context.muted, size: 20),
             ),
             const SizedBox(width: 14),
-            Text(
-              'Tambah Motor Baru',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                color: context.muted,
+            Expanded(
+              child: Text(
+                'Tambah Motor Baru',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: context.muted,
+                ),
               ),
             ),
           ],
@@ -648,12 +869,16 @@ class _ThemeSection extends ConsumerWidget {
                     : Colors.amber.shade700,
               ),
               const SizedBox(width: 10),
-              Text(
-                'Tema Aplikasi',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: context.ink,
+              Expanded(
+                child: Text(
+                  'Tema Aplikasi',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: context.ink,
+                  ),
                 ),
               ),
             ],
@@ -680,17 +905,6 @@ class _ThemeSection extends ConsumerWidget {
                   onTap: () => ref
                       .read(themeModeProvider.notifier)
                       .setTheme(ThemeMode.dark),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _ThemeChoiceChip(
-                  label: 'Sistem',
-                  icon: Icons.phone_android_outlined,
-                  isSelected: themeMode == ThemeMode.system,
-                  onTap: () => ref
-                      .read(themeModeProvider.notifier)
-                      .setTheme(ThemeMode.system),
                 ),
               ),
             ],
@@ -721,7 +935,7 @@ class _ThemeChoiceChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? context.ink : context.surface,
           borderRadius: BorderRadius.circular(12),
@@ -731,12 +945,17 @@ class _ThemeChoiceChip extends StatelessWidget {
           children: [
             Icon(icon, size: 18, color: isSelected ? context.bg : context.ink),
             const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? context.bg : context.ink,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? context.bg : context.ink,
+                ),
               ),
             ),
           ],
@@ -747,6 +966,89 @@ class _ThemeChoiceChip extends StatelessWidget {
 }
 
 class _DataManagementSection extends ConsumerWidget {
+  Future<void> _handleClearAllData(BuildContext context, WidgetRef ref) async {
+    final confirm1 = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus Semua Data Pengguna?'),
+        content: const Text(
+          'Tindakan ini akan menghapus permanen seluruh motor, riwayat servis, odometer, '
+          'dan keluhan Anda dari perangkat ini.\n\n'
+          'Pastikan Anda telah membuat file backup terlebih dahulu.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Batal', maxLines: 1),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: BuildHausTheme.danger,
+              minimumSize: const Size(0, 44),
+            ),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Lanjutkan Hapus', maxLines: 1),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm1 != true || !context.mounted) return;
+
+    final confirm2 = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi Terakhir'),
+        content: const Text(
+          'Apakah Anda benar-benar yakin? Data yang dihapus tidak dapat dipulihkan tanpa file backup.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Batal', maxLines: 1),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: BuildHausTheme.danger,
+              minimumSize: const Size(0, 44),
+            ),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Ya, Hapus Semua', maxLines: 1),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm2 != true) return;
+
+    final db = ref.read(databaseProvider);
+    await db.clearAllUserData();
+
+    ref.invalidate(motorcyclesProvider);
+    ref.invalidate(activeMotorcycleProvider);
+    ref.invalidate(databaseStatsProvider);
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Semua data pengguna telah dibersihkan.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
@@ -755,7 +1057,7 @@ class _DataManagementSection extends ConsumerWidget {
           icon: Icons.garage_outlined,
           iconColor: BuildHausTheme.ok,
           title: 'Muat 5 Motor Beragam Jenis',
-          subtitle: 'Skutik maxi, sport fairing, bebek & retro + data lengkap',
+          subtitle: 'Skutik maxi, trail, sport fairing & retro + data lengkap',
           onTap: () async {
             final confirm = await showDialog<bool>(
               context: context,
@@ -763,18 +1065,27 @@ class _DataManagementSection extends ConsumerWidget {
                 title: const Text('Muat 5 Motor Beragam Jenis?'),
                 content: const Text(
                   'Ini akan mendaftarkan 5 jenis motor berbeda (Honda Vario 160, '
-                  'Yamaha NMAX, Suzuki Smash FI, Honda CBR150R, Kawasaki W175) '
+                  'Yamaha NMAX 155, Kawasaki KLX 150, Honda CBR150R, Kawasaki W175) '
                   'lengkap dengan odometer, riwayat servis & pengeluaran, '
                   'inspeksi mandiri, rencana budget, pengingat, dan keluhan AI.',
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('Batal'),
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('Batal', maxLines: 1),
+                    ),
                   ),
                   ElevatedButton(
                     onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Muat 5 Motor'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(0, 44),
+                    ),
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('Muat 5 Motor', maxLines: 1),
+                    ),
                   ),
                 ],
               ),
@@ -822,75 +1133,19 @@ class _DataManagementSection extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         _SettingsTile(
-          icon: Icons.two_wheeler_outlined,
-          iconColor: Colors.teal.shade700,
-          title: 'Muat Data Motor Contoh',
-          subtitle: 'Isi 3 motor realistis (Vario, Aerox, Beat)',
-          onTap: () async {
-            final confirm = await showDialog<bool>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Muat Data Contoh?'),
-                content: const Text(
-                  'Ini akan menambahkan 3 motor realistis (Honda Vario 160, Yamaha Aerox, Honda Beat Street) '
-                  'beserta riwayat servis, odometer, dan jadwal pengingat perawatan.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('Batal'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Muat Data'),
-                  ),
-                ],
-              ),
-            );
-            if (confirm == true) {
-              if (!context.mounted) return;
-              final container = ProviderScope.containerOf(context);
-              final messenger = ScaffoldMessenger.of(context);
-              final db = container.read(databaseProvider);
-              final createdIds = await SampleDataSeeder(
-                db,
-              ).seedRealisticSampleMotorcycles(force: true);
-              container.invalidate(motorcyclesProvider);
-              for (final id in createdIds) {
-                container.invalidate(latestOdometerProvider(id));
-                container.invalidate(odometerLogsProvider(id));
-                container.invalidate(componentStatusesWithNamesProvider(id));
-                container.invalidate(serviceRecordsProvider(id));
-                container.invalidate(motorcycleExpenseSummaryProvider(id));
-                container.invalidate(complaintsProvider(id));
-              }
-              if (createdIds.isNotEmpty) {
-                final motors = await db.getAllMotorcycles();
-                final firstMotor = motors.cast<Motorcycle?>().firstWhere(
-                  (m) => m?.id == createdIds.first,
-                  orElse: () => null,
-                );
-                if (firstMotor != null) {
-                  await container
-                      .read(activeMotorcycleProvider.notifier)
-                      .setActiveMotorcycle(firstMotor);
-                }
-              } else {
-                container.invalidate(activeMotorcycleProvider);
-              }
-              messenger.showSnackBar(
-                const SnackBar(content: Text('3 motor contoh berhasil dimuat!')),
-              );
-            }
-          },
-        ),
-        const SizedBox(height: 8),
-        _SettingsTile(
           icon: Icons.notifications_active_outlined,
           iconColor: Colors.orange.shade700,
           title: 'Pengingat Perawatan',
           subtitle: 'Jadwal servis berkala & pengingat odometer',
           onTap: () => context.push('/reminders'),
+        ),
+        const SizedBox(height: 8),
+        _SettingsTile(
+          icon: Icons.smart_toy_outlined,
+          iconColor: Colors.deepPurple,
+          title: 'Konfigurasi AI Gemini',
+          subtitle: 'Atur API key & status asisten AI',
+          onTap: () => context.push('/ai-model'),
         ),
         const SizedBox(height: 8),
         _SettingsTile(
@@ -910,11 +1165,12 @@ class _DataManagementSection extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         _SettingsTile(
-          icon: Icons.settings_outlined,
-          iconColor: Colors.teal,
-          title: 'Pengaturan Aplikasi',
-          subtitle: 'Notifikasi, preferensi tema, dan data',
-          onTap: () => context.push('/settings'),
+          icon: Icons.delete_forever_outlined,
+          iconColor: BuildHausTheme.danger,
+          titleColor: BuildHausTheme.danger,
+          title: 'Hapus Semua Data',
+          subtitle: 'Reset seluruh motor dan riwayat dari perangkat',
+          onTap: () => _handleClearAllData(context, ref),
         ),
       ],
     );
@@ -930,7 +1186,7 @@ class _AboutSection extends StatelessWidget {
           icon: Icons.info_outline,
           iconColor: context.ink2,
           title: 'Tentang BuildHaus',
-          subtitle: 'Versi 1.0.0 — Smart AI Motorcycle Care',
+          subtitle: 'Versi 1.2.0 — Smart AI Motorcycle Care',
           onTap: () => _showAbout(context),
         ),
         const SizedBox(height: 8),
@@ -949,7 +1205,7 @@ class _AboutSection extends StatelessWidget {
     showAboutDialog(
       context: context,
       applicationName: 'BuildHaus',
-      applicationVersion: '1.0.0',
+      applicationVersion: '1.2.0',
       applicationLegalese:
           '© 2026 BuildHaus\nOffline-first motorcycle maintenance assistant.',
       children: [
@@ -974,12 +1230,14 @@ class _AboutSection extends StatelessWidget {
 class _SettingsTile extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
+  final Color? titleColor;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
   const _SettingsTile({
     required this.icon,
     required this.iconColor,
+    this.titleColor,
     required this.title,
     required this.subtitle,
     required this.onTap,
@@ -1015,14 +1273,18 @@ class _SettingsTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
-                      color: context.ink,
+                      color: titleColor ?? context.ink,
                     ),
                   ),
                   Text(
                     subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 11, color: context.muted),
                   ),
                 ],
